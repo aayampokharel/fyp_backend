@@ -35,6 +35,6 @@ func ProofOfWork(header *models.Header) error {
 		}
 		nonce++
 	}
-	header.Nonce = 
+
 	return nil
 }

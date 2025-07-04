@@ -109,7 +109,9 @@ func CreateBlock() {
 	parsedBlock.Header.MerkleRoot = merkelRootString
 
 	//insert 1st intial block
-	//insert fakedata
+
+	//insert 1st data
+
 	//print the data .
 
 }
