@@ -25,12 +25,14 @@ func ProofOfWork(header *models.Header) error {
 		"",
 	}
 	for {
-		header.Nonce = strconv.Itoa(nonce)
+		tempHeader.Nonce = header.Nonce
 		hash, err := utils.CalculateHashHex(tempHeader)
 		if err != nil {
 			return fmt.Errorf("error in calculating hash: %w", err)
 		}
 		if hash[:4] == "0000" {
+			header.Nonce = strconv.Itoa(nonce)
+			header.CurrentHash = hash
 			break
 		}
 		nonce++

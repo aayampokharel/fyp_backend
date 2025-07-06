@@ -6,11 +6,9 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"log"
-	"time"
 
 	"github.com/aayampokharel/fyp/common"
 	digitalsignature "github.com/aayampokharel/fyp/common/digital_signature"
-	"github.com/aayampokharel/fyp/models"
 	"github.com/aayampokharel/fyp/utils"
 )
 
@@ -23,33 +21,33 @@ func CreateBlock() {
 	// merkel tree ma update .
 	//pow + nonce calc
 	// insert without error
-
-	fakeData := models.BlockWithSignature{
-		Signature: "",
-		BlockData: models.Block{
-			Header: models.Header{
-				BlockNumber:  0,
-				TimeStamp:    time.Now(),
-				PreviousHash: "",
-				Nonce:        "",
-				CurrentHash:  "",
-				MerkleRoot:   "",
-			},
-			CertificateData: [4]models.CertificateData{
-				{
-					ID:                 "",
-					StudentName:        "",
-					UniversityName:     "",
-					Degree:             "",
-					College:            "",
-					CertificateDate:    time.Now(),
-					Division:           "",
-					PrincipalSignature: "",
-					TuApproval:         "",
-				},
-			},
-		},
-	}
+	//! change this below as well . maile directly eeuta certificatedata ko lagi matra garne ho ahile ko lagi . not for all . take the POW () , merkelroot() inside INSERT function . do there ,
+	// fakeData := models.BlockWithSignature{
+	// 	Signature: "",
+	// 	BlockData: models.Block{
+	// 		Header: models.Header{
+	// 			BlockNumber:  0,
+	// 			TimeStamp:    time.Now(),
+	// 			PreviousHash: "",
+	// 			Nonce:        "",
+	// 			CurrentHash:  "",
+	// 			MerkleRoot:   "",
+	// 		},
+	// 		CertificateData: [4]models.CertificateData{
+	// 			{
+	// 				ID:                 "",
+	// 				StudentName:        "",
+	// 				UniversityName:     "",
+	// 				Degree:             "",
+	// 				College:            "",
+	// 				CertificateDate:    time.Now(),
+	// 				Division:           "",
+	// 				PrincipalSignature: "",
+	// 				TuApproval:         "",
+	// 			},
+	// 		},
+	// 	},
+	// }
 	//create a signature
 	//-> hash
 
@@ -109,7 +107,7 @@ func CreateBlock() {
 	parsedBlock.Header.MerkleRoot = merkelRootString
 
 	//insert 1st intial block
-
+	utils.BlockChain = append(utils.BlockChain, utils.CreateGenesisBlock())
 	//insert 1st data
 
 	//print the data .

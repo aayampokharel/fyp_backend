@@ -1,4 +1,4 @@
-package utils
+package global
 
 import "github.com/aayampokharel/fyp/models"
 
