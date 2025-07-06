@@ -22,20 +22,22 @@ func ProofOfWork(header *models.Header) error {
 		header.TimeStamp.Format(time.RFC3339),
 		header.PreviousHash,
 		header.MerkleRoot,
-		"",
+		"0",
 	}
 	for {
-		tempHeader.Nonce = header.Nonce
+		tempHeader.Nonce = strconv.Itoa(nonce)
 		hash, err := utils.CalculateHashHex(tempHeader)
 		if err != nil {
 			return fmt.Errorf("error in calculating hash: %w", err)
 		}
-		if hash[:4] == "0000" {
+		fmt.Println(hash)
+		if hash[:3] == "000" {
 			header.Nonce = strconv.Itoa(nonce)
 			header.CurrentHash = hash
 			break
 		}
 		nonce++
+
 	}
 
 	return nil

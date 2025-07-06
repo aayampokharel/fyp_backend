@@ -8,9 +8,7 @@ import (
 )
 
 func InsertBlock(certificateData models.CertificateData) error {
-	// global array check garyo
-	// if array is empty insert directly there , recalcualte the headers thing .
-	// else call evaluete_new_header, and do stuffs . and insert the data there .
+	//! use MUTEX for global slice . for accidental causes  !!! its much easier  .
 	if len(global.BlockChain) == 0 {
 		global.BlockChain = append(global.BlockChain, utils.CreateGenesisBlock())
 	}
@@ -24,17 +22,21 @@ func InsertBlock(certificateData models.CertificateData) error {
 	}
 	lastBlock.CertificateData[lastBlockCertificatesLength] = certificateData
 
-	merkelRootString, err := utils.CalculateMerkelRoot(lastBlock.CertificateData[:])
+	merkelRootString, err := common.CalculateMerkelRoot(lastBlock.CertificateData)
 	if err != nil {
 		utils.LogErrorWithContext("Merkel Root Calculation", err)
-		return err
+		return ErrMerkleRootFailed
 	}
 	err = common.ProofOfWork(&lastBlock.Header)
 	if err != nil {
 		utils.LogErrorWithContext("Proof of Work", err)
-		return err
+		return ErrPoWFailed
+	}
+	if len(global.BlockChain) > 1 {
+		lastBlock.Header.PreviousHash = global.BlockChain[len(global.BlockChain)-2].Header.CurrentHash
+	} else {
+		lastBlock.Header.PreviousHash = lastBlock.Header.CurrentHash
 	}
 	lastBlock.Header.MerkleRoot = merkelRootString
-
 	return nil
 }

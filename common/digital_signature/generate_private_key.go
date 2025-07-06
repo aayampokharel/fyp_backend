@@ -20,7 +20,7 @@ func GeneratePrivateKey() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 		Bytes: x509.MarshalPKCS1PrivateKey(privateKey), // Convert key to ASN.1 DER format
 	}
 
-	privateKeyFile, err := os.Create("/FYP/certs/private_key.pem")
+	privateKeyFile, err := os.Create("../../certs/private_key.pem")
 	if err != nil {
 		utils.LogErrorWithContext("StoreKey", err)
 		return nil, nil, err

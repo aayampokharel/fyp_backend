@@ -12,7 +12,7 @@ func CreateGenesisBlock() models.Block {
 			BlockNumber:  0,
 			TimeStamp:    time.Now(),
 			MerkleRoot:   "",
-			PreviousHash: "",
+			PreviousHash: "0",
 			Nonce:        "", //from Pow
 			CurrentHash:  "", //from pow
 		},

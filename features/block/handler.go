@@ -32,7 +32,7 @@ func CreateBlock() {
 			UniversityName:     "",
 			Degree:             "",
 			College:            "",
-			CertificateDate:    time.Now(),
+			CertificateDate:    time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC),
 			Division:           "",
 			PrincipalSignature: "",
 			TuApproval:         "",
@@ -54,7 +54,7 @@ func CreateBlock() {
 		return
 	}
 
-	rsaPrivateKey, err := digitalsignature.LoadPrivateKey("/FYP/certs/private_key.pem")
+	rsaPrivateKey, err := digitalsignature.LoadPrivateKey("../../certs/private_key.pem")
 	if err != nil {
 		utils.LogErrorWithContext("LoadPrivateKey", err)
 		return
@@ -92,6 +92,11 @@ func CreateBlock() {
 	//then parse into our  struct without signature , signature not necessary now .
 
 	parsedBlock := ConvertintoModelsBlock(fakeCertificateWithSignature)
+	er = InsertBlock(parsedBlock)
+	if er != nil {
+		utils.LogErrorWithContext("Insert Block", er)
+		return
+	}
 	// pow + nonce
 
 	//insert 1st data
