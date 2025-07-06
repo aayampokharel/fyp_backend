@@ -30,7 +30,7 @@ type CertificateData struct {
 	TuApproval         string    `json:"tu_approval"`         //tu's digital signature
 }
 
-type BlockWithSignature struct {
-	BlockData Block  `json:"block_data"`
-	Signature string `json:"signature"`
+type CertificateDataWithSignature struct {
+	CertificateData CertificateData `json:"block_data"`
+	Signature       string          `json:"signature"`
 }

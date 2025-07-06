@@ -32,7 +32,7 @@ func ConvertStringStatusToEnum(status string) models.STATUS {
 	}
 }
 
-func HashBlock(block models.Block) ([]byte, error) {
+func HashCertificateData(block models.CertificateData) ([]byte, error) {
 	jsonData, err := json.Marshal(block)
 	if err != nil {
 		return nil, err
@@ -41,6 +41,6 @@ func HashBlock(block models.Block) ([]byte, error) {
 	return hashedValue[:], nil
 }
 
-func ConvertintoModelsBlock(blockDataWithSignature models.BlockWithSignature) models.Block {
-	return blockDataWithSignature.BlockData
+func ConvertintoModelsBlock(blockDataWithSignature models.CertificateDataWithSignature) models.CertificateData {
+	return blockDataWithSignature.CertificateData
 }
