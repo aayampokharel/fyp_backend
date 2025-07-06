@@ -15,6 +15,7 @@ func CreateGenesisBlock() models.Block {
 			PreviousHash: "0",
 			Nonce:        "", //from Pow
 			CurrentHash:  "", //from pow
+			Status:       models.PENDING,
 		},
 		CertificateData: [4]models.CertificateData{
 			{

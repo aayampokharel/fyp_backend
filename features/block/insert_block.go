@@ -38,5 +38,6 @@ func InsertBlock(certificateData models.CertificateData) error {
 		lastBlock.Header.PreviousHash = lastBlock.Header.CurrentHash
 	}
 	lastBlock.Header.MerkleRoot = merkelRootString
+
 	return nil
 }
