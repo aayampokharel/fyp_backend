@@ -1,9 +1,0 @@
-package models
-
-type STATUS string
-
-const (
-	PENDING  STATUS = "PENDING"
-	APPROVED STATUS = "APPROVED"
-	REJECTED STATUS = "REJECTED"
-)
