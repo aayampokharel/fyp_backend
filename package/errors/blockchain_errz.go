@@ -14,4 +14,5 @@ var (
 	ErrGenesisBlockMismatch = errorz.Status400BadRequest.Wrap("Genesis Block Mismatch")
 	ErrMarshaling           = errorz.Status400BadRequest.Wrap("Error marshaling")
 	ErrEmptyFields          = errorz.Status400BadRequest.Wrap("Empty Fields")
+	ErrEmptyPOWRules        = errorz.Status400BadRequest.Wrap("Empty POW Rule String in .env file")
 )
