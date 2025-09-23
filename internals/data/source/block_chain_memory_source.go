@@ -4,6 +4,8 @@ import (
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
 	err "project/package/errors"
+	logger "project/package/utils/pkg"
+	"strconv"
 	"time"
 )
 
@@ -19,6 +21,10 @@ func NewBlockChainMemorySource() *BlockChainMemorySource {
 
 var _ repository.IBlockChainRepository = (*BlockChainMemorySource)(nil)
 
+func (b *BlockChainMemorySource) GenerateNewBlock() (entity.Block, error) {
+	return entity.Block{}, nil
+
+}
 func (b *BlockChainMemorySource) GetCertificateData() (entity.CertificateData, error) {
 	return entity.CertificateData{
 		ID:                 "12345",
@@ -35,6 +41,7 @@ func (b *BlockChainMemorySource) GetCertificateData() (entity.CertificateData, e
 
 func (b *BlockChainMemorySource) GetLatestBlock() (entity.Block, error) {
 	if len(b.blockChain) <= 0 {
+		logger.Logger.Infoln("err block chain empty")
 		return entity.Block{}, err.ErrEmptyBlockChain
 	}
 	return b.blockChain[len(b.blockChain)-1], nil
@@ -44,9 +51,11 @@ func (b *BlockChainMemorySource) GetLatestBlock() (entity.Block, error) {
 func (b *BlockChainMemorySource) UpdateLatestBlockInBlockchain(block entity.Block) error {
 	lengthOfBlockChain := len(b.blockChain)
 	if lengthOfBlockChain <= 0 {
+		logger.Logger.Infoln("err block chain empty")
 		return err.ErrEmptyBlockChain
 	}
 	if lengthOfBlockChain == 1 {
+		logger.Logger.Infoln("err genesis block update")
 		return err.ErrGenesisBlockUpdate
 	}
 
@@ -54,6 +63,7 @@ func (b *BlockChainMemorySource) UpdateLatestBlockInBlockchain(block entity.Bloc
 		b.blockChain[len(b.blockChain)-1] = block
 		return nil
 	}
+	logger.Logger.Infoln("err block number mismatch")
 	return err.ErrBlockNumberMismatch
 
 }
@@ -61,9 +71,11 @@ func (b *BlockChainMemorySource) UpdateLatestBlockInBlockchain(block entity.Bloc
 func (b *BlockChainMemorySource) InsertIntoBlockChain(block entity.Block) error {
 	lengthOfBlockChain := len(b.blockChain)
 	if lengthOfBlockChain == 0 {
+		logger.Logger.Infoln("err block chain empty")
 		return err.ErrEmptyBlockChain
 	}
 	if b.blockChain[lengthOfBlockChain-1].Header.BlockNumber != block.Header.BlockNumber-1 {
+		logger.Logger.Infoln("err block number mismatch")
 		return err.ErrBlockNumberMismatch
 	}
 	b.blockChain = append(b.blockChain, block)
@@ -73,6 +85,7 @@ func (b *BlockChainMemorySource) InsertIntoBlockChain(block entity.Block) error 
 func (b *BlockChainMemorySource) InsertGenesisBlock() error {
 	lengthOfBlockChain := len(b.blockChain)
 	if lengthOfBlockChain != 0 {
+		logger.Logger.Infoln("err genesis block insert")
 		return err.ErrGenesisBlockInsert
 	}
 	genesisBlock := entity.Block{Header: entity.Header{
@@ -89,6 +102,7 @@ func (b *BlockChainMemorySource) InsertGenesisBlock() error {
 
 func (b *BlockChainMemorySource) GetTwoLatestBlocksInSlice() ([2]entity.Block, error) {
 	if len(b.blockChain) < 2 {
+		logger.Logger.Infoln("empty not enough blocks ")
 		return [2]entity.Block{}, err.ErrNotEnoughBlocks
 	}
 	return [2]entity.Block{b.blockChain[len(b.blockChain)-2], b.blockChain[len(b.blockChain)-1]}, nil
@@ -96,8 +110,26 @@ func (b *BlockChainMemorySource) GetTwoLatestBlocksInSlice() ([2]entity.Block, e
 func (b *BlockChainMemorySource) InsertCertificateIntoBlock(certificate entity.CertificateData, block entity.Block, certificateLength int) (*entity.Block, error) {
 	// certificateLength, err := common.CalculateCertificateDataLength(block.CertificateData)
 	// if err != nil {
+
 	// 	return nil, err
 	// }
 	block.CertificateData[certificateLength] = certificate
+	return &block, nil
+}
+
+func (b *BlockChainMemorySource) GetBlockChainLength() int {
+	return len(b.blockChain)
+}
+
+func (b *BlockChainMemorySource) UpdateCurrentBlock(nonce int, merkleRoot string, currentHash string, block entity.Block) (*entity.Block, error) {
+
+	if nonce < 0 || merkleRoot == "" || currentHash == "" {
+		logger.Logger.Infoln("empty fields")
+		return nil, err.ErrEmptyFields
+
+	}
+	block.Header.Nonce = strconv.Itoa(nonce)
+	block.Header.CurrentHash = currentHash
+	block.Header.MerkleRoot = merkleRoot
 	return &block, nil
 }

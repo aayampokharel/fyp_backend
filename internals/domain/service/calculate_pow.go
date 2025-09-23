@@ -8,32 +8,30 @@ import (
 	"strconv"
 )
 
-func CalculatePOW(powParams entity.PowStructure) (int, error) {
+func (s *Service) CalculatePOW(powParams entity.PowStructure) (nonce int, currentHash string, er error) {
 
 	if powParams.BlockMerkleRoot == "" || powParams.PreviousHash == "" || powParams.BlockNumber == 0 {
-		return -1, err.ErrEmptyFields
+		return -1, "", err.ErrEmptyFields
 
 	}
 	powRuleString := os.Getenv("POW_NUMBER_RULE")
 	powRuleLengthString := len(powRuleString)
-	nonce := 0
 	if powRuleLengthString == 0 {
-		return -1, err.ErrEmptyPOWRules
+		return -1, "", err.ErrEmptyPOWRules
 	}
 	hashedPowParams, err := common.HashData(powParams)
 	if err != nil {
-		return -1, err
+		return -1, "", err
 	}
 
-	for {
+	for nonce := 0; ; nonce++ {
 		hashedVal, err := common.HashData(hashedPowParams + strconv.Itoa(nonce))
 		if err != nil {
-			return -1, err
+			return -1, "", err
 		}
 		if hashedVal[:powRuleLengthString] == powRuleString {
-			return nonce, nil
+			return nonce, hashedVal, nil
 		}
-		nonce++
 
 	}
 }
