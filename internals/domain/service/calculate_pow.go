@@ -1,6 +1,7 @@
 package service
 
 import (
+	"os"
 	"project/internals/domain/entity"
 	err "project/package/errors"
 	"project/package/utils/common"
@@ -13,6 +14,7 @@ func CalculatePOW(powParams entity.PowStructure) (int, error) {
 		return -1, err.ErrEmptyFields
 
 	}
+	powRuleString := os.Getenv("POW_NUMBER_RULE")
 	hashedPowParams, err := common.HashData(powParams)
 	if err != nil {
 		return -1, err
@@ -24,7 +26,7 @@ func CalculatePOW(powParams entity.PowStructure) (int, error) {
 		if err != nil {
 			return -1, err
 		}
-		if hashedVal[:4] == "0000" {
+		if hashedVal[:4] == powRuleString {
 			return nonce, nil
 		}
 		nonce++
