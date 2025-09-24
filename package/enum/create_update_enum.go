@@ -1,8 +1,0 @@
-package enum
-
-type CREATEUPDATE string
-
-const (
-	CREATE CREATEUPDATE = "CREATE"
-	UPDATE CREATEUPDATE = "UPDATE"
-)
