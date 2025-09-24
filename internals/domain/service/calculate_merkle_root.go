@@ -33,6 +33,10 @@ func (s *Service) CalculateMerkleRoot(certificateDataArray [4]entity.Certificate
 	}
 	newLevel := []string{}
 	for len(hashedCertificateDataSlice) != 1 {
+		if newLevel != nil {
+			newLevel = newLevel[:0]
+
+		}
 
 		for i := 1; i <= len(hashedCertificateDataSlice)-1; i += 2 {
 			hashedCertificateDataSlice[i], err = common.HashData(hashedCertificateDataSlice[i] + hashedCertificateDataSlice[i-1])

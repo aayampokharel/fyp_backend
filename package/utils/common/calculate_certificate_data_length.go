@@ -1,6 +1,7 @@
 package common
 
 import (
+	"log"
 	"project/internals/domain/entity"
 	err "project/package/errors"
 )
@@ -16,7 +17,8 @@ func CalculateCertificateDataLength(certificateDataArray [4]entity.CertificateDa
 		}
 	}
 
-	if count < 0 || count > len(certificateDataArray)-1 {
+	if count < 0 || count > len(certificateDataArray) {
+		log.Println("[common] Error: CalculateCertificateDataLength::", count)
 		return -1, err.ErrArrayOutOfBound
 	}
 	return count, nil
