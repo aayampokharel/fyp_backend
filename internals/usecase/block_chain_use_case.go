@@ -62,11 +62,6 @@ func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.Cer
 		totalCertificateDataLength = 0
 
 	}
-	// totalCertificateDataLength, err := common.CalculateCertificateDataLength(latestBlock.CertificateData)
-	// if err != nil {
-	// 	uc.Logger.Infoln(err)
-	// 	return nil, err
-	// }
 
 	updatedBlockAfterCertificateInsertion, totalCertificateDataLength, err := uc.BlockChainRepo.InsertCertificateIntoBlock(certificate, latestBlock)
 	if err != nil {
@@ -109,12 +104,6 @@ func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.Cer
 		uc.Logger.Errorln("[block_chain_memory_source] Error: CompleteBlockFromCertificate::", errorz.ErrBlockNumberMismatch, latestBlock.Header.BlockNumber, latestBlockFromBlockChain.Header.BlockNumber)
 		return nil, nil, 0, 0, errorz.ErrBlockNumberMismatch
 	}
-	// b.logger.Infoln("[block_chain_memory_source] Info: CompleteBlockFromCertificate::", block)
-
-	// if err = uc.BlockChainRepo.InsertIntoBlockChain(*updatedBlockAfterCertificateInsertion); err != nil {
-	// 	uc.Logger.Infoln(err)
-	// 	return nil, err
-	// }
 
 	completeBlock, err := uc.BlockChainRepo.UpdateCurrentBlock(calculatedNonce, merkleRoot, currentHash, *updatedBlockAfterCertificateInsertion)
 
@@ -126,18 +115,16 @@ func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.Cer
 }
 
 func (uc *BlockChainUseCase) UpsertBlockChain(latestBlockFromChain, newBlock entity.Block, latestBlockFromChainCertificateLength, newBlockCertificateLength int) error {
-	// latestBlockFromChain, er := uc.BlockChainRepo.GetLatestBlock()
-	// if er != nil {
-	// 	uc.Logger.Infoln(er)
-	// 	return er
-	// }
+
 	switch latestBlockFromChain.Header.BlockNumber {
+
 	case newBlock.Header.BlockNumber - 1:
 		if erz := uc.Service.EvaluateBlockChain(latestBlockFromChain, newBlock, latestBlockFromChainCertificateLength, newBlockCertificateLength, enum.CREATE); erz != nil {
 			uc.Logger.Errorln(erz)
 			return erz
 		}
 		return uc.BlockChainRepo.InsertIntoBlockChain(newBlock)
+
 	case newBlock.Header.BlockNumber:
 		if erz := uc.Service.EvaluateBlockChain(latestBlockFromChain, newBlock, latestBlockFromChainCertificateLength, newBlockCertificateLength, enum.UPDATE); erz != nil {
 			uc.Logger.Errorln(erz)

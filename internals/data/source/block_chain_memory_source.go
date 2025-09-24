@@ -27,9 +27,6 @@ func NewBlockChainMemorySource() *BlockChainMemorySource {
 var _ repository.IBlockChainRepository = (*BlockChainMemorySource)(nil)
 
 func (b *BlockChainMemorySource) GenerateNewBlock(blockNumber int, previousHash string) (entity.Block, error) {
-
-	// blockNumber := len(b.blockChain)
-	// previousHash := b.blockChain[len(b.blockChain)-1].Header.CurrentHash
 	return entity.Block{
 		Header: entity.Header{
 			BlockNumber:  blockNumber,
@@ -41,14 +38,6 @@ func (b *BlockChainMemorySource) GenerateNewBlock(blockNumber int, previousHash 
 }
 
 func (b *BlockChainMemorySource) GetAnyBlockHeader(length int) (entity.Header, error) {
-	// if length >= len(b.blockChain) {
-	// 	b.logger.Errorln("[block_chain_memory_source] Error: GetAnyBlockHeader::", len(b.blockChain))
-	// 	return entity.Header{}, err.ErrArrayOutOfBound
-	// }
-	// if length <= len(b.blockChain)-2 {
-	// 	b.logger.Errorln("[block_chain_memory_source] Error: GetAnyBlockHeader::", len(b.blockChain), "length:", length)
-	// 	return entity.Header{}, err.ErrArrayOutOfBound
-	// }
 	return b.blockChain[length].Header, nil
 }
 func (b *BlockChainMemorySource) GetBlockChain() ([]entity.Block, error) {
@@ -86,38 +75,13 @@ func (b *BlockChainMemorySource) UpdateLatestBlockInBlockchain(block entity.Bloc
 		b.logger.Errorln("[block_chain_memory_source] Error: UpdateLatestBlockInBlockChain::", len(b.blockChain))
 		return err.ErrEmptyBlockChain
 	}
-	////data can only keep methods to just escape panic
 	b.blockChain[len(b.blockChain)-1] = block
-	// if lengthOfBlockChain == 1 {
-	// 	b.logger.Errorln("[block_chain_memory_source] Error: UpdateLatestBlockInBlockChain::", len(b.blockChain))
-	// 	return err.ErrGenesisBlockUpdate
-	// }
 
-	// if b.blockChain[lengthOfBlockChain-1].Header.BlockNumber == block.Header.BlockNumber {
-	// return nil
-	// }
-	// b.logger.Errorln("[block_chain_memory_source] Error: UpdateLatestBlockInBlockChain::", err.ErrBlockNumberMismatch)
-	// return err.ErrBlockNumberMismatch
 	return nil
 }
 
 func (b *BlockChainMemorySource) InsertIntoBlockChain(block entity.Block) error {
-	// lengthOfBlockChain := len(b.blockChain)
-	// latestBlock := b.blockChain[lengthOfBlockChain-1]
-	// if lengthOfBlockChain == 0 {
-	// 	b.logger.Errorln("[block_chain_memory_source] Error: InsertIntoBlockChain::", err.ErrEmptyBlockChain)
-	// 	return err.ErrEmptyBlockChain
-	// }
 
-	// latestBlockCertificateLength, _ := common.CalculateCertificateDataLength(latestBlock.CertificateData)
-	// if latestBlock.Header.BlockNumber != block.Header.BlockNumber-1 && latestBlockCertificateLength == 4 {
-	// 	b.logger.Errorln("[block_chain_memory_source] Error: InsertIntoBlockChain::", err.ErrBlockNumberMismatch)
-	// 	return err.ErrBlockNumberMismatch
-	// } else if latestBlock.Header.BlockNumber != block.Header.BlockNumber && latestBlockCertificateLength != 4 && latestBlock.Header.BlockNumber != 0 {
-	// 	b.logger.Errorln("[block_chain_memory_source] Error: InsertIntoBlockChain::", err.ErrBlockNumberMismatch, block.Header.BlockNumber, latestBlock.Header.BlockNumber)
-	// 	return err.ErrBlockNumberMismatch
-	// }
-	// b.logger.Infoln("[block_chain_memory_source] Info: InsertIntoBlockChain::", block)
 	b.blockChain = append(b.blockChain, block)
 	return nil
 }
