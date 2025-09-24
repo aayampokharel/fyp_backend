@@ -6,6 +6,7 @@ import (
 	delivery "project/internals/delivery/blockchain"
 	"project/internals/domain/service"
 	"project/internals/usecase"
+	logger "project/package/utils/pkg"
 )
 
 func main() {
@@ -23,7 +24,7 @@ func main() {
 
 	// // start server
 	// huma.Listen(api)
-
+	logger.InitLogger()
 	memorySource := source.NewBlockChainMemorySource()
 
 	// 2️⃣ Create service (for MerkleRoot, POW, etc.)
