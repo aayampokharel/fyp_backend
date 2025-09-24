@@ -22,7 +22,13 @@ func NewBlockChainMemorySource() *BlockChainMemorySource {
 var _ repository.IBlockChainRepository = (*BlockChainMemorySource)(nil)
 
 func (b *BlockChainMemorySource) GenerateNewBlock() (entity.Block, error) {
-	return entity.Block{}, nil
+	blockNumber := len(b.blockChain)
+	previousHash := b.blockChain[len(b.blockChain)-1].Header.CurrentHash
+	block := entity.Block{}
+	block.Header.BlockNumber = blockNumber
+	block.Header.PreviousHash = previousHash
+	block.Header.TimeStamp = time.Now()
+	return block, nil
 
 }
 func (b *BlockChainMemorySource) GetCertificateData() (entity.CertificateData, error) {

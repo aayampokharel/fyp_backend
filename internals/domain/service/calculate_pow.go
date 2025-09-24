@@ -1,8 +1,8 @@
 package service
 
 import (
-	"os"
 	"project/internals/domain/entity"
+	"project/package/constants"
 	err "project/package/errors"
 	"project/package/utils/common"
 	"strconv"
@@ -14,7 +14,7 @@ func (s *Service) CalculatePOW(powParams entity.PowStructure) (nonce int, curren
 		return -1, "", err.ErrEmptyFields
 
 	}
-	powRuleString := os.Getenv("POW_NUMBER_RULE")
+	powRuleString := constants.NewEnv().GetValueForKey("POW_NUMBER_RULE")
 	powRuleLengthString := len(powRuleString)
 	if powRuleLengthString == 0 {
 		return -1, "", err.ErrEmptyPOWRules
