@@ -4,6 +4,7 @@ import (
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
 	err "project/package/errors"
+	"project/package/seed"
 	"project/package/utils/common"
 	logger "project/package/utils/pkg"
 	"strconv"
@@ -46,17 +47,7 @@ func (b *BlockChainMemorySource) GetBlockChain() ([]entity.Block, error) {
 
 }
 func (b *BlockChainMemorySource) GetCertificateData() (entity.CertificateData, error) {
-	return entity.CertificateData{
-		ID:                 "123456",
-		StudentName:        "aayam pokharel",
-		UniversityName:     "TU",
-		Degree:             "Bachelor's",           //struct
-		College:            "St. Xavier's College", //structs
-		CertificateDate:    time.Now(),
-		Division:           "first",
-		PrincipalSignature: "123456",
-		TuApproval:         "true",
-	}, nil
+	return seed.GenerateRandomCertificateData(), nil
 }
 
 func (b *BlockChainMemorySource) GetLatestBlock() (entity.Block, error) {
