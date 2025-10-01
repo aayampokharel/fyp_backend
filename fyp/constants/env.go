@@ -7,7 +7,8 @@ import (
 )
 
 type Env struct {
-	PowNumberRule string `mapstructure:"POW_NUMBER_RULE"`
+	PowNumberRule string   `mapstructure:"POW_NUMBER_RULE"`
+	NodePorts     []string `mapstructure:"NODE_PORTS"`
 }
 
 func NewEnv() *Env {
