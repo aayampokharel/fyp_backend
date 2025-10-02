@@ -49,7 +49,7 @@ func (b *BlockChainMemorySource) GetBlockChain() ([]entity.Block, error) {
 func (b *BlockChainMemorySource) GetCertificateData() (entity.CertificateData, error) {
 	return seed.GenerateRandomCertificateData(), nil
 }
-
+		
 func (b *BlockChainMemorySource) GetLatestBlock() (entity.Block, error) {
 	if len(b.blockChain) <= 0 {
 

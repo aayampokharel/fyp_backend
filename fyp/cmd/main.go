@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"project/internals/data/source"
+	source "project/internals/data/memory"
 	delivery "project/internals/delivery/blockchain"
 	"project/internals/domain/service"
 	"project/internals/usecase"

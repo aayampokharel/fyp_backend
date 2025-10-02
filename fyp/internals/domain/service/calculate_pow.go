@@ -1,7 +1,7 @@
 package service
 
 import (
-	config "project/constants/config"
+	config "project/internals/data/config"
 	"project/internals/domain/entity"
 	err "project/package/errors"
 	"project/package/utils/common"

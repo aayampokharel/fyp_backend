@@ -2,7 +2,7 @@ package errorz
 
 import (
 	"errors"
-	"fmt"
+	"fmt"		
 )
 
 type Config struct {
@@ -10,7 +10,7 @@ type Config struct {
 	StatusCode int    `json:"status_code"`
 }
 
-func (e *Config) Error() string {
+func (e *Config) Error() string {	
 	return e.Message
 }
 
