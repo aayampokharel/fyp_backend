@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"project/constants"
+	"project/internals/data/config"
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
 	"project/internals/domain/service"
@@ -80,7 +82,14 @@ func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.Cer
 		uc.Logger.Errorln(err)
 		return nil, nil, 0, 0, err
 	}
-	calculatedNonce, currentHash, err := uc.Service.CalculatePOW(powStructureParam)
+	env, err := config.NewEnv()
+	if err != nil {
+		uc.Logger.Errorln(err)
+		return nil, nil, 0, 0, err
+	}
+	powRuleString := env.GetValueForKey(constants.PowNumberRuleKey)
+
+	calculatedNonce, currentHash, err := uc.Service.CalculatePOW(powStructureParam, powRuleString)
 	if err != nil {
 		uc.Logger.Errorln(err)
 		return nil, nil, 0, 0, err

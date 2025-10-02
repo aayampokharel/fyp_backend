@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	err "project/package/errors"
 
 	"github.com/spf13/viper"
 )
@@ -11,22 +11,23 @@ type Env struct {
 	NodePorts     []string `mapstructure:"NODE_PORTS"`
 }
 
-func NewEnv() *Env {
+func NewEnv() (*Env, error) {
 	viper.SetConfigFile("../.env")
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error reading .env file: %v", err)
+	if er := viper.ReadInConfig(); er != nil {
+		// log.Fatalf("Error reading .env file: %v", err)
+		return nil, err.ErrEnvParsing
 	}
 	viper.AutomaticEnv()
 
 	var env Env
-	if err := viper.Unmarshal(&env); err != nil {
-		log.Fatalf("Unable to decode into struct: %v", err)
+	if er := viper.Unmarshal(&env); er != nil {
+		// log.Fatalf("Unable to decode into struct: %v", er)
+		return nil, err.ErrEnvParsing
 	}
 
-	return &env
+	return &env, nil
 }
 
 func (e *Env) GetValueForKey(key string) string {
-	// Use viper directly to get the value of the key
 	return viper.GetString(key)
 }

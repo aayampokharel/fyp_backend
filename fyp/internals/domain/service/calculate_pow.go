@@ -1,20 +1,18 @@
 package service
 
 import (
-	config "project/internals/data/config"
 	"project/internals/domain/entity"
 	err "project/package/errors"
 	"project/package/utils/common"
 	"strconv"
 )
 
-func (s *Service) CalculatePOW(powParams entity.PowStructure) (nonce int, currentHash string, er error) {
+func (s *Service) CalculatePOW(powParams entity.PowStructure, powRuleString string) (nonce int, currentHash string, er error) {
 
 	if powParams.BlockMerkleRoot == "" || powParams.PreviousHash == "" || powParams.BlockNumber == 0 {
 		return -1, "", err.ErrEmptyFields
 
 	}
-	powRuleString := config.NewEnv().GetValueForKey("POW_NUMBER_RULE")
 	powRuleLengthString := len(powRuleString)
 	if powRuleLengthString == 0 {
 		return -1, "", err.ErrEmptyPOWRules
