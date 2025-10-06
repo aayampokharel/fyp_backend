@@ -16,4 +16,6 @@ var (
 	ErrEmptyFields          = errorz.Status400BadRequest.Wrap("Empty Fields")
 	ErrEmptyPOWRules        = errorz.Status400BadRequest.Wrap("Empty POW Rule String in .env file")
 	ErrEnvParsing           = errorz.Status400BadRequest.Wrap("Error parsing .env file")
+	ErrIntParse             = errorz.Status400BadRequest.Wrap("Error parsing int from srring")
+	ErrTcpListen            = errorz.Status400BadRequest.Wrap("Error in TCP Listen")
 )

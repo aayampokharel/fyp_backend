@@ -49,7 +49,7 @@ func (b *BlockChainMemorySource) GetBlockChain() ([]entity.Block, error) {
 func (b *BlockChainMemorySource) GetCertificateData() (entity.CertificateData, error) {
 	return seed.GenerateRandomCertificateData(), nil
 }
-		
+
 func (b *BlockChainMemorySource) GetLatestBlock() (entity.Block, error) {
 	if len(b.blockChain) <= 0 {
 
@@ -130,4 +130,8 @@ func (b *BlockChainMemorySource) UpdateCurrentBlock(nonce int, merkleRoot string
 	b.logger.Infoln("[block_chain_memory_source] Info: UpdateCurrentBlock::")
 	// common.PrintPrettyJSON(block)
 	return &block, nil
+}
+
+func (b *BlockChainMemorySource) ReceiveFromPeer(currentPort string) error {
+	return nil
 }
