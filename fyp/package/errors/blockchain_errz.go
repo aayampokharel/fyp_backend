@@ -1,6 +1,18 @@
 package err
 
-import errorz "project/package/error_blueprint"
+import (
+	"fmt"
+	errorz "project/package/error_blueprint"
+	"strings"
+)
+
+func ErrWithMoreInfo(err error, erStr ...string) error {
+	mergedErStr := strings.Join(erStr, ", ")
+	if err == nil {
+		return fmt.Errorf("error: %v", mergedErStr)
+	}
+	return fmt.Errorf("%w: %v", err, mergedErStr)
+}
 
 var (
 	ErrEmptyBlockChain      = errorz.Status400BadRequest.Wrap("Empty Blockchain")
