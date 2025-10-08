@@ -22,7 +22,7 @@ func (c *Controller) InsertNewCertificateData() ([]entity.Block, error) {
 			return nil, err
 		}
 	}
-
+	//mock data
 	certificateData, err := c.useCase.GetCertificateData()
 	if err != nil {
 		log.Println(err)
@@ -33,6 +33,14 @@ func (c *Controller) InsertNewCertificateData() ([]entity.Block, error) {
 		log.Println(err)
 		return nil, err
 	}
+	var strNodeInfoMap map[int]string
+	strNodeInfoMap, err = c.useCase.BroadcastNewBlock(newBlock)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	log.Println("Acknowledgement from nodes: ", strNodeInfoMap)
+
 	if err = c.useCase.UpsertBlockChain(*latestBlockFromChain, *newBlock, latestBlockFromChainCertificateLength, newBlockCertificateLength); err != nil {
 		log.Println(err)
 		return nil, err

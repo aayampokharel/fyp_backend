@@ -124,12 +124,33 @@ func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.Cer
 
 	completeBlock, err := uc.BlockChainRepo.UpdateCurrentBlock(calculatedNonce, merkleRoot, currentHash, *updatedBlockAfterCertificateInsertion)
 	////completeBlock is the one to be transported to other nodes .
-	uc.NodeRepo.SendBlockToPeer(*completeBlock, *common.GetPort())
 	if err != nil {
 		uc.Logger.Infoln(err)
 		return nil, nil, 0, 0, err
 	}
 	return &latestBlockFromBlockChain, completeBlock, latestBlockFromBlockChainCertificateLength, totalCertificateDataLength, nil
+}
+
+func (uc *BlockChainUseCase) BroadcastNewBlock(completeBlock *entity.Block) (map[int]string, error) {
+	return uc.NodeRepo.SendBlockToPeer(*completeBlock, *common.GetPort())
+}
+
+func (uc *BlockChainUseCase) ReceiveBlockFromPeer(currentPort int) error {
+	receivedUpdatedBlock, er := uc.NodeRepo.ReceiveBlockFromPeer(currentPort)
+	if er != nil {
+		uc.Logger.Errorln(er)
+		return er
+	}
+	uc.Logger.Infoln("[block_chain_use_case] Info: ReceiveBlockFromPeer:: Received Block from peer:", receivedUpdatedBlock)
+	latestBlockFromChain, err := uc.BlockChainRepo.GetLatestBlock()
+	if err != nil {
+		uc.Logger.Errorln(err)
+		return err
+	}
+	latestBlockFromChainCertificateLength, _ := common.CalculateCertificateDataLength(latestBlockFromChain.CertificateData)
+	receivedBlockCertificateLength, _ := common.CalculateCertificateDataLength(receivedUpdatedBlock.CertificateData)
+	uc.UpsertBlockChain(latestBlockFromChain, *receivedUpdatedBlock, latestBlockFromChainCertificateLength, receivedBlockCertificateLength)
+	return nil
 }
 
 func (uc *BlockChainUseCase) UpsertBlockChain(latestBlockFromChain, newBlock entity.Block, latestBlockFromChainCertificateLength, newBlockCertificateLength int) error {

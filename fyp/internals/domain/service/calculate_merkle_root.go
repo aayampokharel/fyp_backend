@@ -8,6 +8,10 @@ import (
 type Service struct {
 }
 
+func NewService() Service {
+	return Service{}
+}
+
 func (s *Service) CalculateMerkleRoot(certificateDataArray [4]entity.CertificateData) (string, error) {
 	calculatedLength, err := common.CalculateCertificateDataLength(certificateDataArray)
 	if err != nil {
