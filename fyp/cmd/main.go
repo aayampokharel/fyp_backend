@@ -2,37 +2,38 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+
+	"project/constants"
+	"project/internals/data/config"
 	source "project/internals/data/memory"
+	"project/internals/data/p2p"
 	delivery "project/internals/delivery/blockchain"
-	"project/internals/domain/service"
-	"project/internals/usecase"
 	"project/package/utils/common"
-	logger "project/package/utils/pkg"
 )
 
 func main() {
 
-	logger.InitLogger()
-	memorySource := source.NewBlockChainMemorySource()
-	blockchainService := service.Service{}
-	usecase := usecase.NewBlockChainUseCase(memorySource, blockchainService)
-	controller := delivery.NewController(*usecase)
-	controller.InsertNewCertificateData()
-	controller.InsertNewCertificateData()
-	controller.InsertNewCertificateData()
-	controller.InsertNewCertificateData()
-	controller.InsertNewCertificateData()
-	controller.InsertNewCertificateData()
-	controller.InsertNewCertificateData()
-	// controller.InsertNewCertificateData()
-	finalBlockChain, _ := controller.InsertNewCertificateData()
-	fmt.Print("pretty JSON ")
-	fmt.Println(len(finalBlockChain))
-	fmt.Print("pretty JSON ")
-	common.PrintPrettyJSON(finalBlockChain[0])
-	common.PrintPrettyJSON(finalBlockChain[1])
-	common.PrintPrettyJSON(finalBlockChain[2])
+	port := common.GetPort()
 
-	fmt.Print("end whooho ")
+	env, err := config.NewEnv()
+	if err != nil {
+		fmt.Println("❌ Failed to load environment variables:", err)
+		return
+	}
 
+	ports := env.GetValueForKey(constants.NodePortsKey)
+	fmt.Println("Node Ports:", ports)
+
+	module := delivery.NewModule(source.NewBlockChainMemorySource(), p2p.NewNodeSource(ports))
+
+	mux := http.NewServeMux()
+	delivery.RegisterRoutes(mux, module)
+
+	addr := fmt.Sprintf(":%d", *port)
+	fmt.Printf("🚀 Starting blockchain node on http://localhost%s\n", addr)
+
+	if err := http.ListenAndServe(addr, mux); err != nil {
+		fmt.Println("❌ Server failed:", err)
+	}
 }

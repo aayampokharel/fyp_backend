@@ -17,13 +17,15 @@ import (
 
 type BlockChainUseCase struct {
 	BlockChainRepo repository.IBlockChainRepository
+	NodeRepo       repository.INodeRepository
 	Service        service.Service
 	Logger         *zap.SugaredLogger
 }
 
-func NewBlockChainUseCase(blockChainRepository repository.IBlockChainRepository, service service.Service) *BlockChainUseCase {
+func NewBlockChainUseCase(blockChainRepository repository.IBlockChainRepository, nodeRepository repository.INodeRepository, service service.Service) *BlockChainUseCase {
 	return &BlockChainUseCase{
 		BlockChainRepo: blockChainRepository,
+		NodeRepo:       nodeRepository,
 		Service:        service,
 		Logger:         logger.Logger,
 	}
@@ -41,6 +43,8 @@ func (b *BlockChainUseCase) GetCertificateData() (entity.CertificateData, error)
 	return b.BlockChainRepo.GetCertificateData()
 }
 func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.CertificateData) (latestBlockFromChain, newBlock *entity.Block, latestBlockFromChainCertificateLength, newBlockCertificateLength int, err error) {
+	//deals from getting certificate data to complete inserion at its proper position in the block.
+	//auto handles to extract eiter new block or old block if space available
 	latestBlock, err := uc.BlockChainRepo.GetLatestBlock()
 	if err != nil {
 		uc.Logger.Infoln(err)
@@ -52,6 +56,7 @@ func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.Cer
 		return nil, nil, 0, 0, err
 	}
 	if totalCertificateDataLength == 4 || latestBlock.Header.BlockNumber == 0 {
+		//new block relatin logic
 		previousHash := latestBlock.Header.CurrentHash
 		blockNumber := latestBlock.Header.BlockNumber + 1
 		latestBlock, err = uc.BlockChainRepo.GenerateNewBlock(blockNumber, previousHash)
@@ -82,11 +87,14 @@ func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.Cer
 		uc.Logger.Errorln(err)
 		return nil, nil, 0, 0, err
 	}
+	//!(SINGLETON PATTERN) for ENV
+	//~instead of loading env always like this there should be some other solution as always reading env like this , my env file may furter lengthen more later , so initialize once , use in all other places
 	env, err := config.NewEnv()
 	if err != nil {
 		uc.Logger.Errorln(err)
 		return nil, nil, 0, 0, err
 	}
+	//!-----
 	powRuleString := env.GetValueForKey(constants.PowNumberRuleKey)
 
 	calculatedNonce, currentHash, err := uc.Service.CalculatePOW(powStructureParam, powRuleString)
@@ -115,7 +123,8 @@ func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.Cer
 	}
 
 	completeBlock, err := uc.BlockChainRepo.UpdateCurrentBlock(calculatedNonce, merkleRoot, currentHash, *updatedBlockAfterCertificateInsertion)
-
+	////completeBlock is the one to be transported to other nodes .
+	uc.NodeRepo.SendBlockToPeer(*completeBlock, *common.GetPort())
 	if err != nil {
 		uc.Logger.Infoln(err)
 		return nil, nil, 0, 0, err
@@ -124,7 +133,7 @@ func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.Cer
 }
 
 func (uc *BlockChainUseCase) UpsertBlockChain(latestBlockFromChain, newBlock entity.Block, latestBlockFromChainCertificateLength, newBlockCertificateLength int) error {
-
+	//This helps in recognizing whether a block needs to replace last block from chain(update) or be inserted as new block in chain.
 	switch latestBlockFromChain.Header.BlockNumber {
 
 	case newBlock.Header.BlockNumber - 1:

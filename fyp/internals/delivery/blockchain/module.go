@@ -1,3 +1,22 @@
+// package delivery
+
+// import (
+// 	"project/internals/domain/repository"
+// 	"project/internals/domain/service"
+// 	"project/internals/usecase"
+// )
+
+// type Module struct {
+// 	Controller *Controller
+// }
+
+// func NewModule(repo repository.IBlockChainRepository) *Module {
+// 	blockchainService := service.Service{}
+// 	usecase := usecase.NewBlockChainUseCase(repo, blockchainService)
+// 	return &Module{Controller: NewController(*usecase)}
+
+// }
+
 package delivery
 
 import (
@@ -8,11 +27,16 @@ import (
 
 type Module struct {
 	Controller *Controller
+	UseCase    *usecase.BlockChainUseCase
 }
 
-func NewModule(repo repository.IBlockChainRepository) *Module {
+func NewModule(blockRepo repository.IBlockChainRepository, nodeRepo repository.INodeRepository) *Module {
 	blockchainService := service.Service{}
-	usecase := usecase.NewBlockChainUseCase(repo, blockchainService)
-	return &Module{Controller: NewController(*usecase)}
+	uc := usecase.NewBlockChainUseCase(blockRepo, nodeRepo, blockchainService)
+	controller := NewController(*uc)
 
+	return &Module{
+		Controller: controller,
+		UseCase:    uc,
+	}
 }
