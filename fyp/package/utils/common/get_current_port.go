@@ -4,9 +4,9 @@ import (
 	"flag"
 )
 
-var tcpPort = flag.Int("tcp.port", 0, "TCP port to use")
+var tcpPort = flag.Int("port", 8000, "TCP port to use")
 
 func GetPort() *int {
-	flag.Parse() // parse the CLI flags
+	flag.Parse()
 	return tcpPort
 }

@@ -17,12 +17,12 @@ func NewController(useCase usecase.BlockChainUseCase) *Controller {
 func (c *Controller) InsertNewCertificateData() ([]entity.Block, error) {
 	blockChainLength := c.useCase.GetBlockChainLength()
 	if blockChainLength == 0 {
+		//mock data
 		if err := c.useCase.InsertGenesisBlock(); err != nil {
 			log.Println(err)
 			return nil, err
 		}
 	}
-	//mock data
 	certificateData, err := c.useCase.GetCertificateData()
 	if err != nil {
 		log.Println(err)

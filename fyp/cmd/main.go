@@ -20,17 +20,20 @@ import (
 func main() {
 	logger.InitLogger()
 	currentPort := common.GetPort()
-	logger.Logger.Infoln("[main] Info: Current Port::", *currentPort)
+	tcpPort := *currentPort + 1000 // e.g., 8001 -> 9001
+
+	// logger.Logger.Infoln("[main] Info: Current Port::", *currentPort)
 	env, err := config.NewEnv()
 	if err != nil {
 		logger.Logger.Errorw("[main] Error: Failed to load environment variables", zap.Error(err))
 		return
 	}
 
-	ports := env.GetValueForKey(constants.NodePortsKey)
-	fmt.Println("Node Ports:", ports)
+	peerPorts := env.GetValueForKey(constants.TCPPortsKey)
+	fmt.Println("Peer Ports:", peerPorts)
 
-	module := delivery.NewModule(source.NewBlockChainMemorySource(), p2p.NewNodeSource(ports))
+	nodeSource := p2p.NewNodeSource(peerPorts)
+	module := delivery.NewModule(source.NewBlockChainMemorySource(), nodeSource)
 
 	mux := http.NewServeMux()
 	delivery.RegisterRoutes(mux, module)
@@ -39,14 +42,13 @@ func main() {
 	fmt.Printf("🚀 Starting blockchain node on http://localhost%s\n", addr)
 
 	memSource := source.NewBlockChainMemorySource()
-	nodeSource := p2p.NewNodeSource(ports)
 	service := service.NewService()
 	// blockchainService := service.NewService()
 	blockChainUseCase := usecase.NewBlockChainUseCase(memSource, nodeSource, service)
 
 	go func() {
 		for {
-			er := blockChainUseCase.ReceiveBlockFromPeer(*currentPort)
+			er := blockChainUseCase.ReceiveBlockFromPeer(tcpPort)
 			if er != nil {
 				logger.Logger.Errorw("[node_source] Error: ReceiveBlockFromPeer::", zap.Error(er))
 				fmt.Println("Error receiving block from peer:", er)
@@ -58,28 +60,4 @@ func main() {
 		fmt.Println("❌ Server failed:", err)
 	}
 
-	// controller := delivery.NewController(*blockChainUseCase)
-	// controller.InsertNewCertificateData()
-	// fmt.Print("end whooho ")
 }
-
-// func main() {
-
-// 	controller.InsertNewCertificateData()
-// 	controller.InsertNewCertificateData()
-// 	controller.InsertNewCertificateData()
-// 	controller.InsertNewCertificateData()
-// 	controller.InsertNewCertificateData()
-// 	controller.InsertNewCertificateData()
-// 	// controller.InsertNewCertificateData()
-// 	finalBlockChain, _ := controller.InsertNewCertificateData()
-// 	fmt.Print("pretty JSON ")
-// 	fmt.Println(len(finalBlockChain))
-// 	fmt.Print("pretty JSON ")
-// 	common.PrintPrettyJSON(finalBlockChain[0])
-// 	common.PrintPrettyJSON(finalBlockChain[1])
-// 	common.PrintPrettyJSON(finalBlockChain[2])
-
-// 	fmt.Print("end whooho ")
-
-// }

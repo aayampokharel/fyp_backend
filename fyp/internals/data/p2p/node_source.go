@@ -16,14 +16,14 @@ import (
 )
 
 type NodeSource struct {
-	nodes  []string
-	logger *zap.SugaredLogger
+	peerPorts []string
+	logger    *zap.SugaredLogger
 }
 
-func NewNodeSource(nodes string) *NodeSource {
+func NewNodeSource(peerPorts string) *NodeSource {
 	return &NodeSource{
-		nodes:  strings.Split(nodes, ","),
-		logger: logger.Logger,
+		peerPorts: strings.Split(peerPorts, ","),
+		logger:    logger.Logger,
 	}
 }
 
@@ -36,7 +36,7 @@ func (n *NodeSource) SendBlockToPeer(block entity.Block, currentPort int) (map[i
 		return nil, err.ErrMarshaling
 	}
 	blockJsonLen := int32(len(blockJson))
-	for _, portValString := range n.nodes {
+	for _, portValString := range n.peerPorts {
 		portValInt, er := strconv.Atoi(portValString)
 		if er != nil {
 			n.logger.Errorw("[node_source] Error: SendBlockToPeer::", zap.Error(er))
@@ -44,8 +44,9 @@ func (n *NodeSource) SendBlockToPeer(block entity.Block, currentPort int) (map[i
 		}
 
 		if currentPort != portValInt {
-			n.logger.Debugw("[node_source] Info: Sending block to peer", "port", portValString)
+			n.logger.Infow("[node_source] Info: Sending block to peer", "port", portValString)
 			conn, er := net.Dial("tcp", "localhost:"+portValString)
+			n.logger.Infow("[node_source] Info: SendBlockToPeer::", "localhost:", portValString)
 			if er != nil {
 				n.logger.Errorw("[node_source] Error: SendBlockToPeer::", zap.Error(er))
 				ackMap[portValInt] = er.Error()

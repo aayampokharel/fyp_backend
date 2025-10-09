@@ -135,13 +135,21 @@ func (uc *BlockChainUseCase) BroadcastNewBlock(completeBlock *entity.Block) (map
 	return uc.NodeRepo.SendBlockToPeer(*completeBlock, *common.GetPort())
 }
 
-func (uc *BlockChainUseCase) ReceiveBlockFromPeer(currentPort int) error {
-	receivedUpdatedBlock, er := uc.NodeRepo.ReceiveBlockFromPeer(currentPort)
+func (uc *BlockChainUseCase) ReceiveBlockFromPeer(currentTCPPort int) error {
+	receivedUpdatedBlock, er := uc.NodeRepo.ReceiveBlockFromPeer(currentTCPPort)
 	if er != nil {
 		uc.Logger.Errorln(er)
 		return er
 	}
-	uc.Logger.Infoln("[block_chain_use_case] Info: ReceiveBlockFromPeer:: Received Block from peer:", receivedUpdatedBlock)
+	uc.Logger.Debugw("[block_chain_use_case] Debug: ReceiveBlockFromPeer:: Received Block from peer:", "receivedUpdatedBlock", receivedUpdatedBlock)
+
+	blockChainLength := uc.BlockChainRepo.GetBlockChainLength()
+	if blockChainLength == 0 {
+		if err := uc.InsertGenesisBlock(); err != nil {
+			uc.Logger.Errorln(err)
+			return err
+		}
+	}
 	latestBlockFromChain, err := uc.BlockChainRepo.GetLatestBlock()
 	if err != nil {
 		uc.Logger.Errorln(err)
@@ -149,6 +157,7 @@ func (uc *BlockChainUseCase) ReceiveBlockFromPeer(currentPort int) error {
 	}
 	latestBlockFromChainCertificateLength, _ := common.CalculateCertificateDataLength(latestBlockFromChain.CertificateData)
 	receivedBlockCertificateLength, _ := common.CalculateCertificateDataLength(receivedUpdatedBlock.CertificateData)
+
 	uc.UpsertBlockChain(latestBlockFromChain, *receivedUpdatedBlock, latestBlockFromChainCertificateLength, receivedBlockCertificateLength)
 	return nil
 }
