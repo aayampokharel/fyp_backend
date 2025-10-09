@@ -29,27 +29,26 @@ func NewNodeSource(peerPorts string) *NodeSource {
 
 var _ repository.INodeRepository = (*NodeSource)(nil)
 
-func (n *NodeSource) SendBlockToPeer(block entity.Block, currentPort int) (map[int]string, error) {
+func (n *NodeSource) SendBlockToPeer(block entity.Block, currentMappedTCPPort int) (map[int]string, error) {
+	n.logger.Debugw("[node_source] Debug: PeerPorts::", "ports", n.peerPorts)
 	blockJson, er := json.Marshal(block)
 	ackMap := make(map[int]string)
 	if er != nil {
 		return nil, err.ErrMarshaling
 	}
 	blockJsonLen := int32(len(blockJson))
-	for _, portValString := range n.peerPorts {
-		portValInt, er := strconv.Atoi(portValString)
+	for _, tcpPortValString := range n.peerPorts {
+		tcpPortValInt, er := strconv.Atoi(tcpPortValString)
 		if er != nil {
 			n.logger.Errorw("[node_source] Error: SendBlockToPeer::", zap.Error(er))
 			return nil, err.ErrIntParse
 		}
 
-		if currentPort != portValInt {
-			n.logger.Infow("[node_source] Info: Sending block to peer", "port", portValString)
-			conn, er := net.Dial("tcp", "localhost:"+portValString)
-			n.logger.Infow("[node_source] Info: SendBlockToPeer::", "localhost:", portValString)
+		if currentMappedTCPPort != tcpPortValInt {
+			conn, er := net.Dial("tcp", "localhost:"+tcpPortValString)
 			if er != nil {
 				n.logger.Errorw("[node_source] Error: SendBlockToPeer::", zap.Error(er))
-				ackMap[portValInt] = er.Error()
+				ackMap[tcpPortValInt] = er.Error()
 				continue
 			}
 			// conn.SetDeadline(time.Now().Add(3 * time.Second))//3 sec deadline may be imp if i dont want this node to be hanging if other side  doesnot respond
@@ -70,7 +69,7 @@ func (n *NodeSource) SendBlockToPeer(block entity.Block, currentPort int) (map[i
 				n.logger.Errorw("[node_source] Error: SendBlockToPeer::", er)
 				return nil, err.ErrWithMoreInfo(err.ErrTcpListen, er.Error())
 			}
-			ackMap[portValInt] = strings.TrimSpace(ackStrResponse)
+			ackMap[tcpPortValInt] = strings.TrimSpace(ackStrResponse)
 			conn.Close()
 
 		}

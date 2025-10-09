@@ -4,9 +4,13 @@ import (
 	"flag"
 )
 
-var tcpPort = flag.Int("port", 8000, "TCP port to use")
+var httpPort = flag.Int("port", 8001, "Http port to use")
 
 func GetPort() *int {
 	flag.Parse()
-	return tcpPort
+	return httpPort
+}
+func GetMappedTCPPort() int {
+	flag.Parse()
+	return (*httpPort + 1000)
 }

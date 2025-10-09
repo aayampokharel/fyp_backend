@@ -131,7 +131,7 @@ func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.Cer
 }
 
 func (uc *BlockChainUseCase) BroadcastNewBlock(completeBlock *entity.Block) (map[int]string, error) {
-	return uc.NodeRepo.SendBlockToPeer(*completeBlock, *common.GetPort())
+	return uc.NodeRepo.SendBlockToPeer(*completeBlock, common.GetMappedTCPPort())
 }
 
 func (uc *BlockChainUseCase) ReceiveBlockFromPeer(currentTCPPort int) error {
