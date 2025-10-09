@@ -7,7 +7,6 @@ import (
 	"project/internals/domain/repository"
 	"project/internals/domain/service"
 	"project/package/enum"
-	err "project/package/errors"
 	errorz "project/package/errors"
 	"project/package/utils/common"
 	logger "project/package/utils/pkg"
@@ -182,5 +181,5 @@ func (uc *BlockChainUseCase) UpsertBlockChain(latestBlockFromChain, newBlock ent
 
 	}
 
-	return err.ErrBlockNumberMismatch
+	return errorz.ErrBlockNumberMismatch
 }
