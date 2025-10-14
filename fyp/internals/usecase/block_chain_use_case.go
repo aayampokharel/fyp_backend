@@ -17,14 +17,16 @@ import (
 type BlockChainUseCase struct {
 	BlockChainRepo repository.IBlockChainRepository
 	NodeRepo       repository.INodeRepository
+	SqlRepo        repository.ISqlRepository
 	Service        service.Service
 	Logger         *zap.SugaredLogger
 }
 
-func NewBlockChainUseCase(blockChainRepository repository.IBlockChainRepository, nodeRepository repository.INodeRepository, service service.Service) *BlockChainUseCase {
+func NewBlockChainUseCase(blockChainRepository repository.IBlockChainRepository, nodeRepository repository.INodeRepository, sqlRepo repository.ISqlRepository, service service.Service) *BlockChainUseCase {
 	return &BlockChainUseCase{
 		BlockChainRepo: blockChainRepository,
 		NodeRepo:       nodeRepository,
+		SqlRepo:        sqlRepo,
 		Service:        service,
 		Logger:         logger.Logger,
 	}

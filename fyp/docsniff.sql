@@ -37,3 +37,41 @@ CREATE TABLE institution_faculty(
 );
 
 
+-- Blocks table (header only)
+CREATE TABLE blocks (
+    block_number INTEGER PRIMARY KEY,
+    timestamp TIMESTAMP NOT NULL,
+    previous_hash VARCHAR(255) NOT NULL,
+    nonce VARCHAR(255) NOT NULL,
+    current_hash VARCHAR(255) UNIQUE NOT NULL,
+    merkle_root VARCHAR(255) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Certificates table (all 4 certificates linked to block)
+CREATE TABLE certificates (
+    id SERIAL PRIMARY KEY,
+    certificate_id VARCHAR(255) NOT NULL,
+    block_number INTEGER NOT NULL,
+    position INTEGER NOT NULL CHECK (position BETWEEN 1 AND 4),
+    student_id VARCHAR(255) NOT NULL,
+    student_name VARCHAR(255) NOT NULL,
+    university_name VARCHAR(255) NOT NULL,
+    degree VARCHAR(100) NOT NULL,
+    college VARCHAR(255) NOT NULL,
+    major VARCHAR(255) NOT NULL,
+    gpa VARCHAR(10),
+    percentage DECIMAL(5,2),
+    division VARCHAR(50) NOT NULL,
+    issue_date TIMESTAMP NOT NULL,
+    enrollment_date TIMESTAMP NOT NULL,
+    completion_date TIMESTAMP NOT NULL,
+    principal_signature VARCHAR(255) NOT NULL,
+    data_hash VARCHAR(255) NOT NULL,
+    issuer_public_key VARCHAR(255) NOT NULL,
+    certificate_type VARCHAR(50) NOT NULL,
+    
+    FOREIGN KEY (block_number) REFERENCES blocks(block_number),
+    UNIQUE(block_number, position) -- Ensures exactly 4 per block
+);

@@ -1,4 +1,4 @@
-package source
+package memory_source
 
 import (
 	"project/internals/domain/entity"

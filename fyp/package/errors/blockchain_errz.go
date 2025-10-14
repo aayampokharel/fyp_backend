@@ -16,6 +16,7 @@ func ErrWithMoreInfo(err error, erStr ...string) error {
 
 var (
 	ErrEmptyBlockChain      = errorz.Status400BadRequest.Wrap("Empty Blockchain")
+	ErrEmptyUserEmail       = errorz.Status400BadRequest.Wrap("User email cannot be empty")
 	ErrGenesisBlockUpdate   = errorz.Status400BadRequest.Wrap("Cannot update Genesis Block")
 	ErrBlockNumberMismatch  = errorz.Status400BadRequest.Wrap("Block number mismatch")
 	ErrGenesisBlockInsert   = errorz.Status400BadRequest.Wrap("Cannot insert genesis block at index other than 0")

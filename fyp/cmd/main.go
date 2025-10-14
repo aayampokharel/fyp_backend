@@ -6,8 +6,9 @@ import (
 
 	"project/constants"
 	"project/internals/data/config"
-	source "project/internals/data/memory"
-	"project/internals/data/p2p"
+	source "project/internals/data/data_source/memory"
+	"project/internals/data/data_source/p2p"
+	sql_source "project/internals/data/data_source/sql"
 	delivery "project/internals/delivery/blockchain"
 	"project/internals/domain/service"
 	"project/internals/usecase"
@@ -33,7 +34,9 @@ func main() {
 	fmt.Println("Peer Ports:", peerPorts)
 
 	nodeSource := p2p.NewNodeSource(peerPorts)
-	module := delivery.NewModule(source.NewBlockChainMemorySource(), nodeSource)
+	dbConn := sql_source.NewDB()
+	sqlSource := sql_source.NewSQLSource(dbConn)
+	module := delivery.NewModule(source.NewBlockChainMemorySource(), nodeSource, sqlSource)
 
 	mux := http.NewServeMux()
 	delivery.RegisterRoutes(mux, module)
@@ -44,7 +47,7 @@ func main() {
 	memSource := source.NewBlockChainMemorySource()
 	service := service.NewService()
 	// blockchainService := service.NewService()
-	blockChainUseCase := usecase.NewBlockChainUseCase(memSource, nodeSource, service)
+	blockChainUseCase := usecase.NewBlockChainUseCase(memSource, nodeSource, sqlSource, service)
 
 	go func() {
 		for {
