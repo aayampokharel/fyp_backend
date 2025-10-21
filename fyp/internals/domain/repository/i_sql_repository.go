@@ -3,9 +3,10 @@ package repository
 import "project/internals/domain/entity"
 
 type ISqlRepository interface {
+	CheckDuplicationByInstitutionInfo(institution entity.Institution) error
 	GetUserAccountsForEmail(userEmail string) (entity.UserAccount, error)
-	InsertInstitutions(institution entity.Institution) error
+	InsertInstitutions(institution entity.Institution) (string, error)
 	InsertUserAccounts(userAccounts entity.UserAccount) error
-	InsertInstitutionUser(institutionUser entity.InstitutionUser, institutionID, userID string) error
+	InsertInstitutionUser(institutionUser entity.InstitutionUser) error
 	InsertFaculty(faculty entity.InstitutionFaculty, institutionID string) error
 }

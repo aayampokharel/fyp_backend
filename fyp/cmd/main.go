@@ -9,6 +9,7 @@ import (
 	source "project/internals/data/data_source/memory"
 	"project/internals/data/data_source/p2p"
 	sql_source "project/internals/data/data_source/sql"
+	auth_delivery "project/internals/delivery/authentication"
 	delivery "project/internals/delivery/blockchain"
 	"project/internals/domain/service"
 	"project/internals/usecase"
@@ -37,9 +38,10 @@ func main() {
 	dbConn := sql_source.NewDB()
 	sqlSource := sql_source.NewSQLSource(dbConn)
 	module := delivery.NewModule(source.NewBlockChainMemorySource(), nodeSource, sqlSource)
-
+	sqlModule := auth_delivery.NewModule(sqlSource)
 	mux := http.NewServeMux()
 	delivery.RegisterRoutes(mux, module)
+	auth_delivery.RegisterRoutes(mux, sqlModule)
 
 	addr := fmt.Sprintf(":%d", *currentPort)
 	fmt.Printf("🚀 Starting blockchain node on http://localhost%s\n", addr)

@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
-	err "project/package/errors"
-	erroz "project/package/errors"
+	errorz "project/package/errors"
 	logger "project/package/utils/pkg"
 
 	"go.uber.org/zap"
@@ -23,11 +22,30 @@ func NewSQLSource(db *sql.DB) *SQLSource {
 
 var _ repository.ISqlRepository = (*SQLSource)(nil)
 
+func (s *SQLSource) CheckDuplicationByInstitutionInfo(institution entity.Institution) error {
+	var count int
+	if institution.InstitutionName == "" || institution.ToleAddress == "" || institution.DistrictAddress == "" {
+		s.logger.Errorln("[sql_source] Error: CheckDuplicationByInstitutionInfo::", errorz.ErrEmptyInstitutionInfo)
+		return errorz.ErrEmptyInstitutionInfo
+	}
+	query := `SELECT count(*) FROM institutions WHERE institution_name=$1 and tole_address=$2 and ward_number=$3 and district_address=$4 and is_active=true;`
+
+	err := s.DB.QueryRow(query, institution.InstitutionName, institution.ToleAddress, institution.WardNumber, institution.DistrictAddress).Scan(&count)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: CheckDuplicationByInstitutionInfo::", err)
+		return err
+	}
+	if count > 0 {
+		return errorz.ErrInstitutionAlreadyRegistered
+	}
+	return nil
+
+}
 func (s *SQLSource) GetUserAccountsForEmail(userEmail string) (entity.UserAccount, error) {
 
 	if userEmail == "" {
-		s.logger.Errorln("[sql_source] Error: GetUserAccountsForEmail::", erroz.ErrEmptyUserEmail)
-		return entity.UserAccount{}, erroz.ErrEmptyUserEmail
+		s.logger.Errorln("[sql_source] Error: GetUserAccountsForEmail::", errorz.ErrEmptyUserEmail)
+		return entity.UserAccount{}, errorz.ErrEmptyUserEmail
 	}
 
 	query := `
@@ -45,7 +63,7 @@ func (s *SQLSource) GetUserAccountsForEmail(userEmail string) (entity.UserAccoun
 		&userAccount.Password)
 	if er != nil {
 		if er == sql.ErrNoRows {
-			return entity.UserAccount{}, err.ErrWithMoreInfo(er, fmt.Sprintf("user with email '%s' not found or is deleted", userEmail))
+			return entity.UserAccount{}, errorz.ErrWithMoreInfo(er, fmt.Sprintf("user with email '%s' not found or is deleted", userEmail))
 		}
 		s.logger.Errorln("[sql_source] Error: GetUserAccountsForEmail::", er)
 		return entity.UserAccount{}, er
@@ -54,62 +72,33 @@ func (s *SQLSource) GetUserAccountsForEmail(userEmail string) (entity.UserAccoun
 	return userAccount, nil
 }
 
-func (s *SQLSource) InsertInstitutions(institution entity.Institution) error {
-	institutionCheckQuery := `
-SELECT institution_id FROM institutions WHERE institution_name=$1 and tole_address=$2 and district_address=$3 and is_active=true;`
+func (s *SQLSource) InsertInstitutions(institution entity.Institution) (string, error) {
 
-	var institutionID string
-	err := s.DB.QueryRow(institutionCheckQuery, institution.InstitutionName, institution.ToleAddress, institution.DistrictAddress).Scan(&institutionID)
+	query := `INSERT INTO institutions (institution_id, institution_name, tole_address, district_address,ward_number,is_active)
+		VALUES ($1, $2, $3, $4, $5,$6);`
 
-	if err == sql.ErrNoRows {
-
-		query := `INSERT INTO institutions (institution_id, institution_name, tole_address, district_address, is_active)
-		VALUES ($1, $2, $3, $4, $5);`
-
-		if _, er := s.DB.Exec(query, institution.InstitutionID, institution.InstitutionName, institution.ToleAddress, institution.DistrictAddress, institution.IsActive); er != nil {
-			s.logger.Errorln("[sql_source] Error: InsertInstitutions::", er)
-			return er
-		}
-		return nil
+	if _, er := s.DB.Exec(query, institution.InstitutionID, institution.InstitutionName, institution.ToleAddress, institution.DistrictAddress, institution.WardNumber, institution.IsActive); er != nil {
+		s.logger.Errorln("[sql_source] Error: InsertInstitutions::", er)
+		return "", er
 	}
+	return institution.InstitutionID, nil
 
-	if err != nil {
-		s.logger.Errorln("[sql_source] Error checking institution existence:", err)
-		return err
-	}
-
-	// Institution already exists
-	return erroz.ErrWithMoreInfo(err, fmt.Sprintf("institution already exists with ID: %s", institutionID))
 }
 
 func (s *SQLSource) InsertUserAccounts(userAccounts entity.UserAccount) error {
-	//check if email registered
-	var userId string
-	checkEmailQuery := `Select id from user_accounts where email=$1 and deleted_at is null;`
-
-	err := s.DB.QueryRow(checkEmailQuery, userAccounts.Email).Scan(&userId)
-
-	if err == sql.ErrNoRows {
-		insertQuery := `Insert into user_accounts (id, role, email, password) values ($1, $2, $3, $4);`
-		if _, er := s.DB.Exec(insertQuery, userAccounts.ID, userAccounts.Role, userAccounts.Email, userAccounts.Password); er != nil {
-			s.logger.Errorln("[sql_source] Error: InsertUserAccounts::", er)
-			return er
-		}
-		return nil
+	insertQuery := `Insert into user_accounts (id, role, email, password) values ($1, $2, $3, $4);`
+	if _, er := s.DB.Exec(insertQuery, userAccounts.ID, userAccounts.Role, userAccounts.Email, userAccounts.Password); er != nil {
+		s.logger.Errorln("[sql_source] Error: InsertUserAccounts::", er)
+		return er
 	}
+	return nil
 
-	if err != nil {
-		s.logger.Errorln("[sql_source] Error: InsertUserAccounts::", err)
-		return err
-	}
-
-	return erroz.ErrWithMoreInfo(err, fmt.Sprintf("user with email '%s' already exists", userAccounts.Email))
 }
 
-func (s *SQLSource) InsertInstitutionUser(institutionUser entity.InstitutionUser, institutionID, userID string) error {
-	query := `INSERT INTO institution_user (institution_id, user_id, public_key, principal_name, principal_signature_base64, institution_logo_base64) VALUES ($1, $2, $3, $4, $5, $6);`
+func (s *SQLSource) InsertInstitutionUser(institutionUser entity.InstitutionUser) error {
+	query := `INSERT INTO institution_user (institution_id, user_id, public_key,  institution_logo_base64) VALUES ($1, $2, $3, $4, $5, $6);`
 
-	_, err := s.DB.Exec(query, institutionID, userID, institutionUser.PublicKey, institutionUser.PrincipalName, institutionUser.PrincipalSignatureBase64, institutionUser.InstitutionLogoBase64)
+	_, err := s.DB.Exec(query, institutionUser.InstitutionID, institutionUser.UserID, institutionUser.PublicKey, institutionUser.InstitutionLogoBase64)
 	if err != nil {
 		s.logger.Errorln("[sql_source] Error: InsertInstitutionUser::", err)
 		return err
