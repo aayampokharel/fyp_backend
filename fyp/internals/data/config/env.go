@@ -10,6 +10,7 @@ type Env struct {
 	PowNumberRule string   `mapstructure:"POW_NUMBER_RULE"`
 	NodePorts     []string `mapstructure:"NODE_PORTS"`
 	TCPPorts      []string `mapstructure:"TCP_PORTS"`
+	DBPassword    string   `mapstructure:"DB_PASS"`
 }
 
 func NewEnv() (*Env, error) {

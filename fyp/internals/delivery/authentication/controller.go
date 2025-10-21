@@ -26,7 +26,7 @@ func (c *Controller) HandleCreateNewInstitution(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if institution.InstitutionName == "" || institution.ToleAddress == "" || institution.DistrictAddress == "" || institution.WardNumber == "" {
+	if institution.InstitutionName == "" || institution.ToleAddress == "" || institution.DistrictAddress == "" || institution.WardNumber == 0 {
 		c.useCase.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", errorz.ErrEmptyInstitutionInfo)
 		common.HandleErrorResponse(500, "error creating institution", errorz.ErrEmptyInstitutionInfo, w)
 		return

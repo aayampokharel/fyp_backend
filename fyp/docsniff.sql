@@ -1,6 +1,14 @@
 CREATE DATABASE docsniff_db;
 \c docsniff_db;  
 
+-- drop table if exists institution_user;
+-- drop table if exists user_accounts;
+-- drop table if exists institutions;
+
+-- drop table if exists institution_faculty;
+-- drop table if exists certificates;
+-- drop table if exists blocks;
+
 
 CREATE TABLE institutions(
     institution_id VARCHAR(16) PRIMARY KEY,
