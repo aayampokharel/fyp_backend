@@ -17,16 +17,19 @@ CREATE TABLE institutions(
     tole_address VARCHAR(250) NOT NULL,
     district_address VARCHAR(250) NOT NULL,
 	is_active BOOLEAN DEFAULT TRUE,
-    UNIQUE(institution_name, ward_number, tole_address, district_address, is_active)
+    is_signup_completed BOOLEAN DEFAULT FALSE,
+    -- UNIQUE(institution_name, ward_number, tole_address, district_address, is_active)
+-- remove unique constraint for above . user cant insert into table only if : is_active =true
 );
 
 CREATE TABLE user_accounts(
     id VARCHAR(16) PRIMARY KEY,
-    role VARCHAR(16) NOT NULL,  -- Added NOT NULL
+    system_role VARCHAR(16) NOT NULL,  -- Added NOT NULL
+    institution_role VARCHAR(16) , 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP DEFAULT NULL,
     email VARCHAR(255) NOT NULL, 
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE institution_user(

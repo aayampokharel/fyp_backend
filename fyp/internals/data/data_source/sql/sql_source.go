@@ -3,6 +3,7 @@ package sql_source
 import (
 	"database/sql"
 	"fmt"
+	"project/internals/data/models"
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
 	errorz "project/package/errors"
@@ -24,7 +25,7 @@ var _ repository.ISqlRepository = (*SQLSource)(nil)
 
 func (s *SQLSource) CheckDuplicationByInstitutionInfo(institution entity.Institution) error {
 	var count int
-	if institution.InstitutionName == "" || institution.ToleAddress == "" || institution.DistrictAddress == "" {
+	if institution.InstitutionName == "" || institution.ToleAddress == "" || institution.DistrictAddress == "" || institution.WardNumber == "" {
 		s.logger.Errorln("[sql_source] Error: CheckDuplicationByInstitutionInfo::", errorz.ErrEmptyInstitutionInfo)
 		return errorz.ErrEmptyInstitutionInfo
 	}
@@ -49,7 +50,7 @@ func (s *SQLSource) GetUserAccountsForEmail(userEmail string) (entity.UserAccoun
 	}
 
 	query := `
-		SELECT id, role, created_at, email, password 
+		SELECT id, institution_role, created_at, email, password 
 		FROM user_accounts 
 		WHERE email = $1 AND deleted_at IS NULL
 		LIMIT 1
@@ -57,7 +58,7 @@ func (s *SQLSource) GetUserAccountsForEmail(userEmail string) (entity.UserAccoun
 	var userAccount entity.UserAccount
 	er := s.DB.QueryRow(query, userEmail).Scan(
 		&userAccount.ID,
-		&userAccount.Role,
+		&userAccount.InstitutionRole,
 		&userAccount.CreatedAt,
 		&userAccount.Email,
 		&userAccount.Password)
@@ -85,21 +86,24 @@ func (s *SQLSource) InsertInstitutions(institution entity.Institution) (string, 
 
 }
 
-func (s *SQLSource) InsertUserAccounts(userAccounts entity.UserAccount) error {
-	insertQuery := `Insert into user_accounts (id, role, email, password) values ($1, $2, $3, $4);`
-	if _, er := s.DB.Exec(insertQuery, userAccounts.ID, userAccounts.Role, userAccounts.Email, userAccounts.Password); er != nil {
+func (s *SQLSource) InsertUserAccounts(userAccounts entity.UserAccount) (string, error) {
+	userAccountModel := models.UserAccountFromEntity(userAccounts)
+	var createdAt string
+	insertQuery := `Insert into user_accounts (id,system_role, institution_role, email, password) values ($1, $2, $3, $4,$5)  RETURNING created_at;`
+	if er := s.DB.QueryRow(insertQuery, userAccountModel.ID, userAccountModel.SystemRole, userAccountModel.InstitutionRole, userAccountModel.Email, userAccountModel.Password).Scan(&createdAt); er != nil {
 		s.logger.Errorln("[sql_source] Error: InsertUserAccounts::", er)
-		return er
+		return "", er
 	}
-	return nil
+	return createdAt, nil
 
 }
 
 func (s *SQLSource) InsertInstitutionUser(institutionUser entity.InstitutionUser) error {
-	query := `INSERT INTO institution_user (institution_id, user_id, public_key,  institution_logo_base64) VALUES ($1, $2, $3, $4, $5, $6);`
+	query := `INSERT INTO institution_user (institution_id, user_id, public_key,  institution_logo_base64) VALUES ($1, $2, $3, $4);`
 
 	_, err := s.DB.Exec(query, institutionUser.InstitutionID, institutionUser.UserID, institutionUser.PublicKey, institutionUser.InstitutionLogoBase64)
 	if err != nil {
+		s.logger.Errorln("[sql_source] Error: InsertInstitutionUser::", query+"::"+institutionUser.InstitutionID+"::"+institutionUser.UserID+institutionUser.PublicKey+"::"+institutionUser.InstitutionLogoBase64)
 		s.logger.Errorln("[sql_source] Error: InsertInstitutionUser::", err)
 		return err
 	}

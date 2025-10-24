@@ -23,10 +23,10 @@ func NewSqlUseCase(sqlRepo repository.ISqlRepository, service service.Service) *
 	}
 }
 
-func (uc *SqlUseCase) InsertUserAccountUseCase(userAccount entity.UserAccount, institutionId string, institutionLogoBase64 string) error {
-	er := uc.SqlRepo.InsertUserAccounts(userAccount)
+func (uc *SqlUseCase) InsertUserAccountUseCase(userAccount entity.UserAccount, institutionId string, institutionLogoBase64 string) (string, string, error) {
+	createdAt, er := uc.SqlRepo.InsertUserAccounts(userAccount)
 	if er != nil {
-		return er
+		return "", "", er
 	}
 	insUser := entity.InstitutionUser{
 		UserID:                userAccount.ID,
@@ -34,7 +34,7 @@ func (uc *SqlUseCase) InsertUserAccountUseCase(userAccount entity.UserAccount, i
 		InstitutionLogoBase64: institutionLogoBase64,
 		PublicKey:             "", //! public key is empty
 	}
-	return uc.SqlRepo.InsertInstitutionUser(insUser)
+	return createdAt, userAccount.ID, uc.SqlRepo.InsertInstitutionUser(insUser)
 
 }
 

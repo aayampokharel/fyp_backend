@@ -4,7 +4,7 @@ import (
 	"flag"
 )
 
-var httpPort = flag.Int("port", 8001, "Http port to use")
+var httpPort = flag.Int("port", 8000, "Http port to use")
 
 func GetPort() *int {
 	flag.Parse()
