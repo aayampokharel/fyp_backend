@@ -52,5 +52,9 @@ func (uc *SqlUseCase) InsertInstitutionsUseCase(institution entity.Institution) 
 }
 
 func (uc *SqlUseCase) InsertFacultyUseCase(faculty entity.InstitutionFaculty) (string, error) {
-	return uc.SqlRepo.InsertFaculty(faculty)
+	facultyID, er := uc.SqlRepo.InsertFaculty(faculty)
+	if er != nil {
+		return "", er
+	}
+	return facultyID, uc.SqlRepo.UpdateFormSubmittedByInstitutionID(faculty.InstitutionID)
 }

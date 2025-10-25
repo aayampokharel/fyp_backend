@@ -23,6 +23,32 @@ func NewSQLSource(db *sql.DB) *SQLSource {
 
 var _ repository.ISqlRepository = (*SQLSource)(nil)
 
+func (s *SQLSource) UpdateFormSubmittedByInstitutionID(institutionID string) error {
+	query := `update institutions set is_signup_completed=true where institution_id=$1;`
+	_, err := s.DB.Exec(query, institutionID)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: UpdateFormSubmittedByInstitutionID::", err)
+		return err
+	}
+	return nil
+}
+func (s *SQLSource) GetUserIDByInstitutionID(institutionID string) (string, error) {
+	var userID string
+
+	query := `
+        SELECT user_id 
+        FROM institution_user 
+        WHERE institution_id = $1;
+    `
+	err := s.DB.QueryRow(query, institutionID).Scan(&userID)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: GetUserIDByInstitutionID::", err)
+		return "", err
+	}
+
+	return userID, nil
+}
+
 func (s *SQLSource) CheckDuplicationByInstitutionInfo(institution entity.Institution) error {
 	var count int
 	if institution.InstitutionName == "" || institution.ToleAddress == "" || institution.DistrictAddress == "" || institution.WardNumber == "" {

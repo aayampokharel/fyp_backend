@@ -9,4 +9,6 @@ type ISqlRepository interface {
 	InsertUserAccounts(userAccounts entity.UserAccount) (string, error)
 	InsertInstitutionUser(institutionUser entity.InstitutionUser) error
 	InsertFaculty(faculty entity.InstitutionFaculty) (string, error)
+	GetUserIDByInstitutionID(institutionID string) (string, error)
+	UpdateFormSubmittedByInstitutionID(institutionID string) error
 }
