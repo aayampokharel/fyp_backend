@@ -23,6 +23,29 @@ func NewSQLSource(db *sql.DB) *SQLSource {
 
 var _ repository.ISqlRepository = (*SQLSource)(nil)
 
+func (s *SQLSource) GetToBeVerifiedInstitutions() ([]entity.Institution, error) {
+
+	query := `select institution_id, institution_name, tole_address, district_address,ward_number from institutions where is_active=false and is_signup_completed=true;`
+	rows, err := s.DB.Query(query)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: GetToBeVerifiedInstitutions::", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var institutions []entity.Institution
+	for rows.Next() {
+		var institution entity.Institution
+		if err := rows.Scan(&institution.InstitutionID, &institution.InstitutionName, &institution.ToleAddress, &institution.DistrictAddress, &institution.WardNumber); err != nil {
+			s.logger.Errorln("[sql_source] Error: GetToBeVerifiedInstitutions::", err)
+			return nil, err
+		}
+		institution.IsActive = false
+		institutions = append(institutions, institution)
+	}
+	return institutions, nil
+}
+
 func (s *SQLSource) UpdateFormSubmittedByInstitutionID(institutionID string) error {
 	query := `update institutions set is_signup_completed=true where institution_id=$1;`
 	_, err := s.DB.Exec(query, institutionID)

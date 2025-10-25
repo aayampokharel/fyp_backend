@@ -11,4 +11,5 @@ type ISqlRepository interface {
 	InsertFaculty(faculty entity.InstitutionFaculty) (string, error)
 	GetUserIDByInstitutionID(institutionID string) (string, error)
 	UpdateFormSubmittedByInstitutionID(institutionID string) error
+	GetToBeVerifiedInstitutions() ([]entity.Institution, error)
 }

@@ -18,6 +18,35 @@ type RouteWrapper struct {
 	InnerFunc       func(interface{}) entity.Response
 }
 
+type SSERouteWrapper struct {
+	Mux       *http.ServeMux
+	Prefix    string
+	Route     string
+	Method    enum.HTTPMETHOD
+	InnerFunc func(newInstitutionCh <-chan entity.Institution, w http.ResponseWriter, r *http.Request)
+	Ch        <-chan entity.Institution
+}
+
+func NewSSERouteWrapper(sseRouteWrapper SSERouteWrapper) {
+	sseRouteWrapper.Mux.HandleFunc(sseRouteWrapper.Prefix+sseRouteWrapper.Route, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
+		(w).Header().Set("Content-Type", "text/event-stream")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		if sseRouteWrapper.Method != enum.METHODGET || r.Method != sseRouteWrapper.Method.ToString() {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		sseRouteWrapper.InnerFunc(sseRouteWrapper.Ch, w, r)
+	})
+}
+
 func NewRouteWrapper(routeInfos ...RouteWrapper) {
 	for index := range routeInfos {
 		routeInfo := routeInfos[index]
