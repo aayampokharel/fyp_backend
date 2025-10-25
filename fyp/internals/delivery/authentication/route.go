@@ -2,41 +2,37 @@ package authentication
 
 import (
 	"net/http"
+	"project/internals/domain/entity"
+	"project/package/enum"
+	"project/package/utils/common"
 )
 
-func RegisterRoutes(mux *http.ServeMux, module *Module) {
+func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 	var prefix = "/auth"
-	mux.HandleFunc(prefix+"/new-institution", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
 
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
+	var routes []common.RouteWrapper = []common.RouteWrapper{
+		{
+			Mux:             mux,
+			Prefix:          prefix,
+			Route:           "/new-institution",
+			Method:          enum.METHODPOST,
+			RequestDataType: CreateInstitutionRequest{},
+			InnerFunc: func(i interface{}) entity.Response {
+				return module.Controller.HandleCreateNewInstitution(i.(CreateInstitutionRequest))
+			},
+		},
 
-		module.Controller.HandleCreateNewInstitution(w, r)
-	})
+		{
+			Mux:             mux,
+			Prefix:          prefix,
+			Route:           "/new-user",
+			Method:          enum.METHODPOST,
+			RequestDataType: CreateUserAccountRequest{},
+			InnerFunc: func(i interface{}) entity.Response {
+				return module.Controller.HandleCreateNewUserAccount(i.(CreateUserAccountRequest))
+			},
+		},
+	}
 
-	mux.HandleFunc(prefix+"/new-user", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
-
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		module.Controller.HandleCreateNewUserAccount(w, r)
-	})
+	return routes
 }

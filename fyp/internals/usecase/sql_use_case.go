@@ -23,8 +23,8 @@ func NewSqlUseCase(sqlRepo repository.ISqlRepository, service service.Service) *
 	}
 }
 
-func (uc *SqlUseCase) InsertUserAccountUseCase(userAccount entity.UserAccount, institutionId string, institutionLogoBase64 string) (string, string, error) {
-	createdAt, er := uc.SqlRepo.InsertUserAccounts(userAccount)
+func (uc *SqlUseCase) InsertUserAccountUseCase(userAccount entity.UserAccount, institutionId string, institutionLogoBase64 string) (createdAt string, userAccountID string, er error) {
+	createdAt, er = uc.SqlRepo.InsertUserAccounts(userAccount)
 	if er != nil {
 		return "", "", er
 	}

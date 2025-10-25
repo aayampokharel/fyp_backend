@@ -1,9 +1,7 @@
 package authentication
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
+	"project/internals/domain/entity"
 	"project/internals/usecase"
 	err "project/package/errors"
 	"project/package/utils/common"
@@ -20,71 +18,69 @@ func NewController(useCase usecase.SqlUseCase) *Controller {
 	return &Controller{useCase: useCase}
 }
 
-func (c *Controller) HandleCreateNewInstitution(w http.ResponseWriter, r *http.Request) {
-	var institution CreateInstitutionRequest
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
-	fmt.Print("hello hello")
-	//! to be done in middleware .
-	if er := json.NewDecoder(r.Body).Decode(&institution); er != nil {
-		c.useCase.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", er)
-		common.HandleErrorResponse(500, err.ErrDecodingJSONString, er, w)
-		return
-	}
+func (c *Controller) HandleCreateNewInstitution(institution CreateInstitutionRequest) entity.Response {
+	// var institution CreateInstitutionRequest
+
+	// fmt.Print("hello hello")
+	// //! to be done in middleware .
+	// if er := json.NewDecoder(r.Body).Decode(&institution); er != nil {
+	// 	c.useCase.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", er)
+	// 	return common.HandleErrorResponse(500, err.ErrDecodingJSONString, er)
+
+	// }
 
 	if institution.InstitutionName == "" || institution.ToleAddress == "" || institution.DistrictAddress == "" || institution.WardNumber == 0 {
 		c.useCase.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", errorz.ErrEmptyInstitutionInfo)
-		common.HandleErrorResponse(500, err.ErrCreatingInstitutionString, errorz.ErrEmptyInstitutionInfo, w)
-		return
+		return common.HandleErrorResponse(500, err.ErrCreatingInstitutionString, errorz.ErrEmptyInstitutionInfo)
+
 	}
 	institutionEntity := institution.ToEntity()
 
 	if er := c.useCase.CheckDuplicationByInstitutionInfoUseCase(institutionEntity); er != nil {
 		c.useCase.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", er)
-		common.HandleErrorResponse(500, err.ErrDuplicateString, er, w)
-		return
+		return common.HandleErrorResponse(500, err.ErrDuplicateString, er)
 
 	}
 
 	institutionId, er := c.useCase.InsertInstitutionsUseCase(institutionEntity)
 	if er != nil {
 		c.useCase.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", er)
-		common.HandleErrorResponse(500, err.ErrCreatingInstitutionString, er, w)
-		return
+		return common.HandleErrorResponse(500, err.ErrCreatingInstitutionString, er)
+
 	}
-	common.HandleSuccessResponse(CreateInstutionResponse{
+	return common.HandleSuccessResponse(CreateInstutionResponse{
 		InstitutionID: institutionId,
 		IsActive:      false,
-	}, w)
+	})
 
 }
 
-func (c *Controller) HandleCreateNewUserAccount(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
-	var newUserAccount CreateUserAccountRequest
-	if er := json.NewDecoder(r.Body).Decode(&newUserAccount); er != nil {
-		common.HandleErrorResponse(500, err.ErrDecodingJSONString, er, w)
-	}
+func (c *Controller) HandleCreateNewUserAccount(newUserAccount CreateUserAccountRequest) entity.Response {
+	// w.Header().Set("Access-Control-Allow-Origin", "*")
+	// w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	// w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
+	// var newUserAccount CreateUserAccountRequest
+	// if er := json.NewDecoder(r.Body).Decode(&newUserAccount); er != nil {
+	// 	return common.HandleErrorResponse(500, err.ErrDecodingJSONString, er)
+
+	// }
 
 	newUserAccountEntity := newUserAccount.ToEntity()
 
-	userAccountID, createdAtStr, er := c.useCase.InsertUserAccountUseCase(newUserAccountEntity, newUserAccount.InstitutionID, newUserAccount.InstitutionLogoBase64)
+	createdAtStr, userAccountID, er := c.useCase.InsertUserAccountUseCase(newUserAccountEntity, newUserAccount.InstitutionID, newUserAccount.InstitutionLogoBase64)
 
 	if er != nil {
-		common.HandleErrorResponse(500, err.ErrCreatingUserAccountString, er, w)
-		return
+		return common.HandleErrorResponse(500, err.ErrCreatingUserAccountString, er)
+
 	}
-	createdAt, er := time.Parse("2006-01-02 15:04:05", createdAtStr)
+	createdAt, er := time.Parse(time.RFC3339, createdAtStr)
 	if er != nil {
-		common.HandleErrorResponse(500, err.ErrCreatingUserAccountString, er, w)
-		return
+		return common.HandleErrorResponse(500, err.ErrCreatingUserAccountString, er)
+
 	}
-	common.HandleSuccessResponse(CreateUserAccountResponse{
+	return common.HandleSuccessResponse(CreateUserAccountResponse{
 		UserAccountID: userAccountID,
 		CreatedAt:     createdAt.Format(time.RFC3339),
-	}, w)
+	})
 
 }

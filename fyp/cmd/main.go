@@ -41,7 +41,8 @@ func main() {
 	sqlModule := auth_delivery.NewModule(sqlSource)
 	mux := http.NewServeMux()
 	delivery.RegisterRoutes(mux, module)
-	auth_delivery.RegisterRoutes(mux, sqlModule)
+	auth_delivery_routes := auth_delivery.RegisterRoutes(mux, sqlModule)
+	common.NewRouteWrapper(auth_delivery_routes...)
 
 	addr := fmt.Sprintf(":%d", *currentPort)
 	fmt.Printf("🚀 Starting blockchain node on http://localhost%s\n", addr)
