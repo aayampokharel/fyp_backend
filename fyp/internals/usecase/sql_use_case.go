@@ -51,6 +51,6 @@ func (uc *SqlUseCase) InsertInstitutionsUseCase(institution entity.Institution) 
 	return uc.SqlRepo.InsertInstitutions(institution)
 }
 
-func (uc *SqlUseCase) InsertFacultyUseCase(faculty entity.InstitutionFaculty, institutionID string) error {
-	return uc.SqlRepo.InsertFaculty(faculty, institutionID)
+func (uc *SqlUseCase) InsertFacultyUseCase(faculty entity.InstitutionFaculty) (string, error) {
+	return uc.SqlRepo.InsertFaculty(faculty)
 }

@@ -11,6 +11,7 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 	var prefix = "/auth"
 
 	var routes []common.RouteWrapper = []common.RouteWrapper{
+		// /auth/new-institution
 		{
 			Mux:             mux,
 			Prefix:          prefix,
@@ -22,6 +23,7 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 			},
 		},
 
+		// /auth/new-user
 		{
 			Mux:             mux,
 			Prefix:          prefix,
@@ -30,6 +32,17 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 			RequestDataType: CreateUserAccountRequest{},
 			InnerFunc: func(i interface{}) entity.Response {
 				return module.Controller.HandleCreateNewUserAccount(i.(CreateUserAccountRequest))
+			},
+		},
+		// /auth/new-faculty
+		{
+			Mux:             mux,
+			Prefix:          prefix,
+			Route:           "/new-faculty",
+			Method:          enum.METHODPOST,
+			RequestDataType: CreateFacultyRequest{},
+			InnerFunc: func(i interface{}) entity.Response {
+				return module.Controller.HandleCreateNewFaculty(i.(CreateFacultyRequest))
 			},
 		},
 	}

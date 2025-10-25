@@ -110,12 +110,36 @@ func (s *SQLSource) InsertInstitutionUser(institutionUser entity.InstitutionUser
 	return nil
 
 }
-func (s *SQLSource) InsertFaculty(faculty entity.InstitutionFaculty, institutionID string) error {
-	query := `INSERT INTO institution_faculty (institution_faculty_id, institution_id, faculty, faculty_hod_name, faculty_hod_signature_base64) VALUES ($1, $2, $3, $4, $5);`
-	_, err := s.DB.Exec(query, faculty.InstitutionFacultyID, institutionID, faculty.Faculty, faculty.FacultyHODName, faculty.FacultyHODSignatureBase64)
-	if err != nil {
-		s.logger.Errorln("[sql_source] Error: InsertFaculty::", err)
-		return err
+func (s *SQLSource) InsertFaculty(faculty entity.InstitutionFaculty) (facultyID string, er error) {
+	query := `
+		INSERT INTO institution_faculty (
+			institution_faculty_id,
+			institution_id,
+			faculty,
+			principal_name,
+			principal_signature_base64,
+			faculty_hod_name,
+			faculty_hod_signature_base64,
+			university_affiliation,
+			university_college_code
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+	`
+
+	_, er = s.DB.Exec(
+		query,
+		faculty.InstitutionFacultyID,
+		faculty.InstitutionID,
+		faculty.Faculty,
+		faculty.PrincipalName,
+		faculty.PrincipalSignatureBase64,
+		faculty.FacultyHODName,
+		faculty.FacultyHODSignatureBase64,
+		faculty.UniversityAffiliation,
+		faculty.UniversityCollegeCode,
+	)
+	if er != nil {
+		s.logger.Errorln("[sql_source] Error: InsertFaculty::", er)
+		return "", er
 	}
-	return nil
+	return faculty.InstitutionFacultyID, nil
 }

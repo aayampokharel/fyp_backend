@@ -8,5 +8,5 @@ type ISqlRepository interface {
 	InsertInstitutions(institution entity.Institution) (string, error)
 	InsertUserAccounts(userAccounts entity.UserAccount) (string, error)
 	InsertInstitutionUser(institutionUser entity.InstitutionUser) error
-	InsertFaculty(faculty entity.InstitutionFaculty, institutionID string) error
+	InsertFaculty(faculty entity.InstitutionFaculty) (string, error)
 }

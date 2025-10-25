@@ -6,8 +6,6 @@ import (
 	err "project/package/errors"
 	"project/package/utils/common"
 	"time"
-
-	errorz "project/package/errors"
 )
 
 type Controller struct {
@@ -30,8 +28,8 @@ func (c *Controller) HandleCreateNewInstitution(institution CreateInstitutionReq
 	// }
 
 	if institution.InstitutionName == "" || institution.ToleAddress == "" || institution.DistrictAddress == "" || institution.WardNumber == 0 {
-		c.useCase.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", errorz.ErrEmptyInstitutionInfo)
-		return common.HandleErrorResponse(500, err.ErrCreatingInstitutionString, errorz.ErrEmptyInstitutionInfo)
+		c.useCase.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", err.ErrEmptyInstitutionInfo)
+		return common.HandleErrorResponse(500, err.ErrCreatingInstitutionString, err.ErrEmptyInstitutionInfo)
 
 	}
 	institutionEntity := institution.ToEntity()
@@ -81,6 +79,20 @@ func (c *Controller) HandleCreateNewUserAccount(newUserAccount CreateUserAccount
 	return common.HandleSuccessResponse(CreateUserAccountResponse{
 		UserAccountID: userAccountID,
 		CreatedAt:     createdAt.Format(time.RFC3339),
+	})
+
+}
+func (c *Controller) HandleCreateNewFaculty(newFaculty CreateFacultyRequest) entity.Response {
+	newFacultyEntity := newFaculty.ToEntity()
+	facultyID, er := c.useCase.InsertFacultyUseCase(newFacultyEntity)
+
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
+
+	}
+
+	return common.HandleSuccessResponse(CreateFacultyResponse{
+		InstitutionFacultyID: facultyID,
 	})
 
 }

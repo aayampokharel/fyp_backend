@@ -30,9 +30,38 @@ type CreateUserAccountRequest struct {
 	UserEmail             string `json:"user_email"`
 }
 
+type CreateFacultyRequest struct {
+	InstitutionID             string `json:"institution_id"`
+	Faculty                   string `json:"faculty"`
+	FacultyHODName            string `json:"faculty_hod_name"`
+	FacultyHODSignatureBase64 string `json:"faculty_hod_signature_base64"`
+	PrincipalName             string `json:"principal_name"`
+	PrincipalSignatureBase64  string `json:"principal_signature_base64"`
+	UniversityAffiliation     string `json:"university_affiliation"`
+	UniversityCollegeCode     string `json:"university_college_code"`
+}
+
+func (c *CreateFacultyRequest) ToEntity() entity.InstitutionFaculty {
+	return entity.InstitutionFaculty{
+		InstitutionFacultyID:      common.GenerateUUID(16),
+		InstitutionID:             c.InstitutionID,
+		Faculty:                   c.Faculty,
+		FacultyHODName:            c.FacultyHODName,
+		FacultyHODSignatureBase64: c.FacultyHODSignatureBase64,
+		PrincipalName:             c.PrincipalName,
+		PrincipalSignatureBase64:  c.PrincipalSignatureBase64,
+		UniversityAffiliation:     c.UniversityAffiliation,
+		UniversityCollegeCode:     c.UniversityCollegeCode,
+	}
+}
+
 type CreateUserAccountResponse struct {
 	UserAccountID string `json:"user_acount_id"`
 	CreatedAt     string `json:"created_at"`
+}
+
+type CreateFacultyResponse struct {
+	InstitutionFacultyID string `json:"institution_faculty_id"`
 }
 
 func (c *CreateUserAccountRequest) ToEntity() entity.UserAccount {

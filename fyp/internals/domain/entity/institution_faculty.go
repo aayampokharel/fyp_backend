@@ -6,4 +6,8 @@ type InstitutionFaculty struct {
 	Faculty                   string `json:"faculty"`
 	FacultyHODName            string `json:"faculty_hod_name"`
 	FacultyHODSignatureBase64 string `json:"faculty_hod_signature_base64"`
+	PrincipalName             string `json:"principal_name"`
+	PrincipalSignatureBase64  string `json:"principal_signature_base64"`
+	UniversityAffiliation     string `json:"university_affiliation"`
+	UniversityCollegeCode     string `json:"university_college_code"`
 }
