@@ -15,6 +15,7 @@ type RouteWrapper struct {
 	Route           string
 	Method          enum.HTTPMETHOD
 	RequestDataType interface{}
+	URLQueries      map[string]string
 	InnerFunc       func(interface{}) entity.Response
 }
 
@@ -65,17 +66,28 @@ func NewRouteWrapper(routeInfos ...RouteWrapper) {
 				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 				return
 			}
+			var returnFinalResponse entity.Response
 
-			reqType := reflect.TypeOf(routeInfo.RequestDataType)
-			reqValue := reflect.New(reqType).Interface()
+			if routeInfo.RequestDataType == nil && routeInfo.Method == enum.METHODGET {
+				// var queryParams map[string]string
+				for key, _ := range routeInfo.URLQueries {
+					routeInfo.URLQueries[key] = r.URL.Query().Get(key)
+				}
 
-			if er := json.NewDecoder(r.Body).Decode(reqValue); er != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(HandleErrorResponse(400, err.ErrDecodingJSONString, er))
-				return
+				returnFinalResponse = routeInfo.InnerFunc(routeInfo.URLQueries)
+
+			} else {
+				reqType := reflect.TypeOf(routeInfo.RequestDataType)
+				reqValue := reflect.New(reqType).Interface()
+
+				if er := json.NewDecoder(r.Body).Decode(reqValue); er != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					json.NewEncoder(w).Encode(HandleErrorResponse(400, err.ErrDecodingJSONString, er))
+					return
+				}
+
+				returnFinalResponse = routeInfo.InnerFunc(reflect.ValueOf(reqValue).Elem().Interface())
 			}
-
-			returnFinalResponse := routeInfo.InnerFunc(reflect.ValueOf(reqValue).Elem().Interface())
 
 			(w).WriteHeader(returnFinalResponse.Code)
 			json.NewEncoder(w).Encode(returnFinalResponse)
