@@ -65,6 +65,6 @@ func (uc *SqlUseCase) InsertFacultyAndRetrieveInstitutionUseCase(faculty entity.
 	return facultyID, institutionInfo, uc.SqlRepo.UpdateFormSubmittedByInstitutionID(faculty.InstitutionID)
 }
 
-func (uc *SqlUseCase) GetInstitutionsToBeVerifiedUseCase() ([]entity.Institution, error) {
-	return uc.SqlRepo.GetToBeVerifiedInstitutions()
-}
+// func (uc *SqlUseCase) GetInstitutionsToBeVerifiedUseCase() ([]entity.Institution, error) {
+// 	return uc.SqlRepo.GetToBeVerifiedInstitutions()
+// }

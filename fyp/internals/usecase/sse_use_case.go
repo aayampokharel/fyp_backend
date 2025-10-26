@@ -3,9 +3,9 @@ package usecase
 import (
 	"project/internals/domain/repository"
 	"project/internals/domain/service"
+	"project/internals/usecase/dto"
 	"project/package/utils/common"
 	logger "project/package/utils/pkg"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -24,15 +24,20 @@ func NewSSEUseCase(sqlRepo repository.ISqlRepository, sseManager *service.SSEMan
 	}
 }
 
-func (uc *SSEUseCase) VerifyAdminLoginUseCase(userEmail, password string) (userID string, generatedUniqueToken string, createdTime time.Time, er error) {
+func (uc *SSEUseCase) VerifyAdminLoginUseCase(userEmail, password string) (*dto.AdminLoginResponse, error) {
+	var adminLoginResponse dto.AdminLoginResponse
 	userID, createdAt, er := uc.SqlRepo.VerifyAdminLogin(userEmail, password)
 	if er != nil {
-		return "", "", time.Time{}, er
+		return nil, er
 	}
-	generatedUniqueToken = common.GenerateUUID(20)
+	generatedUniqueToken := common.GenerateUUID(20)
 	uc.SSEManager.AddClient(generatedUniqueToken)
-
-	return userID, generatedUniqueToken, createdAt, nil
+	institutionList, er := uc.SqlRepo.GetToBeVerifiedInstitutions()
+	if er != nil {
+		return nil, er
+	}
+	adminLoginResponse = dto.AdminLoginResponse{UserID: userID, GeneratedUniqueToken: generatedUniqueToken, CreatedTime: createdAt, InstitutionList: institutionList}
+	return &adminLoginResponse, nil
 }
 
 func (uc *SSEUseCase) RemoveClientUseCase(token string) error {

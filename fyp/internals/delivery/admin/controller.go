@@ -18,13 +18,13 @@ func NewController(sqlUseCase *usecase.SqlUseCase, sseUseCase *usecase.SSEUseCas
 }
 
 func (c *Controller) HandleAdminLogin(AdminLoginRequest AdminLoginRequest) entity.Response {
-	userID, generatedUniqueToken, createdTime, er := c.sseUseCase.VerifyAdminLoginUseCase(AdminLoginRequest.AdminEmail, AdminLoginRequest.Password)
+	adminLoginResponse, er := c.sseUseCase.VerifyAdminLoginUseCase(AdminLoginRequest.AdminEmail, AdminLoginRequest.Password)
 
 	if er != nil {
 		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
 	}
 
-	return common.HandleSuccessResponse(AdminLoginResponse{UserID: userID, SSEToken: generatedUniqueToken, CreatedAt: createdTime.Format(time.RFC3339)})
+	return common.HandleSuccessResponse(AdminLoginResponse{UserID: adminLoginResponse.UserID, SSEToken: adminLoginResponse.GeneratedUniqueToken, CreatedAt: adminLoginResponse.CreatedTime.Format(time.RFC3339), InstitutionList: adminLoginResponse.InstitutionList})
 
 }
 

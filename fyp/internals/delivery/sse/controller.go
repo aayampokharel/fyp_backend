@@ -18,11 +18,6 @@ func NewController(useCase *usecase.SqlUseCase) *Controller {
 
 func (c *Controller) SendInstitutionsToBeVerified(newInstitutionCh <-chan entity.Institution, w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	institutionsList, er := c.useCase.GetInstitutionsToBeVerifiedUseCase()
-	if er != nil {
-		return
-	}
-	HandleSSEResponse(institutionsList, enum.SSEFORMLIST, w)
 
 	for {
 		select {
