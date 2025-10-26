@@ -42,7 +42,12 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 			Method:          enum.METHODPOST,
 			RequestDataType: CreateFacultyRequest{},
 			InnerFunc: func(i interface{}) entity.Response {
-				return module.Controller.HandleCreateNewFaculty(i.(CreateFacultyRequest))
+
+				institutionInfo, response := module.Controller.HandleCreateNewFaculty(i.(CreateFacultyRequest))
+				if institutionInfo != nil {
+					module.SSEService.Broadcast(*institutionInfo)
+				}
+				return response
 			},
 		},
 	}

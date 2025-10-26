@@ -14,10 +14,9 @@ type Module struct {
 func NewModule(sqlRepo repository.ISqlRepository) *Module {
 	service := service.Service{}
 	uc := usecase.NewSqlUseCase(sqlRepo, service)
-	controller := NewController(*uc)
 
 	return &Module{
-		Controller: controller,
+		Controller: NewController(uc),
 		UseCase:    uc,
 	}
 }

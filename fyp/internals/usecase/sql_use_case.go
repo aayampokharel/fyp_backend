@@ -12,7 +12,8 @@ import (
 type SqlUseCase struct {
 	SqlRepo repository.ISqlRepository
 	Service service.Service
-	Logger  *zap.SugaredLogger
+
+	Logger *zap.SugaredLogger
 }
 
 func NewSqlUseCase(sqlRepo repository.ISqlRepository, service service.Service) *SqlUseCase {
@@ -51,12 +52,17 @@ func (uc *SqlUseCase) InsertInstitutionsUseCase(institution entity.Institution) 
 	return uc.SqlRepo.InsertInstitutions(institution)
 }
 
-func (uc *SqlUseCase) InsertFacultyUseCase(faculty entity.InstitutionFaculty) (string, error) {
+func (uc *SqlUseCase) InsertFacultyAndRetrieveInstitutionUseCase(faculty entity.InstitutionFaculty) (string, *entity.Institution, error) {
 	facultyID, er := uc.SqlRepo.InsertFaculty(faculty)
 	if er != nil {
-		return "", er
+		return "", nil, er
 	}
-	return facultyID, uc.SqlRepo.UpdateFormSubmittedByInstitutionID(faculty.InstitutionID)
+
+	institutionInfo, er := uc.SqlRepo.GetInstitutionFromInstitutionID(faculty.InstitutionID)
+	if er != nil {
+		return "", nil, er
+	}
+	return facultyID, institutionInfo, uc.SqlRepo.UpdateFormSubmittedByInstitutionID(faculty.InstitutionID)
 }
 
 func (uc *SqlUseCase) GetInstitutionsToBeVerifiedUseCase() ([]entity.Institution, error) {

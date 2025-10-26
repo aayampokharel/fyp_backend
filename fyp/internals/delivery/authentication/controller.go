@@ -82,16 +82,16 @@ func (c *Controller) HandleCreateNewUserAccount(newUserAccount CreateUserAccount
 	})
 
 }
-func (c *Controller) HandleCreateNewFaculty(newFaculty CreateFacultyRequest) entity.Response {
+func (c *Controller) HandleCreateNewFaculty(newFaculty CreateFacultyRequest) (*entity.Institution, entity.Response) {
 	newFacultyEntity := newFaculty.ToEntity()
-	facultyID, er := c.useCase.InsertFacultyUseCase(newFacultyEntity)
+	facultyID, institutionInfo, er := c.useCase.InsertFacultyAndRetrieveInstitutionUseCase(newFacultyEntity)
 
 	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
+		return nil, common.HandleErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
 
 	}
 
-	return common.HandleSuccessResponse(CreateFacultyResponse{
+	return institutionInfo, common.HandleSuccessResponse(CreateFacultyResponse{
 		InstitutionFacultyID: facultyID,
 	})
 

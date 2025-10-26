@@ -8,6 +8,7 @@ import (
 	"project/internals/domain/repository"
 	errorz "project/package/errors"
 	logger "project/package/utils/pkg"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -23,6 +24,17 @@ func NewSQLSource(db *sql.DB) *SQLSource {
 
 var _ repository.ISqlRepository = (*SQLSource)(nil)
 
+func (s *SQLSource) GetInstitutionFromInstitutionID(institutionID string) (*entity.Institution, error) {
+	query := `select institution_id, institution_name, tole_address, district_address,ward_number from institutions where institution_id=$1 AND is_active=false AND is_signup_completed=true;`
+	var institution entity.Institution
+	er := s.DB.QueryRow(query, institutionID).Scan(&institution.InstitutionID, &institution.InstitutionName, &institution.ToleAddress, &institution.DistrictAddress, &institution.WardNumber)
+	if er != nil {
+		s.logger.Errorln("[sql_source] Error: GetInstitutionFromInstitutionID::", er)
+		return nil, er
+	}
+	return &institution, nil
+
+}
 func (s *SQLSource) GetToBeVerifiedInstitutions() ([]entity.Institution, error) {
 
 	query := `select institution_id, institution_name, tole_address, district_address,ward_number from institutions where is_active=false and is_signup_completed=true;`
@@ -157,6 +169,20 @@ func (s *SQLSource) InsertInstitutionUser(institutionUser entity.InstitutionUser
 		return err
 	}
 	return nil
+
+}
+
+func (s *SQLSource) VerifyAdminLogin(userMail, password string) (string, time.Time, error) {
+
+	query := `SELECT id,created_at FROM user_accounts WHERE email=$1 AND password=$2 AND system_role=ADMIN AND institution_role IS NULL AND deleted_at IS NULL;`
+	var adminID string
+	var createdAt time.Time
+	err := s.DB.QueryRow(query, userMail, password).Scan(&adminID, &createdAt)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: VerifyAdminLogin::", err)
+		return "", time.Time{}, err
+	}
+	return adminID, createdAt, nil
 
 }
 func (s *SQLSource) InsertFaculty(faculty entity.InstitutionFaculty) (facultyID string, er error) {

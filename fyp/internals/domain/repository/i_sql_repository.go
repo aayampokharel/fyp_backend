@@ -1,6 +1,9 @@
 package repository
 
-import "project/internals/domain/entity"
+import (
+	"project/internals/domain/entity"
+	"time"
+)
 
 type ISqlRepository interface {
 	CheckDuplicationByInstitutionInfo(institution entity.Institution) error
@@ -12,4 +15,6 @@ type ISqlRepository interface {
 	GetUserIDByInstitutionID(institutionID string) (string, error)
 	UpdateFormSubmittedByInstitutionID(institutionID string) error
 	GetToBeVerifiedInstitutions() ([]entity.Institution, error)
+	GetInstitutionFromInstitutionID(institutionID string) (*entity.Institution, error)
+	VerifyAdminLogin(userMail, password string) (string, time.Time, error)
 }

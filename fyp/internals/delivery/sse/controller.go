@@ -9,10 +9,10 @@ import (
 )
 
 type Controller struct {
-	useCase usecase.SqlUseCase
+	useCase *usecase.SqlUseCase
 }
 
-func NewController(useCase usecase.SqlUseCase) *Controller {
+func NewController(useCase *usecase.SqlUseCase) *Controller {
 	return &Controller{useCase: useCase}
 }
 
