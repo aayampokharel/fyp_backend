@@ -57,12 +57,16 @@ func (uc *SqlUseCase) InsertFacultyAndRetrieveInstitutionUseCase(faculty entity.
 	if er != nil {
 		return "", nil, er
 	}
+	er = uc.SqlRepo.UpdateFormSubmittedByInstitutionID(faculty.InstitutionID)
+	if er != nil {
+		return "", nil, er
+	}
 
 	institutionInfo, er := uc.SqlRepo.GetInstitutionFromInstitutionID(faculty.InstitutionID)
 	if er != nil {
 		return "", nil, er
 	}
-	return facultyID, institutionInfo, uc.SqlRepo.UpdateFormSubmittedByInstitutionID(faculty.InstitutionID)
+	return facultyID, institutionInfo, nil
 }
 
 // func (uc *SqlUseCase) GetInstitutionsToBeVerifiedUseCase() ([]entity.Institution, error) {

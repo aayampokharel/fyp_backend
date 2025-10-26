@@ -4,7 +4,6 @@ import (
 	"project/internals/domain/repository"
 	"project/internals/domain/service"
 	"project/internals/usecase/dto"
-	"project/package/utils/common"
 	logger "project/package/utils/pkg"
 
 	"go.uber.org/zap"
@@ -30,13 +29,14 @@ func (uc *SSEUseCase) VerifyAdminLoginUseCase(userEmail, password string) (*dto.
 	if er != nil {
 		return nil, er
 	}
-	generatedUniqueToken := common.GenerateUUID(20)
-	uc.SSEManager.AddClient(generatedUniqueToken)
+	// generatedUniqueToken := common.GenerateUUID(20)
+
+	// uc.SSEManager.AddClient(generatedUniqueToken)
 	institutionList, er := uc.SqlRepo.GetToBeVerifiedInstitutions()
 	if er != nil {
 		return nil, er
 	}
-	adminLoginResponse = dto.AdminLoginResponse{UserID: userID, GeneratedUniqueToken: generatedUniqueToken, CreatedTime: createdAt, InstitutionList: institutionList}
+	adminLoginResponse = dto.AdminLoginResponse{UserID: userID, CreatedTime: createdAt, InstitutionList: institutionList}
 	return &adminLoginResponse, nil
 }
 

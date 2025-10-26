@@ -1,25 +1,25 @@
 package sse
 
 import (
-	"project/internals/domain/entity"
 	"project/internals/domain/repository"
 	"project/internals/domain/service"
 	"project/internals/usecase"
 )
 
 type Module struct {
-	Controller    *Controller
-	UseCase       *usecase.SqlUseCase
-	InstitutionCh <-chan entity.Institution
+	Controller *Controller
+	SqlUseCase *usecase.SqlUseCase
+	SseUseCase *usecase.SSEUseCase
 }
 
-func NewModule(sqlRepo repository.ISqlRepository, insstitutionCh <-chan entity.Institution) *Module {
+func NewModule(sqlRepo repository.ISqlRepository, sseManager *service.SSEManager, sseUseCase *usecase.SSEUseCase) *Module {
 	service := service.Service{}
 	uc := usecase.NewSqlUseCase(sqlRepo, service)
+	ssuc := usecase.NewSSEUseCase(sqlRepo, sseManager)
 
 	return &Module{
-		Controller:    NewController(uc),
-		UseCase:       uc,
-		InstitutionCh: insstitutionCh,
+		Controller: NewController(uc, ssuc),
+		SqlUseCase: uc,
+		SseUseCase: sseUseCase,
 	}
 }

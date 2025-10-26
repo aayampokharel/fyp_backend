@@ -24,8 +24,7 @@ type SSERouteWrapper struct {
 	Prefix    string
 	Route     string
 	Method    enum.HTTPMETHOD
-	InnerFunc func(newInstitutionCh <-chan entity.Institution, w http.ResponseWriter, r *http.Request)
-	Ch        <-chan entity.Institution
+	InnerFunc func(w http.ResponseWriter, r *http.Request)
 }
 
 func NewSSERouteWrapper(sseRouteWrapper SSERouteWrapper) {
@@ -44,7 +43,7 @@ func NewSSERouteWrapper(sseRouteWrapper SSERouteWrapper) {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		sseRouteWrapper.InnerFunc(sseRouteWrapper.Ch, w, r)
+		sseRouteWrapper.InnerFunc(w, r)
 	})
 }
 

@@ -8,7 +8,6 @@ type AdminLoginRequest struct {
 }
 
 type AdminLoginResponse struct {
-	SSEToken        string               `json:"sse_token"`
 	UserID          string               `json:"user_id"`
 	CreatedAt       string               `json:"created_at"`
 	InstitutionList []entity.Institution `json:"institution_list"`

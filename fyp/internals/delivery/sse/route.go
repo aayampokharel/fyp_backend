@@ -16,7 +16,6 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) common.SSERouteWrapper {
 		Route:     "/institution",
 		Method:    enum.METHODGET,
 		InnerFunc: module.Controller.SendInstitutionsToBeVerified,
-		Ch:        module.InstitutionCh,
 	}
 	return route
 }

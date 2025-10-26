@@ -2,23 +2,27 @@ package service
 
 import (
 	"project/internals/domain/entity"
+	logger "project/package/utils/pkg"
 	"sync"
+
+	"go.uber.org/zap"
 )
 
 type SSEManager struct {
 	clients map[string]chan<- entity.Institution
 	mu      sync.RWMutex
+	Logger  *zap.SugaredLogger
 }
 
 func NewSSEManager(channelMap map[string]chan<- entity.Institution) *SSEManager {
-	return &SSEManager{clients: channelMap, mu: sync.RWMutex{}}
+	return &SSEManager{clients: channelMap, mu: sync.RWMutex{}, Logger: logger.Logger}
 }
 
-func (m *SSEManager) AddClient(adminTokenID string) <-chan entity.Institution {
+func (m *SSEManager) AddClient(adminTokenID string) (ch chan entity.Institution) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
-	ch := make(chan entity.Institution)
+	m.Logger.Info("[add_client] Info: addClient", adminTokenID)
+	ch = make(chan entity.Institution)
 	m.clients[adminTokenID] = ch
 	return ch
 }
