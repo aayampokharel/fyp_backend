@@ -2,12 +2,11 @@ package sse
 
 import (
 	"net/http"
-	"project/internals/domain/entity"
 	"project/package/enum"
 	"project/package/utils/common"
 )
 
-func RegisterRoutes(mux *http.ServeMux, module *Module, ch <-chan entity.Institution) common.SSERouteWrapper {
+func RegisterRoutes(mux *http.ServeMux, module *Module) common.SSERouteWrapper {
 	var prefix = "/sse"
 
 	// /sse/institution
@@ -17,7 +16,7 @@ func RegisterRoutes(mux *http.ServeMux, module *Module, ch <-chan entity.Institu
 		Route:     "/institution",
 		Method:    enum.METHODGET,
 		InnerFunc: module.Controller.SendInstitutionsToBeVerified,
-		Ch:        ch,
+		Ch:        module.InstitutionCh,
 	}
 	return route
 }

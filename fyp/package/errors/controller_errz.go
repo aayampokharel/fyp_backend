@@ -7,4 +7,5 @@ var (
 	ErrDuplicateString                  = "duplicate error"
 	ErrCreatingUserAccountString        = "error creating user account"
 	ErrCreatingInstitutionFacultyString = "error creating institution faculty"
+	ErrRemovingClientString             = "error removing client"
 )

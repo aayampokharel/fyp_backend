@@ -34,3 +34,8 @@ func (uc *SSEUseCase) VerifyAdminLoginUseCase(userEmail, password string) (userI
 
 	return userID, generatedUniqueToken, createdAt, nil
 }
+
+func (uc *SSEUseCase) RemoveClientUseCase(token string) error {
+	uc.SSEManager.RemoveClient(token)
+	return nil
+}

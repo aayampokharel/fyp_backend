@@ -18,7 +18,7 @@ func NewController(sqlUseCase *usecase.SqlUseCase, sseUseCase *usecase.SSEUseCas
 }
 
 func (c *Controller) HandleAdminLogin(AdminLoginRequest AdminLoginRequest) entity.Response {
-	userID, generatedUniqueToken, createdTime, er := c.sseUseCase.VerifyAdminLoginUseCase(AdminLoginRequest.Email, AdminLoginRequest.Password)
+	userID, generatedUniqueToken, createdTime, er := c.sseUseCase.VerifyAdminLoginUseCase(AdminLoginRequest.AdminEmail, AdminLoginRequest.Password)
 
 	if er != nil {
 		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
@@ -26,4 +26,11 @@ func (c *Controller) HandleAdminLogin(AdminLoginRequest AdminLoginRequest) entit
 
 	return common.HandleSuccessResponse(AdminLoginResponse{UserID: userID, SSEToken: generatedUniqueToken, CreatedAt: createdTime.Format(time.RFC3339)})
 
+}
+
+func (c *Controller) HandleDeleteSSEClient(token string) entity.Response {
+	if er := c.sseUseCase.RemoveClientUseCase(token); er != nil {
+		return common.HandleErrorResponse(500, err.ErrRemovingClientString, er)
+	}
+	return common.HandleSuccessResponse(nil)
 }

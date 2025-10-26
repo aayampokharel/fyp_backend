@@ -1,8 +1,8 @@
 package admin
 
 type AdminLoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	AdminEmail string `json:"admin_email"`
+	Password   string `json:"password"`
 }
 
 type AdminLoginResponse struct {

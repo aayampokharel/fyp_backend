@@ -173,8 +173,11 @@ func (s *SQLSource) InsertInstitutionUser(institutionUser entity.InstitutionUser
 }
 
 func (s *SQLSource) VerifyAdminLogin(userMail, password string) (string, time.Time, error) {
+	////CHECK FOR USER_NOT FOUND RETURN ERROR ,errorz package used here
+	//// incorrect password case as well for matching email.
+	//! or simply user not found
 
-	query := `SELECT id,created_at FROM user_accounts WHERE email=$1 AND password=$2 AND system_role=ADMIN AND institution_role IS NULL AND deleted_at IS NULL;`
+	query := `SELECT id,created_at FROM user_accounts WHERE email=$1 AND password=$2 AND system_role='ADMIN' AND institution_role IS NULL AND deleted_at IS NULL;`
 	var adminID string
 	var createdAt time.Time
 	err := s.DB.QueryRow(query, userMail, password).Scan(&adminID, &createdAt)
