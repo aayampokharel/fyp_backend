@@ -17,6 +17,7 @@ type RouteWrapper struct {
 	RequestDataType interface{}
 	URLQueries      map[string]string
 	InnerFunc       func(interface{}) entity.Response
+	ResponseType    enum.RESPONSETYPE
 }
 
 type SSERouteWrapper struct {
@@ -87,7 +88,19 @@ func NewRouteWrapper(routeInfos ...RouteWrapper) {
 
 				returnFinalResponse = routeInfo.InnerFunc(reflect.ValueOf(reqValue).Elem().Interface())
 			}
+			if routeInfo.ResponseType == enum.HTML {
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				if returnFinalResponse.Data != nil {
+					w.WriteHeader(http.StatusOK)
+					w.Write([]byte(returnFinalResponse.Data.(string)))
+					return
+				} else if returnFinalResponse.Data == nil {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte(returnFinalResponse.Message))
+					return
+				}
 
+			}
 			(w).WriteHeader(returnFinalResponse.Code)
 			json.NewEncoder(w).Encode(returnFinalResponse)
 

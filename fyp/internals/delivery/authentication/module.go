@@ -16,8 +16,8 @@ type Module struct {
 }
 
 func NewModule(sqlRepo repository.ISqlRepository, facultyCh chan<- entity.Institution, channelMap map[string]chan<- entity.Institution, sseService *service.SSEManager) *Module {
-	service := service.Service{}
-	uc := usecase.NewSqlUseCase(sqlRepo, service)
+	service := service.NewService()
+	uc := usecase.NewSqlUseCase(sqlRepo, *service)
 	controller := NewController(*uc)
 
 	return &Module{

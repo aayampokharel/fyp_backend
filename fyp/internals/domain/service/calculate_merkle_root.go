@@ -3,13 +3,17 @@ package service
 import (
 	"project/internals/domain/entity"
 	"project/package/utils/common"
+	logger "project/package/utils/pkg"
+
+	"go.uber.org/zap"
 )
 
 type Service struct {
+	Logger *zap.SugaredLogger
 }
 
-func NewService() Service {
-	return Service{}
+func NewService() *Service {
+	return &Service{Logger: logger.Logger}
 }
 
 func (s *Service) CalculateMerkleRoot(certificateDataArray [4]entity.CertificateData) (string, error) {

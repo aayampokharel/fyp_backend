@@ -13,7 +13,7 @@ type Module struct {
 }
 
 func NewModule(sqlRepo repository.ISqlRepository, sseManager *service.SSEManager, sseUseCase *usecase.SSEUseCase) *Module {
-	service := service.Service{}
+	service := *service.NewService()
 	uc := usecase.NewSqlUseCase(sqlRepo, service)
 	ssuc := usecase.NewSSEUseCase(sqlRepo, sseManager)
 

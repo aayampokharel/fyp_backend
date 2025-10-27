@@ -30,6 +30,8 @@ var (
 	ErrEmptyFields                  = errorz.Status400BadRequest.Wrap("Empty Fields")
 	ErrEmptyPOWRules                = errorz.Status400BadRequest.Wrap("Empty POW Rule String in .env file")
 	ErrEnvParsing                   = errorz.Status400BadRequest.Wrap("Error parsing .env file")
+	ErrFileParsing                  = errorz.Status400BadRequest.Wrap("Error parsing file")
+	ErrFileExecuting                = errorz.Status400BadRequest.Wrap("Error executing file")
 	ErrIntParse                     = errorz.Status400BadRequest.Wrap("Error parsing int from srring")
 	ErrTcpListen                    = errorz.Status400BadRequest.Wrap("Error in TCP Listen")
 	ErrInstitutionAlreadyRegistered = errorz.Status400BadRequest.Wrap("Institution already registered")

@@ -12,6 +12,7 @@ import (
 	"project/internals/delivery/admin"
 	auth_delivery "project/internals/delivery/authentication"
 	delivery "project/internals/delivery/blockchain"
+	filehandling "project/internals/delivery/file_handling"
 	"project/internals/delivery/sse"
 	"project/internals/domain/entity"
 	"project/internals/domain/service"
@@ -43,21 +44,25 @@ func main() {
 	dbConn := sql_source.NewDB()
 	sqlSource := sql_source.NewSQLSource(dbConn)
 	sseService := service.NewSSEManager(channelMap)
-	module := delivery.NewModule(source.NewBlockChainMemorySource(), nodeSource, sqlSource)
+	blockchainsource := source.NewBlockChainMemorySource()
+	module := delivery.NewModule(blockchainsource, nodeSource, sqlSource)
 	authModule := auth_delivery.NewModule(sqlSource, institutionchannel, channelMap, sseService)
 	sseUseCase := usecase.NewSSEUseCase(sqlSource, sseService)
 	sseModule := sse.NewModule(sqlSource, sseService, sseUseCase)
-	adminModule := admin.NewModule(sqlSource, service.Service{}, sseService)
+	adminModule := admin.NewModule(sqlSource, *service.NewService(), sseService)
 	mux := http.NewServeMux()
 	delivery.RegisterRoutes(mux, module)
 	auth_delivery_routes := auth_delivery.RegisterRoutes(mux, authModule)
 	sse_routes := sse.RegisterRoutes(mux, sseModule)
 	admin_routes := admin.RegisterRoutes(mux, adminModule)
+	fileHandlingModule := filehandling.NewModule(*service.NewService(), blockchainsource, nodeSource, sqlSource)
+	fileHandling_routes := filehandling.RegisterRoutes(mux, fileHandlingModule)
 
 	//! structurize main.go as WELL
 	var allNormalRoutes []common.RouteWrapper
 	allNormalRoutes = append(allNormalRoutes, auth_delivery_routes...)
 	allNormalRoutes = append(allNormalRoutes, admin_routes...)
+	allNormalRoutes = append(allNormalRoutes, fileHandling_routes...)
 
 	common.NewRouteWrapper(allNormalRoutes...)
 	common.NewSSERouteWrapper(sse_routes)
@@ -68,7 +73,7 @@ func main() {
 	memSource := source.NewBlockChainMemorySource()
 	service := service.NewService()
 	// blockchainService := service.NewService()
-	blockChainUseCase := usecase.NewBlockChainUseCase(memSource, nodeSource, sqlSource, service)
+	blockChainUseCase := usecase.NewBlockChainUseCase(memSource, nodeSource, sqlSource, *service)
 
 	go func() {
 		for {

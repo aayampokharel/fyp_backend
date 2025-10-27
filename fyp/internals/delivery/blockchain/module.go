@@ -31,7 +31,7 @@ type Module struct {
 }
 
 func NewModule(blockRepo repository.IBlockChainRepository, nodeRepo repository.INodeRepository, sqlRepo repository.ISqlRepository) *Module {
-	blockchainService := service.Service{}
+	blockchainService := *service.NewService()
 	uc := usecase.NewBlockChainUseCase(blockRepo, nodeRepo, sqlRepo, blockchainService)
 	controller := NewController(*uc)
 
