@@ -21,9 +21,18 @@ func NewParseFileUseCase(service service.Service) *ParseFileUseCase {
 	}
 }
 
-func (uc *ParseFileUseCase) GenerateCertificateHTML(templatePath string, certificateData entity.CertificateData) (string, error) {
+func (uc *ParseFileUseCase) GenerateCertificateHTML(id, url, templatePath string, certificateData entity.CertificateData) (string, error) {
+	qrCodeBase64, er := uc.Service.GenerateQRCodeBase64(id, url)
+	if er != nil {
+		return "", er
+	}
 
-	htmlContent, err := uc.Service.ParseAndExecute(templatePath, certificateData)
+	certificateDataWithQR := entity.CertificateDataWithQRCode{
+		CertificateData: certificateData,
+		QRCodeBase64:    qrCodeBase64,
+	}
+
+	htmlContent, err := uc.Service.ParseAndExecute(templatePath, certificateDataWithQR)
 	if err != nil {
 		uc.Logger.Errorw("[certificate_usecase] Failed to generate HTML", "error", err)
 		return "", err

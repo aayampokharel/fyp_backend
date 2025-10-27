@@ -29,5 +29,11 @@ type CertificateData struct {
 
 	// Metadata
 	CertificateType string    `json:"certificate_type"` // ADDED: "DEGREE", "DIPLOMA", "TRANSCRIPT"
+	CollegeSeal     string    `json:"college_seal"`     // ADDED: Official seal of university
 	CreatedAt       time.Time `json:"created_at"`       // ADDED: When this record was created
+}
+
+type CertificateDataWithQRCode struct {
+	CertificateData `json:"certificate_data"`
+	QRCodeBase64    string `json:"qr_code"`
 }
