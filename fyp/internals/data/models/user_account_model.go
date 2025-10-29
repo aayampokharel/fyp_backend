@@ -18,7 +18,7 @@ type UserAccount struct {
 func UserAccountFromEntity(userAccount entity.UserAccount) UserAccount {
 	return UserAccount{
 		ID:              userAccount.ID,
-		SystemRole:      userAccount.SystemRole.ToString(),
+		SystemRole:      userAccount.SystemRole.String(),
 		Email:           userAccount.Email,
 		Password:        userAccount.Password,
 		InstitutionRole: userAccount.InstitutionRole,

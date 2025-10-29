@@ -31,27 +31,21 @@ type CreateUserAccountRequest struct {
 }
 
 type CreateFacultyRequest struct {
-	InstitutionID             string `json:"institution_id"`
-	Faculty                   string `json:"faculty"`
-	FacultyHODName            string `json:"faculty_hod_name"`
-	FacultyHODSignatureBase64 string `json:"faculty_hod_signature_base64"`
-	PrincipalName             string `json:"principal_name"`
-	PrincipalSignatureBase64  string `json:"principal_signature_base64"`
-	UniversityAffiliation     string `json:"university_affiliation"`
-	UniversityCollegeCode     string `json:"university_college_code"`
+	InstitutionID                  string              `json:"institution_id"`
+	Faculty                        string              `json:"faculty"`
+	FacultyAuthorityWithSignatures []map[string]string `json:"faculty_authority_with_signatures"`
+	UniversityAffiliation          string              `json:"university_affiliation"`
+	UniversityCollegeCode          string              `json:"university_college_code"`
 }
 
 func (c *CreateFacultyRequest) ToEntity() entity.InstitutionFaculty {
 	return entity.InstitutionFaculty{
-		InstitutionFacultyID:      common.GenerateUUID(16),
-		InstitutionID:             c.InstitutionID,
-		Faculty:                   c.Faculty,
-		FacultyHODName:            c.FacultyHODName,
-		FacultyHODSignatureBase64: c.FacultyHODSignatureBase64,
-		PrincipalName:             c.PrincipalName,
-		PrincipalSignatureBase64:  c.PrincipalSignatureBase64,
-		UniversityAffiliation:     c.UniversityAffiliation,
-		UniversityCollegeCode:     c.UniversityCollegeCode,
+		InstitutionFacultyID:           common.GenerateUUID(16),
+		InstitutionID:                  c.InstitutionID,
+		FacultyName:                    c.Faculty,
+		FacultyAuthorityWithSignatures: c.FacultyAuthorityWithSignatures,
+		UniversityAffiliation:          c.UniversityAffiliation,
+		UniversityCollegeCode:          c.UniversityCollegeCode,
 	}
 }
 

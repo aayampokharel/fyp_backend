@@ -2,22 +2,18 @@ package usecase
 
 import (
 	"project/internals/domain/entity"
+	"project/internals/domain/repository"
 	"project/internals/domain/service"
-	logger "project/package/utils/pkg"
-
-	"go.uber.org/zap"
 )
 
 type ParseFileUseCase struct {
-	// SqlRepo        repository.ISqlRepository
+	SqlRepo repository.ISqlRepository
 	Service service.Service
-	Logger  *zap.SugaredLogger
 }
 
 func NewParseFileUseCase(service service.Service) *ParseFileUseCase {
 	return &ParseFileUseCase{
 		Service: service,
-		Logger:  logger.Logger,
 	}
 }
 
@@ -34,10 +30,32 @@ func (uc *ParseFileUseCase) GenerateCertificateHTML(id, url, templatePath string
 
 	htmlContent, err := uc.Service.ParseAndExecute(templatePath, certificateDataWithQR)
 	if err != nil {
-		uc.Logger.Errorw("[certificate_usecase] Failed to generate HTML", "error", err)
+		uc.Service.Logger.Errorw("[certificate_usecase] Failed to generate HTML", "error", err)
 		return "", err
 	}
 
-	uc.Logger.Infow("[certificate_usecase] Successfully generated certificate HTML")
+	uc.Service.Logger.Infow("[certificate_usecase] Successfully generated certificate HTML")
 	return htmlContent, nil
+}
+
+func (uc *ParseFileUseCase) GenerateAndStoreCertificatePDF(htmlContent string, pdfFileEntity entity.PDFFileEntity) error {
+	pdfBytes, er := uc.Service.ConvertHTMLToPDF(htmlContent)
+	if er != nil {
+		uc.Service.Logger.Errorln("[certificate_usecase] error while generating pdfbytes ", er)
+		return er
+	}
+	pdfFileEntity.PDFData = pdfBytes
+
+	er = uc.SqlRepo.InsertPDFFile(pdfFileEntity)
+	if er != nil {
+		uc.Service.Logger.Errorln("[certificate_usecase] error while storing pdfbytes ", er)
+		return er
+	}
+
+	return nil
+}
+
+func (uc *ParseFileUseCase) RetrievePDFFile(pdfFileId string) (entity.PDFFileEntity, error) {
+	return uc.SqlRepo.GetPDFFile(pdfFileId)
+
 }

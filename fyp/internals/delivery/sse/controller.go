@@ -38,13 +38,13 @@ func (c *Controller) SendInstitutionsToBeVerified(w http.ResponseWriter, r *http
 	flusher.Flush()
 
 	ctx := r.Context()
-	c.sqlUseCase.Logger.Infoln("[send_institutions_to_be_verified] Info: sendInstitutionsToBeVerified", "started")
+	c.sqlUseCase.Service.Logger.Infoln("[send_institutions_to_be_verified] Info: sendInstitutionsToBeVerified", "started")
 	for {
 		select {
 		case newInstitution := <-newInstitutionCh:
 			HandleSSEResponse(newInstitution, enum.SSESINGLEFORM, w)
 		case <-ctx.Done():
-			c.sqlUseCase.Logger.Infoln("[send_institutions_to_be_verified] Info: sendInstitutionsToBeVerified::CLIENt disconected ! ", fmt.Sprint(ctx.Err()))
+			c.sqlUseCase.Service.Logger.Infoln("[send_institutions_to_be_verified] Info: sendInstitutionsToBeVerified::CLIENt disconected ! ", fmt.Sprint(ctx.Err()))
 			return
 		}
 	}

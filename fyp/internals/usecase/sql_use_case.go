@@ -4,23 +4,17 @@ import (
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
 	"project/internals/domain/service"
-	logger "project/package/utils/pkg"
-
-	"go.uber.org/zap"
 )
 
 type SqlUseCase struct {
 	SqlRepo repository.ISqlRepository
 	Service service.Service
-
-	Logger *zap.SugaredLogger
 }
 
 func NewSqlUseCase(sqlRepo repository.ISqlRepository, service service.Service) *SqlUseCase {
 	return &SqlUseCase{
 		SqlRepo: sqlRepo,
 		Service: service,
-		Logger:  logger.Logger,
 	}
 }
 
@@ -57,12 +51,12 @@ func (uc *SqlUseCase) InsertFacultyAndRetrieveInstitutionUseCase(faculty entity.
 	if er != nil {
 		return "", nil, er
 	}
-	er = uc.SqlRepo.UpdateFormSubmittedByInstitutionID(faculty.InstitutionID)
+	er = uc.SqlRepo.UpdateSignUpCompletedByInstitutionID(faculty.InstitutionID)
 	if er != nil {
 		return "", nil, er
 	}
 
-	institutionInfo, er := uc.SqlRepo.GetInstitutionFromInstitutionID(faculty.InstitutionID)
+	institutionInfo, er := uc.SqlRepo.GetPendingInstitutionFromInstitutionID(faculty.InstitutionID)
 	if er != nil {
 		return "", nil, er
 	}

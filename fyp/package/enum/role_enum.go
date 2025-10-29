@@ -11,15 +11,8 @@ const (
 	INSTITUTE ROLE = "INSTITUTE"
 )
 
-func (r *ROLE) ToString() string {
-	switch *r {
-	case ADMIN:
-		return "ADMIN"
-	case INSTITUTE:
-		return "INSTITUTE"
-	default:
-		return ""
-	}
+func (r ROLE) String() string {
+	return string(r)
 }
 
 func StringToRole(roleString string) ROLE {

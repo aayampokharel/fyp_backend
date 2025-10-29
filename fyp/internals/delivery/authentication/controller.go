@@ -28,21 +28,21 @@ func (c *Controller) HandleCreateNewInstitution(institution CreateInstitutionReq
 	// }
 
 	if institution.InstitutionName == "" || institution.ToleAddress == "" || institution.DistrictAddress == "" || institution.WardNumber == 0 {
-		c.useCase.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", err.ErrEmptyInstitutionInfo)
+		c.useCase.Service.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", err.ErrEmptyInstitutionInfo)
 		return common.HandleErrorResponse(500, err.ErrCreatingInstitutionString, err.ErrEmptyInstitutionInfo)
 
 	}
 	institutionEntity := institution.ToEntity()
 
 	if er := c.useCase.CheckDuplicationByInstitutionInfoUseCase(institutionEntity); er != nil {
-		c.useCase.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", er)
+		c.useCase.Service.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", er)
 		return common.HandleErrorResponse(500, err.ErrDuplicateString, er)
 
 	}
 
 	institutionId, er := c.useCase.InsertInstitutionsUseCase(institutionEntity)
 	if er != nil {
-		c.useCase.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", er)
+		c.useCase.Service.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", er)
 		return common.HandleErrorResponse(500, err.ErrCreatingInstitutionString, er)
 
 	}

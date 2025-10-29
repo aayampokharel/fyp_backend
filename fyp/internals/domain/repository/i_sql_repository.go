@@ -13,8 +13,12 @@ type ISqlRepository interface {
 	InsertInstitutionUser(institutionUser entity.InstitutionUser) error
 	InsertFaculty(faculty entity.InstitutionFaculty) (string, error)
 	GetUserIDByInstitutionID(institutionID string) (string, error)
-	UpdateFormSubmittedByInstitutionID(institutionID string) error
-	GetToBeVerifiedInstitutions() ([]entity.Institution, error)
-	GetInstitutionFromInstitutionID(institutionID string) (*entity.Institution, error)
+	UpdateSignUpCompletedByInstitutionID(institutionID string) error
+	UpdateIsActiveByInstitutionID(institutionID string, isActive bool) error
+	GetAllPendingInstitutions() ([]entity.Institution, error)
+	GetPendingInstitutionFromInstitutionID(institutionID string) (*entity.Institution, error)
 	VerifyAdminLogin(userMail, password string) (string, time.Time, error)
+	InsertPDFFile(pdfFile entity.PDFFileEntity) error
+	InsertPDFCategory(pdfFileCategory entity.PDFFileCategoryEntity) error
+	RetrievePDFFileByFileIDOrCategoryID(fileID string, categoryID string, isDownloadAll bool) ([]entity.PDFFileEntity, error)
 }

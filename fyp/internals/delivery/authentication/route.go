@@ -45,7 +45,7 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 
 				institutionInfo, response := module.Controller.HandleCreateNewFaculty(i.(CreateFacultyRequest))
 				if institutionInfo != nil {
-					module.UseCase.Logger.Debugln("Broadcast", *institutionInfo)
+					module.UseCase.Service.Logger.Debugln("Broadcast", *institutionInfo)
 					module.SSEService.Broadcast(*institutionInfo)
 				}
 				return response
