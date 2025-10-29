@@ -146,7 +146,5 @@ CREATE TABLE IF NOT EXISTS  certificates(
     UNIQUE(block_number, position)
 );
 
-
-
-
+ALTER TABLE certificates ADD COLUMN certificate_hash VARCHAR(255) NOT NULL DEFAULT 'temp_hash';
 
