@@ -38,4 +38,6 @@ var (
 	ErrCannotConvertToBool          = errorz.Status400BadRequest.Wrap("cannot convert to bool type")
 	ErrCannotConvertToInt           = errorz.Status400BadRequest.Wrap("cannot convert to int type")
 	ErrEmptyString                  = errorz.Status400BadRequest.Wrap("empty string provided")
+	ErrWritingZip                   = errorz.Status400BadRequest.Wrap("Error while writing in zip")
+	ErrClosingZipWriter             = errorz.Status400BadRequest.Wrap("Error closing zip writer")
 )

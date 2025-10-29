@@ -11,7 +11,6 @@ type Response struct {
 type FileResponse struct {
 	Code     int               `json:"code"`
 	FileName string            `json:"file_name"`
-	Header   map[string]string `json:"header"`
 	Message  string            `json:"message"`
 	Data     []byte            `json:"data"`
 	FileType enum.RESPONSETYPE `json:"file_type"`

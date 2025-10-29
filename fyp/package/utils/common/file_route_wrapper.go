@@ -16,11 +16,11 @@ type FileRouteWrapper struct {
 	Route  string
 	Header http.Header
 
-	Method           enum.HTTPMETHOD
-	RequestDataType  interface{}
-	GetDeleteHandler func(map[string]string) entity.FileResponse
-	URLQueries       []string
-	PostHandler      func(interface{}) entity.FileResponse
+	Method             enum.HTTPMETHOD
+	RequestDataType    interface{}
+	GetORDeleteHandler func(map[string]string) entity.FileResponse
+	URLQueries         []string
+	PostHandler        func(interface{}) entity.FileResponse
 }
 
 // if routeInfo.ResponseType == enum.HTML {
@@ -87,7 +87,7 @@ func NewFileRouteWrapper(routeInfos ...FileRouteWrapper) {
 					queryParams[val] = r.URL.Query().Get(val)
 				}
 
-				returnFinalFileResponse = routeInfo.GetDeleteHandler(queryParams)
+				returnFinalFileResponse = routeInfo.GetORDeleteHandler(queryParams)
 
 			} else {
 				reqType := reflect.TypeOf(routeInfo.RequestDataType)

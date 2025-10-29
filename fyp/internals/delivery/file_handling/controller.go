@@ -21,7 +21,7 @@ func NewController(parseFileUseCase *usecase.ParseFileUseCase, blockChainUseCase
 // func (c *Controller) HandleCreatePDFFile(request )
 //creation of pdf should be handled from blockchain package .
 
-func (c *Controller) HandleGetHTMLFile(request GetRequestQueryType) entity.Response {
+func (c *Controller) HandleGetHTMLFile(request map[string]string) entity.FileResponse {
 
 	//// in preview dont show this :
 	//  <div class="block-info">
@@ -43,43 +43,48 @@ func (c *Controller) HandleGetHTMLFile(request GetRequestQueryType) entity.Respo
 	templatePath := constants.TemplateBasePath + constants.CertificateTemplate
 	fakeCertificateData, er := c.BlockChainUseCase.GetCertificateData()
 	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
+		return common.HandleFileErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
 	}
 	htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", "url", templatePath, fakeCertificateData)
 	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrParsingFileString, er)
+		return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
 	}
 
-	return common.HandleSuccessResponse(htmlString)
+	return common.HandleFileSuccessResponse(enum.HTML, "", []byte(htmlString))
 
 }
 
-func (c *Controller) HandleGetPDFFileInList(request GetRequestQueryType) entity.Response {
-	var responseWithFileTypeAndCount ResponseWithFileTypeAndCount
-	checkedMap := common.CheckMapKeysReturnValues(request, "category_id", "file_id", "is_download_all")
-	if checkedMap == nil {
-		return common.HandleErrorResponse(500, err.ErrParsingQueryParametersString, nil)
-	}
-	categoryID := checkedMap["category_id"]
-	fileID := checkedMap["file_id"]
-	isDownloadAll, er := common.CheckBoolFromString(checkedMap["is_download_all"])
+func (c *Controller) HandleGetPDFFileInList(request map[string]string) entity.FileResponse {
+	var fileName string
+	checkedMap, er := common.CheckMapKeysReturnValues(request, GetPDFFileInListQuery)
 	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrDataTypeMismatchString, er)
+		return common.HandleFileErrorResponse(500, err.ErrParsingQueryParametersString, nil)
+	}
+
+	categoryID := checkedMap[CategoryId]
+	fileID := checkedMap[FileID]
+	categoryName := checkedMap[CategoryName]
+	isDownloadAll, er := common.ConvertToBool(checkedMap[IsDownloadAll])
+	if er != nil {
+		return common.HandleFileErrorResponse(500, err.ErrDataTypeMismatchString, er)
 	}
 	pdfFileEntity, er := c.ParseFileUseCase.RetrievePDFFileByFileIDOrCategoryID(fileID, categoryID, isDownloadAll)
 	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrParsingFileString, er)
+		return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
+	}
+	if pdfFileEntity == nil {
+		return common.HandleFileErrorResponse(400, err.ErrFileNotFoundString, nil)
 	}
 
-	responseWithFileTypeAndCount.Count = len(pdfFileEntity)
-	responseWithFileTypeAndCount.Data = pdfFileEntity
 	if isDownloadAll && len(pdfFileEntity) > 1 {
-		responseWithFileTypeAndCount.FileType = enum.ZIP
-
-		return common.HandleSuccessResponse(responseWithFileTypeAndCount)
+		fileName = categoryName + "_" + common.GenerateUUID(6)
+		zipBytes, er := c.ParseFileUseCase.Service.CreateZipUsingPDF(pdfFileEntity)
+		if er != nil {
+			return common.HandleFileErrorResponse(500, err.ErrZipWritingString, er)
+		}
+		return common.HandleFileSuccessResponse(enum.ZIP, fileName, zipBytes)
 	}
-
-	responseWithFileTypeAndCount.FileType = enum.PDF
-	return common.HandleSuccessResponse(responseWithFileTypeAndCount)
+	fileName = pdfFileEntity[0].FileName + "_" + common.GenerateUUID(6)
+	return common.HandleFileSuccessResponse(enum.PDF, fileName, pdfFileEntity[0].PDFData)
 
 }

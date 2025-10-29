@@ -265,6 +265,7 @@ func (s *SQLSource) RetrievePDFFileByFileIDOrCategoryID(fileID string, categoryI
 		rows, er = s.DB.Query(query, fileID, categoryID)
 		if er != nil {
 			s.logger.Errorln("[sql_source] Error: retrievePDFfileByFileIDOrCategoryID", er)
+			return nil, er
 		}
 
 	} else {
@@ -282,6 +283,10 @@ func (s *SQLSource) RetrievePDFFileByFileIDOrCategoryID(fileID string, categoryI
 			return nil, er
 		}
 		pdfFileEntities = append(pdfFileEntities, singlePdfFileEntity)
+	}
+	if er = rows.Err(); er != nil {
+		s.logger.Errorln("[sql_source] Error during rows iteration:", er)
+		return nil, er
 	}
 	return pdfFileEntities, nil
 }

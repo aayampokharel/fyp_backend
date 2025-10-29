@@ -1,17 +1,11 @@
 package filehandling
 
-import (
-	"project/internals/domain/entity"
-	"project/package/enum"
-)
+type GetRequestQueryType []string
 
-type GetRequestQueryType map[string]string
+const CategoryId = "category_id"
+const CategoryName = "category_name"
+const FileID = "file_id"
+const IsDownloadAll = "is_download_all"
 
-var GetHTMLRequestQuery = GetRequestQueryType{"id": ""}
-var GetPDFFileInListQuery = GetRequestQueryType{"category_id": "", "file_id": "", "is_download_all": ""}
-
-type ResponseWithFileTypeAndCount struct {
-	FileType enum.RESPONSETYPE
-	Count    int
-	Data     []entity.PDFFileEntity
-}
+var GetHTMLRequestQuery = GetRequestQueryType{"id"}
+var GetPDFFileInListQuery = GetRequestQueryType{CategoryId, CategoryName, FileID, IsDownloadAll}

@@ -62,9 +62,11 @@ func main() {
 	var allNormalRoutes []common.RouteWrapper
 	allNormalRoutes = append(allNormalRoutes, auth_delivery_routes...)
 	allNormalRoutes = append(allNormalRoutes, admin_routes...)
-	allNormalRoutes = append(allNormalRoutes, fileHandling_routes...)
 
+	var allFileHandlingRoutes []common.FileRouteWrapper
+	allFileHandlingRoutes = append(allFileHandlingRoutes, fileHandling_routes...)
 	common.NewRouteWrapper(allNormalRoutes...)
+	common.NewFileRouteWrapper(allFileHandlingRoutes...)
 	common.NewSSERouteWrapper(sse_routes)
 
 	addr := fmt.Sprintf(":%d", *currentPort)
