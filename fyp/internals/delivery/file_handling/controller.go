@@ -4,6 +4,7 @@ import (
 	"project/constants"
 	"project/internals/domain/entity"
 	"project/internals/usecase"
+	"project/package/enum"
 	err "project/package/errors"
 	"project/package/utils/common"
 )
@@ -17,7 +18,10 @@ func NewController(parseFileUseCase *usecase.ParseFileUseCase, blockChainUseCase
 	return &Controller{ParseFileUseCase: parseFileUseCase, BlockChainUseCase: blockChainUseCase}
 }
 
-func (c *Controller) HandleGetHTMLFile(request map[string]string) entity.Response {
+// func (c *Controller) HandleCreatePDFFile(request )
+//creation of pdf should be handled from blockchain package .
+
+func (c *Controller) HandleGetHTMLFile(request GetRequestQueryType) entity.Response {
 
 	//// in preview dont show this :
 	//  <div class="block-info">
@@ -47,5 +51,35 @@ func (c *Controller) HandleGetHTMLFile(request map[string]string) entity.Respons
 	}
 
 	return common.HandleSuccessResponse(htmlString)
+
+}
+
+func (c *Controller) HandleGetPDFFileInList(request GetRequestQueryType) entity.Response {
+	var responseWithFileTypeAndCount ResponseWithFileTypeAndCount
+	checkedMap := common.CheckMapKeysReturnValues(request, "category_id", "file_id", "is_download_all")
+	if checkedMap == nil {
+		return common.HandleErrorResponse(500, err.ErrParsingQueryParametersString, nil)
+	}
+	categoryID := checkedMap["category_id"]
+	fileID := checkedMap["file_id"]
+	isDownloadAll, er := common.CheckBoolFromString(checkedMap["is_download_all"])
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrDataTypeMismatchString, er)
+	}
+	pdfFileEntity, er := c.ParseFileUseCase.RetrievePDFFileByFileIDOrCategoryID(fileID, categoryID, isDownloadAll)
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrParsingFileString, er)
+	}
+
+	responseWithFileTypeAndCount.Count = len(pdfFileEntity)
+	responseWithFileTypeAndCount.Data = pdfFileEntity
+	if isDownloadAll && len(pdfFileEntity) > 1 {
+		responseWithFileTypeAndCount.FileType = enum.ZIP
+
+		return common.HandleSuccessResponse(responseWithFileTypeAndCount)
+	}
+
+	responseWithFileTypeAndCount.FileType = enum.PDF
+	return common.HandleSuccessResponse(responseWithFileTypeAndCount)
 
 }

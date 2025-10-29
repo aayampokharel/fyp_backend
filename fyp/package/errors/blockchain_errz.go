@@ -35,4 +35,7 @@ var (
 	ErrIntParse                     = errorz.Status400BadRequest.Wrap("Error parsing int from srring")
 	ErrTcpListen                    = errorz.Status400BadRequest.Wrap("Error in TCP Listen")
 	ErrInstitutionAlreadyRegistered = errorz.Status400BadRequest.Wrap("Institution already registered")
+	ErrCannotConvertToBool          = errorz.Status400BadRequest.Wrap("cannot convert to bool type")
+	ErrCannotConvertToInt           = errorz.Status400BadRequest.Wrap("cannot convert to int type")
+	ErrEmptyString                  = errorz.Status400BadRequest.Wrap("empty string provided")
 )

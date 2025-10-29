@@ -55,7 +55,7 @@ func (uc *ParseFileUseCase) GenerateAndStoreCertificatePDF(htmlContent string, p
 	return nil
 }
 
-func (uc *ParseFileUseCase) RetrievePDFFile(pdfFileId string) (entity.PDFFileEntity, error) {
-	return uc.SqlRepo.GetPDFFile(pdfFileId)
+func (uc *ParseFileUseCase) RetrievePDFFileByFileIDOrCategoryID(pdfFileId string, categoryID string, isDownloadAll bool) ([]entity.PDFFileEntity, error) {
+	return uc.SqlRepo.RetrievePDFFileByFileIDOrCategoryID(pdfFileId, categoryID, isDownloadAll)
 
 }

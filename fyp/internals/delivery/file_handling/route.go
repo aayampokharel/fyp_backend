@@ -21,7 +21,20 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 			URLQueries:      GetHTMLRequestQuery,
 			ResponseType:    enum.HTML,
 			InnerFunc: func(i interface{}) entity.Response {
-				return module.Controller.HandleGetHTMLFile(i.(map[string]string))
+				return module.Controller.HandleGetHTMLFile(i.(GetRequestQueryType))
+			},
+		},
+		// /certificate/preview?file_id=123&category_id=123&is_download_all=true
+		{
+			Mux:             mux,
+			Prefix:          prefix,
+			Route:           "/preview",
+			Method:          enum.METHODGET,
+			RequestDataType: nil,
+			URLQueries:      GetPDFFileInListQuery,
+			ResponseType:    enum.PDFORZIP,
+			InnerFunc: func(i interface{}) entity.Response {
+				return module.Controller.HandleGetPDFFileInList(i.(GetRequestQueryType))
 			},
 		},
 	}

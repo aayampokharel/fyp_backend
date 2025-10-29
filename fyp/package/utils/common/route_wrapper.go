@@ -68,7 +68,7 @@ func NewRouteWrapper(routeInfos ...RouteWrapper) {
 			}
 			var returnFinalResponse entity.Response
 
-			if routeInfo.RequestDataType == nil && routeInfo.Method == enum.METHODGET {
+			if routeInfo.RequestDataType == nil && (routeInfo.Method == enum.METHODGET || routeInfo.Method == enum.METHODDELETE) {
 				// var queryParams map[string]string
 				for key, _ := range routeInfo.URLQueries {
 					routeInfo.URLQueries[key] = r.URL.Query().Get(key)
@@ -88,19 +88,7 @@ func NewRouteWrapper(routeInfos ...RouteWrapper) {
 
 				returnFinalResponse = routeInfo.InnerFunc(reflect.ValueOf(reqValue).Elem().Interface())
 			}
-			if routeInfo.ResponseType == enum.HTML {
-				w.Header().Set("Content-Type", "text/html; charset=utf-8")
-				if returnFinalResponse.Data != nil {
-					w.WriteHeader(http.StatusOK)
-					w.Write([]byte(returnFinalResponse.Data.(string)))
-					return
-				} else if returnFinalResponse.Data == nil {
-					w.WriteHeader(http.StatusBadRequest)
-					w.Write([]byte(returnFinalResponse.Message))
-					return
-				}
 
-			}
 			(w).WriteHeader(returnFinalResponse.Code)
 			json.NewEncoder(w).Encode(returnFinalResponse)
 

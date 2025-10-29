@@ -10,4 +10,6 @@ var (
 	ErrRemovingClientString             = "error removing client"
 	ErrGettingCertificateString         = "error getting certificate "
 	ErrParsingFileString                = " error parsing file"
+	ErrDataTypeMismatchString           = " error datatype mismatch"
+	ErrParsingQueryParametersString     = " error parsing query parameters"
 )

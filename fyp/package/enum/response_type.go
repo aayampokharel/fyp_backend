@@ -3,8 +3,11 @@ package enum
 type RESPONSETYPE string
 
 const (
-	HTML RESPONSETYPE = "HTML"
-	JSON RESPONSETYPE = "JSON"
+	HTML     RESPONSETYPE = "HTML"
+	JSON     RESPONSETYPE = "JSON"
+	PDF      RESPONSETYPE = "PDF"
+	ZIP      RESPONSETYPE = "ZIP"
+	PDFORZIP RESPONSETYPE = "PDFORZIP"
 )
 
 func (m *RESPONSETYPE) ToString() string {
@@ -13,6 +16,12 @@ func (m *RESPONSETYPE) ToString() string {
 		return "HTML"
 	case JSON:
 		return "JSON"
+	case PDF:
+		return "PDF"
+	case ZIP:
+		return "ZIP"
+	case PDFORZIP:
+		return "PDFORZIP"
 	default:
 		return ""
 	}
