@@ -27,6 +27,10 @@ func NewBlockChainUseCase(blockChainRepository repository.IBlockChainRepository,
 	}
 }
 
+func (uc *BlockChainUseCase) InsertData(block *entity.Block) error {
+	return uc.BlockChainRepo.InsertIntoBlockChain(*block)
+}
+
 func (uc *BlockChainUseCase) GetBlockChainLength() int {
 	uc.Service.Logger.Infoln("[block_chain_use_case] Info: GetBlockChainLength::", uc.BlockChainRepo.GetBlockChainLength())
 	return uc.BlockChainRepo.GetBlockChainLength()

@@ -21,4 +21,7 @@ type ISqlRepository interface {
 	InsertPDFFile(pdfFile entity.PDFFileEntity) error
 	InsertPDFCategory(pdfFileCategory entity.PDFFileCategoryEntity) error
 	RetrievePDFFileByFileIDOrCategoryID(fileID string, categoryID string, isDownloadAll bool) ([]entity.PDFFileEntity, error)
+	InsertBlockWithSingleCertificate(blockHeader entity.Header, certificateData entity.CertificateData, certificatePositionZeroIndex int) error
+	UpdateBlockDataByID(blockHeader entity.Header, id string) error
+	InsertCertificate(certificate entity.CertificateData, blockNumber int, certificatePositionZeroIndex int) error
 }

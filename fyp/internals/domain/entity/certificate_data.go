@@ -4,33 +4,49 @@ import "time"
 
 type CertificateData struct {
 	// Core Certificate Identity
-	CertificateID  string  `json:"certificate_id" gorm:"primaryKey"` // Unique hash of certificate
-	StudentID      string  `json:"student_id"`                       // University student ID
-	StudentName    string  `json:"student_name"`
-	UniversityName string  `json:"university_name"`
+	CertificateID string `json:"certificate_id" gorm:"primaryKey"`
+	BlockNumber   int    `json:"block_number"`
+	Position      int    `json:"position"` // 1-4
+
+	// Student Information (Required)
+	StudentID   string `json:"student_id"`
+	StudentName string `json:"student_name"`
+
+	// Institution & Faculty Information
+	InstitutionID        string `json:"institution_id"`
+	InstitutionFacultyID string `json:"institution_faculty_id"`
+	PDFCategoryID        string `json:"pdf_category_id"`
+
+	// Certificate Type
+	CertificateType string `json:"certificate_type"` // COURSE_COMPLETION, CHARACTER, LEAVING, TRANSFER, PROVISIONAL
+
+	// Academic Information (Optional)
 	Degree         string  `json:"degree"`
 	College        string  `json:"college"`
-	Major          string  `json:"major"` // ADDED: Specific field of study
-	GPA            string  `json:"gpa"`   // ADDED: Academic performance
+	Major          string  `json:"major"`
+	GPA            string  `json:"gpa"`
 	Percentage     float64 `json:"percentage"`
 	Division       string  `json:"division"`
+	UniversityName string  `json:"university_name"`
 
-	// Dates
-	IssueDate      time.Time `json:"issue_date"`      // When cert was issued
-	EnrollmentDate time.Time `json:"enrollment_date"` // ADDED: When student started
-	CompletionDate time.Time `json:"completion_date"` // ADDED: When course completed
+	// Date Information
+	IssueDate      time.Time `json:"issue_date"`
+	EnrollmentDate time.Time `json:"enrollment_date"`
+	CompletionDate time.Time `json:"completion_date"`
+	LeavingDate    time.Time `json:"leaving_date"`
 
-	// Digital Signatures & Verification
-	PrincipalSignature string `json:"principal_signature"` // Principal's digital signature
+	// Reason Fields
+	ReasonForLeaving string `json:"reason_for_leaving"`
+	CharacterRemarks string `json:"character_remarks"`
+	GeneralRemarks   string `json:"general_remarks"`
 
 	// Cryptographic Verification
-	DataHash        string `json:"data_hash"`         // ADDED: Hash of certificate data
-	IssuerPublicKey string `json:"issuer_public_key"` // ADDED: Who issued this certificate
+	DataHash        string `json:"data_hash"`
+	IssuerPublicKey string `json:"issuer_public_key"`
+	CertificateHash string `json:"certificate_hash"` // NEW: Individual certificate hash
 
-	// Metadata
-	CertificateType string    `json:"certificate_type"` // ADDED: "DEGREE", "DIPLOMA", "TRANSCRIPT"
-	CollegeSeal     string    `json:"college_seal"`     // ADDED: Official seal of university
-	CreatedAt       time.Time `json:"created_at"`       // ADDED: When this record was created
+	// Timestamps
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type CertificateDataWithQRCode struct {

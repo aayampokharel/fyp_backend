@@ -8,6 +8,7 @@ import (
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
 	"project/package/enum"
+	err "project/package/errors"
 	errorz "project/package/errors"
 	logger "project/package/utils/pkg"
 	"time"
@@ -289,4 +290,137 @@ func (s *SQLSource) RetrievePDFFileByFileIDOrCategoryID(fileID string, categoryI
 		return nil, er
 	}
 	return pdfFileEntities, nil
+}
+
+func (s *SQLSource) InsertBlockWithSingleCertificate(blockHeader entity.Header, certificateData entity.CertificateData, certificatePositionZeroIndex int) error {
+
+	if certificatePositionZeroIndex < 0 || certificatePositionZeroIndex >= 4 {
+		s.logger.Errorln("[sql_source] certificate position index error::", certificatePositionZeroIndex)
+		return err.ErrArrayOutOfBound
+
+	}
+	// Start transaction
+	tx, err := s.DB.Begin()
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error starting transaction:", err)
+		return err
+	}
+	defer tx.Rollback() // Safe error rollback
+
+	blockQuery := `
+        INSERT INTO blocks (
+            block_number, timestamp, previous_hash, nonce, 
+            current_hash, merkle_root, status, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `
+
+	_, err = tx.Exec(
+		blockQuery,
+		blockHeader.BlockNumber,
+		blockHeader.TimeStamp,
+		blockHeader.PreviousHash,
+		blockHeader.Nonce,
+		blockHeader.CurrentHash,
+		blockHeader.MerkleRoot,
+		time.Now(),
+	)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error inserting block:", err)
+		return err
+	}
+
+	er := s.InsertCertificate(certificateData, blockHeader.BlockNumber, certificatePositionZeroIndex)
+	if er != nil {
+		s.logger.Errorln("[sql_source] Error inserting certificate:", er)
+		return er
+	}
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		s.logger.Errorln("[sql_source] Error committing transaction:", err)
+		return err
+	}
+
+	s.logger.Infof("[sql_source] Successfully inserted block %d with certificate", blockHeader.BlockNumber)
+	return nil
+}
+
+func (s *SQLSource) InsertCertificate(certificateData entity.CertificateData, blockNumber int, certificatePositionZeroIndex int) error {
+
+	certQuery := `
+            INSERT INTO certificates (
+                certificate_id, block_number, position,
+                student_id, student_name, 
+                institution_id, institution_faculty_id, pdf_category_id,
+                certificate_type,
+                degree, college, major, gpa, percentage, division, university_name,
+                issue_date, enrollment_date, completion_date, leaving_date,
+                reason_for_leaving, character_remarks, general_remarks,
+                data_hash, issuer_public_key, certificate_hash, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
+        `
+
+	_, er := s.DB.Exec(
+		certQuery,
+		certificateData.CertificateID,
+		blockNumber,
+		certificatePositionZeroIndex+1, // Position 1-4
+
+		// Student Information
+		certificateData.StudentID,
+		certificateData.StudentName,
+
+		// Institution Information
+		certificateData.InstitutionID,
+		certificateData.InstitutionFacultyID,
+		certificateData.PDFCategoryID,
+
+		// Certificate Type
+		certificateData.CertificateType,
+
+		// Academic Information
+		certificateData.Degree,
+		certificateData.College,
+		certificateData.Major,
+		certificateData.GPA,
+		certificateData.Percentage,
+		certificateData.Division,
+		certificateData.UniversityName,
+
+		// Date Information
+		certificateData.IssueDate,
+		certificateData.EnrollmentDate,
+		certificateData.CompletionDate,
+		certificateData.LeavingDate,
+
+		// Reason Fields
+		certificateData.ReasonForLeaving,
+		certificateData.CharacterRemarks,
+		certificateData.GeneralRemarks,
+
+		// Cryptographic Verification
+		certificateData.DataHash,
+		certificateData.IssuerPublicKey,
+		certificateData.CertificateHash,
+
+		// Timestamp
+		certificateData.CreatedAt,
+	)
+	if er != nil {
+		s.logger.Errorln("[sql_source] Error inserting certificate at position", certificatePositionZeroIndex+1, ":", er)
+		return er
+	}
+
+	s.logger.Infof("[sql_source] Successfully inserted certificate for block %d ", blockNumber)
+	return nil
+}
+
+func (s *SQLSource) UpdateBlockDataByID(blockHeader entity.Header, id string) error {
+	query := `update blocks set timestamp=$1, previous_hash=$2, nonce=$3, current_hash=$4, merkle_root=$5 where block_number=$7;`
+	_, err := s.DB.Exec(query, blockHeader.TimeStamp, blockHeader.PreviousHash, blockHeader.Nonce, blockHeader.CurrentHash, blockHeader.MerkleRoot, id)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: UpdateBlockDataByID::", err)
+		return err
+	}
+	return nil
 }
