@@ -141,7 +141,8 @@ func (uc *BlockChainUseCase) ReceiveBlockFromPeer(currentTCPPort int) error {
 		uc.Service.Logger.Errorln(er)
 		return er
 	}
-	uc.Service.Logger.Debugw("[block_chain_use_case] Debug: ReceiveBlockFromPeer:: Received Block from peer:", "receivedUpdatedBlock", receivedUpdatedBlock)
+	common.PrintPrettyJSON(receivedUpdatedBlock)
+	uc.Service.Logger.Debugw("[block_chain_use_case] Debug: ReceiveBlockFromPeer:: Received Block from peer:", "receivedUpdatedBlock", "receivedUpdatedBlock")
 
 	blockChainLength := uc.BlockChainRepo.GetBlockChainLength()
 	if blockChainLength == 0 {

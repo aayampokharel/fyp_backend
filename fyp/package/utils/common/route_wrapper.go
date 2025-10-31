@@ -10,14 +10,14 @@ import (
 )
 
 type RouteWrapper struct {
-	Mux             *http.ServeMux
-	Prefix          string
-	Route           string
-	Method          enum.HTTPMETHOD
-	RequestDataType interface{}
-	URLQueries      map[string]string
-	InnerFunc       func(interface{}) entity.Response
-	ResponseType    enum.RESPONSETYPE
+	Mux                     *http.ServeMux
+	Prefix                  string
+	Route                   string
+	Method                  enum.HTTPMETHOD
+	RequestDataTypeInstance interface{} // no pointer types
+	URLQueries              map[string]string
+	InnerFunc               func(interface{}) entity.Response
+	ResponseType            enum.RESPONSETYPE
 }
 
 type SSERouteWrapper struct {
@@ -68,7 +68,7 @@ func NewRouteWrapper(routeInfos ...RouteWrapper) {
 			}
 			var returnFinalResponse entity.Response
 
-			if routeInfo.RequestDataType == nil && (routeInfo.Method == enum.METHODGET || routeInfo.Method == enum.METHODDELETE) {
+			if routeInfo.RequestDataTypeInstance == nil && (routeInfo.Method == enum.METHODGET || routeInfo.Method == enum.METHODDELETE) {
 				// var queryParams map[string]string
 				for key, _ := range routeInfo.URLQueries {
 					routeInfo.URLQueries[key] = r.URL.Query().Get(key)
@@ -77,7 +77,7 @@ func NewRouteWrapper(routeInfos ...RouteWrapper) {
 				returnFinalResponse = routeInfo.InnerFunc(routeInfo.URLQueries)
 
 			} else {
-				reqType := reflect.TypeOf(routeInfo.RequestDataType)
+				reqType := reflect.TypeOf(routeInfo.RequestDataTypeInstance)
 				reqValue := reflect.New(reqType).Interface()
 
 				if er := json.NewDecoder(r.Body).Decode(reqValue); er != nil {

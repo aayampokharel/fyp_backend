@@ -13,11 +13,11 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 	var routes []common.RouteWrapper = []common.RouteWrapper{
 		// /admin/login
 		{
-			Mux:             mux,
-			Prefix:          prefix,
-			Route:           "/login",
-			Method:          enum.METHODPOST,
-			RequestDataType: AdminLoginRequest{},
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/login",
+			Method:                  enum.METHODPOST,
+			RequestDataTypeInstance: AdminLoginRequest{},
 			InnerFunc: func(i interface{}) entity.Response {
 				return module.Controller.HandleAdminLogin(i.(AdminLoginRequest))
 			},

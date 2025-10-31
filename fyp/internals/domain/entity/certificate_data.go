@@ -4,7 +4,7 @@ import "time"
 
 type CertificateData struct {
 	// Core Certificate Identity
-	CertificateID string `json:"certificate_id" gorm:"primaryKey"`
+	CertificateID string `json:"certificate_id"`
 	BlockNumber   int    `json:"block_number"`
 	Position      int    `json:"position"` // 1-4
 

@@ -13,11 +13,11 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 	var routes []common.RouteWrapper = []common.RouteWrapper{
 		// /auth/new-institution
 		{
-			Mux:             mux,
-			Prefix:          prefix,
-			Route:           "/new-institution",
-			Method:          enum.METHODPOST,
-			RequestDataType: CreateInstitutionRequest{},
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/new-institution",
+			Method:                  enum.METHODPOST,
+			RequestDataTypeInstance: CreateInstitutionRequest{},
 			InnerFunc: func(i interface{}) entity.Response {
 				return module.Controller.HandleCreateNewInstitution(i.(CreateInstitutionRequest))
 			},
@@ -25,22 +25,22 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 
 		// /auth/new-user
 		{
-			Mux:             mux,
-			Prefix:          prefix,
-			Route:           "/new-user",
-			Method:          enum.METHODPOST,
-			RequestDataType: CreateUserAccountRequest{},
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/new-user",
+			Method:                  enum.METHODPOST,
+			RequestDataTypeInstance: CreateUserAccountRequest{},
 			InnerFunc: func(i interface{}) entity.Response {
 				return module.Controller.HandleCreateNewUserAccount(i.(CreateUserAccountRequest))
 			},
 		},
 		// /auth/new-faculty
 		{
-			Mux:             mux,
-			Prefix:          prefix,
-			Route:           "/new-faculty",
-			Method:          enum.METHODPOST,
-			RequestDataType: CreateFacultyRequest{},
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/new-faculty",
+			Method:                  enum.METHODPOST,
+			RequestDataTypeInstance: CreateFacultyRequest{},
 			InnerFunc: func(i interface{}) entity.Response {
 
 				institutionInfo, response := module.Controller.HandleCreateNewFaculty(i.(CreateFacultyRequest))
