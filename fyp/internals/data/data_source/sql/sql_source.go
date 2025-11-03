@@ -151,7 +151,7 @@ func (s *SQLSource) InsertInstitutions(institution entity.Institution) (string, 
 	query := `INSERT INTO institutions (institution_id, institution_name, tole_address, district_address,ward_number)
 		VALUES ($1, $2, $3, $4, $5);`
 
-	if _, er := s.DB.Exec(query, institution.InstitutionID, institution.InstitutionName, institution.ToleAddress, institution.DistrictAddress, institution.WardNumber, institution.IsActive); er != nil {
+	if _, er := s.DB.Exec(query, institution.InstitutionID, institution.InstitutionName, institution.ToleAddress, institution.DistrictAddress, institution.WardNumber); er != nil {
 		s.logger.Errorln("[sql_source] Error: InsertInstitutions::", er)
 		return "", er
 	}
@@ -206,9 +206,10 @@ func (s *SQLSource) InsertFaculty(faculty entity.InstitutionFaculty) (facultyID 
 			institution_id,
 			faculty_name,
 			faculty_authority_with_signature,
+			faculty_public_key,
 			university_affiliation,
 			university_college_code
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+		) VALUES ($1, $2, $3, $4, $5, $6, $7);
 	`
 	signatureJSON, er := json.Marshal(faculty.FacultyAuthorityWithSignatures)
 	if er != nil {
@@ -220,6 +221,7 @@ func (s *SQLSource) InsertFaculty(faculty entity.InstitutionFaculty) (facultyID 
 		faculty.InstitutionID,
 		faculty.FacultyName,
 		signatureJSON,
+		faculty.FacultyPublicKey,
 		faculty.UniversityAffiliation,
 		faculty.UniversityCollegeCode,
 	)

@@ -46,6 +46,7 @@ func (c *CreateFacultyRequest) ToEntity() entity.InstitutionFaculty {
 		FacultyAuthorityWithSignatures: c.FacultyAuthorityWithSignatures,
 		UniversityAffiliation:          c.UniversityAffiliation,
 		UniversityCollegeCode:          c.UniversityCollegeCode,
+		FacultyPublicKey:               "abc", //!TO BE DETERMINED
 	}
 }
 
