@@ -21,29 +21,28 @@ type CertificateData struct {
 	CertificateType string `json:"certificate_type"` // COURSE_COMPLETION, CHARACTER, LEAVING, TRANSFER, PROVISIONAL
 
 	// Academic Information (Optional)
-	Degree         string  `json:"degree"`
-	College        string  `json:"college"`
-	Major          string  `json:"major"`
-	GPA            string  `json:"gpa"`
-	Percentage     float64 `json:"percentage"`
-	Division       string  `json:"division"`
-	UniversityName string  `json:"university_name"`
+	Degree         string  `json:"degree,omitempty"`
+	College        string  `json:"college,omitempty"`
+	Major          string  `json:"major,omitempty"`
+	GPA            string  `json:"gpa,omitempty"`
+	Percentage     float64 `json:"percentage,omitempty"`
+	Division       string  `json:"division,omitempty"`
+	UniversityName string  `json:"university_name,omitempty"`
 
 	// Date Information
 	IssueDate      time.Time `json:"issue_date"`
-	EnrollmentDate time.Time `json:"enrollment_date"`
-	CompletionDate time.Time `json:"completion_date"`
-	LeavingDate    time.Time `json:"leaving_date"`
+	EnrollmentDate time.Time `json:"enrollment_date,omitempty"`
+	CompletionDate time.Time `json:"completion_date,omitempty"`
+	LeavingDate    time.Time `json:"leaving_date,omitempty"`
 
 	// Reason Fields
-	ReasonForLeaving string `json:"reason_for_leaving"`
-	CharacterRemarks string `json:"character_remarks"`
-	GeneralRemarks   string `json:"general_remarks"`
+	ReasonForLeaving string `json:"reason_for_leaving,omitempty"`
+	CharacterRemarks string `json:"character_remarks,omitempty"`
+	GeneralRemarks   string `json:"general_remarks,omitempty"`
 
 	// Cryptographic Verification
-	DataHash        string `json:"data_hash"`
-	IssuerPublicKey string `json:"issuer_public_key"`
-	CertificateHash string `json:"certificate_hash"` // NEW: Individual certificate hash
+	CertificateHash  string `json:"certificate_hash"`
+	FacultyPublicKey string `json:"faculty_public_key"`
 
 	// Timestamps
 	CreatedAt time.Time `json:"created_at"`
@@ -52,4 +51,28 @@ type CertificateData struct {
 type CertificateDataWithQRCode struct {
 	CertificateData `json:"certificate_data"`
 	QRCodeBase64    string `json:"qr_code"`
+}
+
+func (c *CertificateData) ToHashableData() *HashableData {
+	return &HashableData{
+		CertificateID:        c.CertificateID,
+		StudentID:            c.StudentID,
+		StudentName:          c.StudentName,
+		InstitutionID:        c.InstitutionID,
+		InstitutionFacultyID: c.InstitutionFacultyID,
+		UniversityName:       c.UniversityName,
+		Degree:               c.Degree,
+		College:              c.College,
+		Major:                c.Major,
+		GPA:                  c.GPA,
+		Division:             c.Division,
+		EnrollmentDate:       c.EnrollmentDate,
+		CompletionDate:       c.CompletionDate,
+		IssueDate:            c.IssueDate,
+		CertificateType:      c.CertificateType,
+		FacultyPublicKey:     c.FacultyPublicKey,
+		ReasonForLeaving:     c.ReasonForLeaving,
+		CharacterRemarks:     c.CharacterRemarks,
+		GeneralRemarks:       c.GeneralRemarks,
+	}
 }

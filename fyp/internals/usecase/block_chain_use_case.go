@@ -39,10 +39,10 @@ func (uc *BlockChainUseCase) InsertGenesisBlock() error {
 	return uc.BlockChainRepo.InsertGenesisBlock()
 }
 
-func (b *BlockChainUseCase) GetCertificateData() (entity.CertificateData, error) {
+func (b *BlockChainUseCase) GetCertificateData() (*entity.CertificateData, error) {
 	return b.BlockChainRepo.GetCertificateData()
 }
-func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.CertificateData) (latestBlockFromChain, newBlock *entity.Block, latestBlockFromChainCertificateLength, newBlockCertificateLength int, err error) {
+func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate *entity.CertificateData) (latestBlockFromChain, newBlock *entity.Block, latestBlockFromChainCertificateLength, newBlockCertificateLength int, err error) {
 	//deals from getting certificate data to complete inserion at its proper position in the block.
 	//auto handles to extract eiter new block or old block if space available
 	latestBlock, err := uc.BlockChainRepo.GetLatestBlock()
@@ -64,7 +64,7 @@ func (uc *BlockChainUseCase) CompleteBlockFromCertificate(certificate entity.Cer
 			uc.Service.Logger.Infoln(err)
 			return nil, nil, 0, 0, err
 		}
-		latestBlock.Header.PreviousHash = previousHash
+		//latestBlock.Header.PreviousHash = previousHash
 		//for updated and completely new block
 		totalCertificateDataLength = 0
 

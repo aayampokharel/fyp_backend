@@ -19,9 +19,11 @@ type ISqlRepository interface {
 	GetPendingInstitutionFromInstitutionID(institutionID string) (*entity.Institution, error)
 	VerifyAdminLogin(userMail, password string) (string, time.Time, error)
 	InsertPDFFile(pdfFile entity.PDFFileEntity) error
-	InsertPDFCategory(pdfFileCategory entity.PDFFileCategoryEntity) error
+	InsertAndGetPDFCategory(pdfFileCategory entity.PDFFileCategoryEntity) (*entity.PDFFileCategoryEntity, error)
 	RetrievePDFFileByFileIDOrCategoryID(fileID string, categoryID string, isDownloadAll bool) ([]entity.PDFFileEntity, error)
 	InsertBlockWithSingleCertificate(blockHeader entity.Header, certificateData entity.CertificateData, certificatePositionZeroIndex int) error
 	UpdateBlockDataByID(blockHeader entity.Header, id string) error
 	InsertCertificate(certificate entity.CertificateData, blockNumber int, certificatePositionZeroIndex int) error
+	GetFacultyPublicKey(id string) (string, error)
+	GetInfoFromPdfFilesCategories(categoryID string) (*entity.PDFFileCategoryEntity, error)
 }

@@ -27,7 +27,6 @@ func (uc *SqlUseCase) InsertUserAccountUseCase(userAccount entity.UserAccount, i
 		UserID:                userAccount.ID,
 		InstitutionID:         institutionId,
 		InstitutionLogoBase64: institutionLogoBase64,
-		PublicKey:             "", //! public key is empty
 	}
 	return createdAt, userAccount.ID, uc.SqlRepo.InsertInstitutionUser(insUser)
 
@@ -61,6 +60,20 @@ func (uc *SqlUseCase) InsertFacultyAndRetrieveInstitutionUseCase(faculty entity.
 		return "", nil, er
 	}
 	return facultyID, institutionInfo, nil
+}
+
+func (uc *SqlUseCase) InsertAndGetPDFCategoryUseCase(pdfCategory entity.PDFFileCategoryEntity) (*entity.PDFFileCategoryEntity, error) {
+	return uc.SqlRepo.InsertAndGetPDFCategory(pdfCategory)
+}
+
+func (uc *SqlUseCase) InsertPDFFileUseCase(pdfFile entity.PDFFileEntity) (string, error) {
+	er := uc.SqlRepo.InsertPDFFile(pdfFile)
+
+	if er != nil {
+		return "", er
+	}
+	return pdfFile.FileID, nil
+
 }
 
 // func (uc *SqlUseCase) GetInstitutionsToBeVerifiedUseCase() ([]entity.Institution, error) {

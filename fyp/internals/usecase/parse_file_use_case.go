@@ -38,21 +38,15 @@ func (uc *ParseFileUseCase) GenerateCertificateHTML(id, url, templatePath string
 	return htmlContent, nil
 }
 
-func (uc *ParseFileUseCase) GenerateAndStoreCertificatePDF(htmlContent string, pdfFileEntity entity.PDFFileEntity) error {
+func (uc *ParseFileUseCase) GenerateAndGetCertificatePDF(htmlContent string) ([]byte, error) {
+
 	pdfBytes, er := uc.Service.ConvertHTMLToPDF(htmlContent)
 	if er != nil {
 		uc.Service.Logger.Errorln("[certificate_usecase] error while generating pdfbytes ", er)
-		return er
-	}
-	pdfFileEntity.PDFData = pdfBytes
-
-	er = uc.SqlRepo.InsertPDFFile(pdfFileEntity)
-	if er != nil {
-		uc.Service.Logger.Errorln("[certificate_usecase] error while storing pdfbytes ", er)
-		return er
+		return nil, er
 	}
 
-	return nil
+	return pdfBytes, nil
 }
 
 func (uc *ParseFileUseCase) RetrievePDFFileByFileIDOrCategoryID(pdfFileId string, categoryID string, isDownloadAll bool) ([]entity.PDFFileEntity, error) {

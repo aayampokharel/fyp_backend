@@ -39,7 +39,6 @@ CREATE TABLE IF NOT EXISTS  user_accounts(
 CREATE TABLE IF NOT EXISTS  institution_user(
     institution_id VARCHAR(16)  UNIQUE REFERENCES institutions(institution_id) ON DELETE CASCADE,
     user_id VARCHAR(16) REFERENCES user_accounts(id) ON DELETE CASCADE,
-    public_key TEXT DEFAULT NULL,  -- Changed from VARCHAR(100) to TEXT
     institution_logo_base64 TEXT NOT NULL,
     PRIMARY KEY (institution_id, user_id) 
 );
@@ -48,6 +47,7 @@ CREATE TABLE IF NOT EXISTS  institution_faculty(
     institution_faculty_id VARCHAR(16) PRIMARY KEY,
     institution_id VARCHAR(16) REFERENCES institutions(institution_id) ON DELETE CASCADE,
     faculty_name VARCHAR(200) NOT NULL,
+    faculty_public_key VARCHAR(255) NOT NULL,
     university_affiliation VARCHAR(100) NOT NULL,
     university_college_code VARCHAR(20) NOT NULL,
     faculty_authority_with_signature JSONB NOT NULL DEFAULT '[]'
@@ -134,8 +134,8 @@ CREATE TABLE IF NOT EXISTS  certificates(
     general_remarks TEXT,
     
     -- Cryptographic verification
-    data_hash VARCHAR(255) NOT NULL,
-    issuer_public_key VARCHAR(255) NOT NULL,
+    certificate_hash VARCHAR(255) NOT NULL,
+    faculty_public_key VARCHAR(255) NOT NULL,
     
    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -145,5 +145,4 @@ CREATE TABLE IF NOT EXISTS  certificates(
     UNIQUE(block_number, position)
 );
 
-ALTER TABLE certificates ADD COLUMN certificate_hash VARCHAR(255) NOT NULL DEFAULT 'temp_hash';
 

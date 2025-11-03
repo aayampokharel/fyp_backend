@@ -172,16 +172,15 @@ func (s *SQLSource) InsertUserAccounts(userAccounts entity.UserAccount) (string,
 }
 
 func (s *SQLSource) InsertInstitutionUser(institutionUser entity.InstitutionUser) error {
-	query := `INSERT INTO institution_user (institution_id, user_id, public_key,  institution_logo_base64) VALUES ($1, $2, $3, $4);`
+	query := `INSERT INTO institution_user (institution_id, user_id, institution_logo_base64) VALUES ($1, $2, $3);`
 
-	_, err := s.DB.Exec(query, institutionUser.InstitutionID, institutionUser.UserID, institutionUser.PublicKey, institutionUser.InstitutionLogoBase64)
+	_, err := s.DB.Exec(query, institutionUser.InstitutionID, institutionUser.UserID, institutionUser.InstitutionLogoBase64)
 	if err != nil {
-		s.logger.Errorln("[sql_source] Error: InsertInstitutionUser::", query+"::"+institutionUser.InstitutionID+"::"+institutionUser.UserID+institutionUser.PublicKey+"::"+institutionUser.InstitutionLogoBase64)
+		s.logger.Errorln("[sql_source] Error: InsertInstitutionUser::", query+"::"+institutionUser.InstitutionID+"::"+institutionUser.UserID+"::"+institutionUser.InstitutionLogoBase64)
 		s.logger.Errorln("[sql_source] Error: InsertInstitutionUser::", err)
 		return err
 	}
 	return nil
-
 }
 
 func (s *SQLSource) VerifyAdminLogin(userMail, password string) (string, time.Time, error) {
@@ -242,16 +241,36 @@ func (s *SQLSource) InsertPDFFile(pdfFile entity.PDFFileEntity) error {
 	return nil
 }
 
-func (s *SQLSource) InsertPDFCategory(pdfFileCategory entity.PDFFileCategoryEntity) error {
-	query := `INSERT INTO pdf_file_categories (category_id, category_name,institution_id,institution_faculty_id) VALUES ($1, $2, $3,$4);`
+func (s *SQLSource) InsertAndGetPDFCategory(pdfFileCategory entity.PDFFileCategoryEntity) (*entity.PDFFileCategoryEntity, error) {
+	query := `
+		INSERT INTO pdf_file_categories 
+		(category_id, category_name, institution_id, institution_faculty_id)
+		VALUES ($1, $2, $3, $4)
+		RETURNING category_id, category_name, institution_id, institution_faculty_id;
+	`
 
-	_, err := s.DB.Exec(query, pdfFileCategory.CategoryID, pdfFileCategory.CategoryName, pdfFileCategory.InstitutionID, pdfFileCategory.InstitutionFacultyID)
+	var inserted entity.PDFFileCategoryEntity
+	err := s.DB.QueryRow(
+		query,
+		pdfFileCategory.CategoryID,
+		pdfFileCategory.CategoryName,
+		pdfFileCategory.InstitutionID,
+		pdfFileCategory.InstitutionFacultyID,
+	).Scan(
+		&inserted.CategoryID,
+		&inserted.CategoryName,
+		&inserted.InstitutionID,
+		&inserted.InstitutionFacultyID,
+	)
+
 	if err != nil {
-		s.logger.Errorln("[sql_source] Error: InsertPDFFile::", err)
-		return err
+		s.logger.Errorln("[sql_source] Error: InsertAndGetPDFCategory::", err)
+		return nil, err
 	}
-	return nil
+
+	return &inserted, nil
 }
+
 func (s *SQLSource) RetrievePDFFileByFileIDOrCategoryID(fileID string, categoryID string, isDownloadAll bool) ([]entity.PDFFileEntity, error) {
 
 	var (
@@ -348,17 +367,17 @@ func (s *SQLSource) InsertBlockWithSingleCertificate(blockHeader entity.Header, 
 func (s *SQLSource) InsertCertificate(certificateData entity.CertificateData, blockNumber int, certificatePositionZeroIndex int) error {
 
 	certQuery := `
-            INSERT INTO certificates (
-                certificate_id, block_number, position,
-                student_id, student_name, 
-                institution_id, institution_faculty_id, pdf_category_id,
-                certificate_type,
-                degree, college, major, gpa, percentage, division, university_name,
-                issue_date, enrollment_date, completion_date, leaving_date,
-                reason_for_leaving, character_remarks, general_remarks,
-                data_hash, issuer_public_key, certificate_hash, created_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
-        `
+        INSERT INTO certificates (
+            certificate_id, block_number, position,
+            student_id, student_name, 
+            institution_id, institution_faculty_id, pdf_category_id,
+            certificate_type,
+            degree, college, major, gpa, percentage, division, university_name,
+            issue_date, enrollment_date, completion_date, leaving_date,
+            reason_for_leaving, character_remarks, general_remarks,
+            data_hash, faculty_public_key, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+    `
 
 	_, er := s.DB.Exec(
 		certQuery,
@@ -399,9 +418,8 @@ func (s *SQLSource) InsertCertificate(certificateData entity.CertificateData, bl
 		certificateData.GeneralRemarks,
 
 		// Cryptographic Verification
-		certificateData.DataHash,
-		certificateData.IssuerPublicKey,
 		certificateData.CertificateHash,
+		certificateData.FacultyPublicKey, // Changed from IssuerPublicKey
 
 		// Timestamp
 		certificateData.CreatedAt,
@@ -423,4 +441,24 @@ func (s *SQLSource) UpdateBlockDataByID(blockHeader entity.Header, id string) er
 		return err
 	}
 	return nil
+}
+
+func (s *SQLSource) GetFacultyPublicKey(id string) (string, error) {
+	query := `select faculty_public_key from institution_faculty where institution_faculty_id=$1;`
+	var facultyPublicKey string
+	if er := s.DB.QueryRow(query, id).Scan(&facultyPublicKey); er != nil {
+		s.logger.Errorln("[sql_source] Error: GetIssuerPublicKey::", er)
+		return "", er
+	}
+	return facultyPublicKey, nil
+
+}
+func (s *SQLSource) GetInfoFromPdfFilesCategories(categoryID string) (*entity.PDFFileCategoryEntity, error) {
+	query := `select * from pdf_file_categories where category_id=$1;`
+	var pdfFileCategory entity.PDFFileCategoryEntity
+	if er := s.DB.QueryRow(query, categoryID).Scan(&pdfFileCategory.CategoryID, &pdfFileCategory.CategoryName, &pdfFileCategory.InstitutionID, &pdfFileCategory.InstitutionFacultyID, &pdfFileCategory.CreatedAt); er != nil {
+		s.logger.Errorln("[sql_source] Error: GetInfoFromPdfFilesCategories::", er)
+		return nil, er
+	}
+	return &pdfFileCategory, nil
 }
