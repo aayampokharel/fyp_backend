@@ -39,5 +39,6 @@ var (
 	ErrCannotConvertToInt           = errorz.Status400BadRequest.Wrap("cannot convert to int type")
 	ErrEmptyString                  = errorz.Status400BadRequest.Wrap("empty string provided")
 	ErrWritingZip                   = errorz.Status400BadRequest.Wrap("Error while writing in zip")
+	ErrPDFDataIsNil                 = errorz.Status400BadRequest.Wrap("PDF Data is empty")
 	ErrClosingZipWriter             = errorz.Status400BadRequest.Wrap("Error closing zip writer")
 )

@@ -13,6 +13,9 @@ func (s *Service) CreateZipUsingPDF(listOfPDFs []entity.PDFFileEntity) ([]byte, 
 	//create file
 	zipWriter := zip.NewWriter(&zipBuffer)
 	for _, val := range listOfPDFs {
+		if val.PDFData == nil {
+			return nil, err.ErrPDFDataIsNil
+		}
 		fileWriter, er := zipWriter.Create(val.FileName)
 		if er != nil {
 			return nil, err.ErrWritingZip

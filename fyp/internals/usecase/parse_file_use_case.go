@@ -11,9 +11,10 @@ type ParseFileUseCase struct {
 	Service service.Service
 }
 
-func NewParseFileUseCase(service service.Service) *ParseFileUseCase {
+func NewParseFileUseCase(service service.Service, sqlRepo repository.ISqlRepository) *ParseFileUseCase {
 	return &ParseFileUseCase{
 		Service: service,
+		SqlRepo: sqlRepo,
 	}
 }
 
@@ -39,7 +40,7 @@ func (uc *ParseFileUseCase) GenerateCertificateHTML(id, url, templatePath string
 }
 
 func (uc *ParseFileUseCase) GenerateAndGetCertificatePDF(htmlContent string) ([]byte, error) {
-
+	uc.Service.Logger.Debugln(htmlContent)
 	pdfBytes, er := uc.Service.ConvertHTMLToPDF(htmlContent)
 	if er != nil {
 		uc.Service.Logger.Errorln("[certificate_usecase] error while generating pdfbytes ", er)

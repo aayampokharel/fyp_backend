@@ -276,12 +276,7 @@
 
         <!-- Signature -->
         <div class="signature-section">
-            {{if .PrincipalSignature}}
-            <img src="data:image/png;base64,{{.PrincipalSignature}}" alt="Signature"
-                style="height:80px; margin-bottom:10px;">
-            {{else}}
-            <div style="height:80px;"></div>
-            {{end}}
+
             <!-- College Official Seal -->
             <div class="signature-stamp over-signature">
                 <div class="stamp-image">
@@ -305,8 +300,8 @@
 
         <!-- Footer Security Info -->
         <div class="security-info">
-            Data Hash: {{.DataHash}}<br>
-            Issuer Public Key: {{.IssuerPublicKey}}<br>
+            Data Hash: {{.CertificateHash}}<br>
+            Issuer Public Key: {{.FacultyPublicKey}}<br>
             This certificate is digitally secured and verifiable on the blockchain.
         </div>
 

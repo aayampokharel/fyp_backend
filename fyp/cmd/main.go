@@ -196,11 +196,12 @@ func main() {
 	adminRoutes := admin.RegisterRoutes(mux, adminModule)
 	fileHandlingRoutes := filehandling.RegisterRoutes(mux, fileHandlingModule)
 	categoryRoutes := category.RegisterRoutes(mux, categoryModule)
-	delivery.RegisterRoutes(mux, blockchainModule)
+	blockChainRoutes := delivery.RegisterRoutes(mux, blockchainModule)
 
 	// Wrap routes for internal usage
 	common.NewRouteWrapper(authDeliveryRoutes...)
 	common.NewRouteWrapper(categoryRoutes...)
+	common.NewRouteWrapper(blockChainRoutes...)
 	common.NewRouteWrapper(adminRoutes...)
 	common.NewFileRouteWrapper(fileHandlingRoutes...)
 	common.NewSSERouteWrapper(sseRoutes)

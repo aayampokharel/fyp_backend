@@ -26,6 +26,7 @@ import (
 func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 	var prefix = "/blockchain"
 
+	// POST /blockchain/certificates
 	var routes []common.RouteWrapper = []common.RouteWrapper{
 		{
 			Mux:                     mux,

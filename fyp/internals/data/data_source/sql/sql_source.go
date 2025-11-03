@@ -233,6 +233,7 @@ func (s *SQLSource) InsertFaculty(faculty entity.InstitutionFaculty) (facultyID 
 }
 
 func (s *SQLSource) InsertPDFFile(pdfFile entity.PDFFileEntity) error {
+	fmt.Println("PDF size before saving: ", len(pdfFile.PDFData))
 	query := `INSERT INTO pdf_files (file_id,category_id, file_name, pdf_data) VALUES ($1, $2, $3,$4);`
 
 	_, err := s.DB.Exec(query, pdfFile.FileID, pdfFile.CategoryID, pdfFile.FileName, pdfFile.PDFData)

@@ -84,7 +84,15 @@ func (c *Controller) HandleGetPDFFileInList(request map[string]string) entity.Fi
 		}
 		return common.HandleFileSuccessResponse(enum.ZIP, fileName, zipBytes)
 	}
-	fileName = pdfFileEntity[0].FileName + "_" + common.GenerateUUID(6)
+
+	fileName = pdfFileEntity[0].FileName
+	if pdfFileEntity[0].PDFData == nil {
+		return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
+	}
+	c.ParseFileUseCase.Service.Logger.Debugln(pdfFileEntity[0].PDFData[:1000])
+
+	fileName = pdfFileEntity[0].CategoryID + "_" + fileName
+
 	return common.HandleFileSuccessResponse(enum.PDF, fileName, pdfFileEntity[0].PDFData)
 
 }
