@@ -18,3 +18,12 @@ func GeneratePDFFileName(studentName, facultyName string, index int) string {
 	return name
 
 }
+
+func GeneratePDFCategoryName(faculty, preferredName string) string {
+	name := preferredName + "_" + faculty
+	if len(name) > 50 {
+		name = name[:50]
+	}
+	name = name + GenerateUUID(8)
+	return name
+}

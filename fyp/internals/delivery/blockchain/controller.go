@@ -34,13 +34,19 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 	// 	log.Println(er)
 	// 	return nil, er
 	// }
-	pdfFileCategory, er := request.ToPdfFileCategoryEntity()
-	if er != nil {
-		log.Println(er)
-		return common.HandleErrorResponse(401, er.Error(), er)
-	}
-	insertedpdfFileCategory, er := c.useCase.SqlRepo.InsertAndGetPDFCategory(pdfFileCategory)
-	c.useCase.SqlRepo.InsertAndGetPDFCategory(pdfFileCategory)
+	//
+	//
+	//
+	// pdfFileCategory, er := request.ToPdfFileCategoryEntity()
+	// if er != nil {
+	// 	log.Println(er)
+	// 	return common.HandleErrorResponse(401, er.Error(), er)
+	// }
+	// insertedpdfFileCategory, er := c.useCase.SqlRepo.InsertAndGetPDFCategory(pdfFileCategory)
+	// if er != nil {
+	// 	return common.HandleErrorResponse(401, er.Error(), er)
+	// }
+	// c.useCase.SqlRepo.InsertAndGetPDFCategory(pdfFileCategory)
 
 	for i := 0; i < len(request.CertificateData); i++ {
 
@@ -78,7 +84,7 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 			return common.HandleErrorResponse(500, err.ErrParsingFileString, er)
 		}
 
-		pdfEntityWithoutData := FromPDFFileCategoryToPDFFileEntity(insertedpdfFileCategory, certificateData.StudentName, request.InstitutionFacultyName, i)
+		pdfEntityWithoutData := FromPDFFileCategoryToPDFFileEntity(request.CategoryID, certificateData.StudentName, request.InstitutionFacultyName, i)
 
 		pdfEntityWithoutData.PDFData = pdfBytes
 		fileID, er := c.sqlUseCase.InsertPDFFileUseCase(pdfEntityWithoutData)

@@ -81,6 +81,7 @@ type CreateCertificateDataRequest struct {
 	InstitutionID          string                   `json:"institution_id"`
 	InstitutionFacultyID   string                   `json:"institution_faculty_id"`
 	InstitutionFacultyName string                   `json:"institution_faculty_name"`
+	CategoryID             string                   `json:"category_id"`
 	CategoryName           string                   `json:"category_name"`
 	CertificateData        []MinimalCertificateData `json:"certificate_data"`
 }
@@ -142,9 +143,9 @@ func (m *MinimalCertificateData) ToEntity() *entity.CertificateData {
 	}
 }
 
-func FromPDFFileCategoryToPDFFileEntity(insertedpdfFileCategory *entity.PDFFileCategoryEntity, studentName, faculty string, index int) entity.PDFFileEntity {
+func FromPDFFileCategoryToPDFFileEntity(categoryID string, studentName, faculty string, index int) entity.PDFFileEntity {
 	return entity.PDFFileEntity{
-		CategoryID: insertedpdfFileCategory.CategoryID,
+		CategoryID: categoryID,
 		FileID:     common.GenerateUUID(16),
 		FileName:   common.GeneratePDFFileName(studentName, faculty, index),
 	}
