@@ -32,7 +32,7 @@ func (uc *SSEUseCase) VerifyAdminLoginUseCase(userEmail, password string) (*dto.
 	// generatedUniqueToken := common.GenerateUUID(20)
 
 	// uc.SSEManager.AddClient(generatedUniqueToken)
-	institutionList, er := uc.SqlRepo.GetAllPendingInstitutions()
+	institutionList, er := uc.SqlRepo.GetAllPendingInstitutionsForAdmin(userID)
 	if er != nil {
 		return nil, er
 	}

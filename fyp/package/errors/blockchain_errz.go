@@ -23,6 +23,8 @@ var (
 	ErrGenesisBlockInsert           = errorz.Status400BadRequest.Wrap("Cannot insert genesis block at index other than 0")
 	ErrNotEnoughBlocks              = errorz.Status400BadRequest.Wrap("Not enough blocks")
 	ErrArrayOutOfBound              = errorz.Status406NotAcceptable.Wrap("index not within the range of 0-3")
+	ErrUserDoesnotExist             = errorz.Status400BadRequest.Wrap("User does not exist")
+	ErrInstitutionAlreadyVerified   = errorz.Status406NotAcceptable.Wrap("institution is already verified.")
 	ErrInvalidBlockNumber           = errorz.Status400BadRequest.Wrap("Invalid Block Number")
 	ErrInvalidHash                  = errorz.Status400BadRequest.Wrap("Invalid Hash")
 	ErrGenesisBlockMismatch         = errorz.Status400BadRequest.Wrap("Genesis Block Mismatch")

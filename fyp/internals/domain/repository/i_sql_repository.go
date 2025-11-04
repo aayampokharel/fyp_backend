@@ -15,8 +15,8 @@ type ISqlRepository interface {
 	GetUserIDByInstitutionID(institutionID string) (string, error)
 	UpdateSignUpCompletedByInstitutionID(institutionID string) error
 	UpdateIsActiveByInstitutionID(institutionID string, isActive bool) error
-	GetAllPendingInstitutions() ([]entity.Institution, error)
-	GetPendingInstitutionFromInstitutionID(institutionID string) (*entity.Institution, error)
+	GetAllPendingInstitutionsForAdmin(adminID string) ([]entity.Institution, error)
+	//GetPendingInstitutionFromInstitutionID(institutionID string) (*entity.Institution, error)
 	VerifyAdminLogin(userMail, password string) (string, time.Time, error)
 	InsertPDFFile(pdfFile entity.PDFFileEntity) error
 	InsertAndGetPDFCategory(pdfFileCategory entity.PDFFileCategoryEntity) (*entity.PDFFileCategoryEntity, error)

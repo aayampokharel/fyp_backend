@@ -4,6 +4,7 @@ import (
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
 	"project/internals/domain/service"
+	err "project/package/errors"
 )
 
 type SqlUseCase struct {
@@ -55,9 +56,12 @@ func (uc *SqlUseCase) InsertFacultyAndRetrieveInstitutionUseCase(faculty entity.
 		return "", nil, er
 	}
 
-	institutionInfo, er := uc.SqlRepo.GetPendingInstitutionFromInstitutionID(faculty.InstitutionID)
+	institutionInfo, er := uc.SqlRepo.GetInstitutionInfoFromInstitutionID(faculty.InstitutionID)
 	if er != nil {
 		return "", nil, er
+	}
+	if institutionInfo.IsActive != nil {
+		return "", nil, err.ErrInstitutionAlreadyVerified
 	}
 	return facultyID, institutionInfo, nil
 }
@@ -82,4 +86,8 @@ func (uc *SqlUseCase) InsertPDFFileUseCase(pdfFile entity.PDFFileEntity) (string
 
 func (uc *SqlUseCase) GetInstitutionInfoUseCase(institutionID string) (*entity.Institution, error) {
 	return uc.SqlRepo.GetInstitutionInfoFromInstitutionID(institutionID)
+}
+
+func (uc *SqlUseCase) GetAllPendingInstitutionsUseCase(adminID string) ([]entity.Institution, error) {
+	return uc.SqlRepo.GetAllPendingInstitutionsForAdmin(adminID)
 }

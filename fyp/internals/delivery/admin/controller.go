@@ -35,3 +35,18 @@ func (c *Controller) HandleDeleteSSEClient(token string) entity.Response {
 	}
 	return common.HandleSuccessResponse(nil)
 }
+
+func (c *Controller) HandleGetPendingInstitutionList(request map[string]string) entity.Response {
+	requestMap, er := common.CheckMapKeysReturnValues(request, GetAllPendingInstitutionsQuery)
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrParsingQueryParametersString, er)
+	}
+	adminID := requestMap["admin_id"]
+	pendingInstitutionList, er := c.sqlUseCase.GetAllPendingInstitutionsUseCase(adminID)
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrGettingPendingInstitutionListString, er)
+	}
+	return common.HandleSuccessResponse(GetAllPendingInstitutionsResponse{
+		PendingInstitutionList: pendingInstitutionList,
+	})
+}

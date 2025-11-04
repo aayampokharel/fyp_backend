@@ -14,3 +14,13 @@ type AdminLoginResponse struct {
 
 	////many more nested maps
 }
+
+type GetAllPendingInstitutionsRequest []string
+
+const AdminID = "admin_id"
+
+var GetAllPendingInstitutionsQuery = GetAllPendingInstitutionsRequest{AdminID}
+
+type GetAllPendingInstitutionsResponse struct {
+	PendingInstitutionList []entity.Institution `json:"pending_institution_list"`
+}

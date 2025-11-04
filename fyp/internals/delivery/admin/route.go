@@ -22,6 +22,19 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 				return module.Controller.HandleAdminLogin(i.(AdminLoginRequest))
 			},
 		},
+
+		// /admin/pending-institutions?admin_id=12345
+		{
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/pending-institutions",
+			Method:                  enum.METHODGET,
+			URLQueries:              GetAllPendingInstitutionsQuery,
+			RequestDataTypeInstance: nil,
+			InnerFunc: func(i interface{}) entity.Response {
+				return module.Controller.HandleGetPendingInstitutionList(i.(map[string]string))
+			},
+		},
 	}
 
 	return routes

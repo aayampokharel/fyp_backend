@@ -38,7 +38,19 @@ func (s *SQLSource) GetPendingInstitutionFromInstitutionID(institutionID string)
 	return &institution, nil
 
 }
-func (s *SQLSource) GetAllPendingInstitutions() ([]entity.Institution, error) {
+func (s *SQLSource) GetAllPendingInstitutionsForAdmin(adminID string) ([]entity.Institution, error) {
+	var count int
+	checkAdminQuery := `select count(*) from user_accounts where id=$1 and system_role=$2;`
+
+	if er := s.DB.QueryRow(checkAdminQuery, adminID, enum.ADMIN).Scan(&count); er != nil {
+		s.logger.Errorln("[sql_source] Error: GetAllPendingInstitutionsForAdmin::", er)
+		return nil, er
+	}
+
+	if count == 0 {
+		s.logger.Errorln("[sql_source] Error: GetAllPendingInstitutionsForAdmin::", err.ErrUserDoesnotExist)
+		return nil, err.ErrUserDoesnotExist
+	}
 
 	query := `select institution_id, institution_name, tole_address, district_address,ward_number from institutions where is_active IS NULL and is_signup_completed=true;`
 	rows, err := s.DB.Query(query)
