@@ -79,3 +79,7 @@ func (uc *SqlUseCase) InsertPDFFileUseCase(pdfFile entity.PDFFileEntity) (string
 // func (uc *SqlUseCase) GetInstitutionsToBeVerifiedUseCase() ([]entity.Institution, error) {
 // 	return uc.SqlRepo.GetToBeVerifiedInstitutions()
 // }
+
+func (uc *SqlUseCase) GetInstitutionInfoUseCase(institutionID string) (*entity.Institution, error) {
+	return uc.SqlRepo.GetInstitutionInfoFromInstitutionID(institutionID)
+}

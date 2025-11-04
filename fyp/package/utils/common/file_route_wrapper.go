@@ -23,30 +23,6 @@ type FileRouteWrapper struct {
 	PostHandler        func(interface{}) entity.FileResponse
 }
 
-// if routeInfo.ResponseType == enum.HTML {
-// 				w.Header().Set("Content-Type", "text/html; charset=utf-8")
-// 				if returnFinalFileResponse.Data != nil {
-// 					w.WriteHeader(http.StatusOK)
-// 					w.Write([]byte(returnFinalFileResponse.Data.(string)))
-// 					return
-// 				} else if returnFinalFileResponse.Data == nil {
-// 					w.WriteHeader(http.StatusBadRequest)
-// 					w.Write([]byte(returnFinalFileResponse.Message))
-// 					return
-// 				}
-
-// 			} else if routeInfo.ResponseType == enum.PDFORZIP {
-// 				if returnFinalFileResponse.Data != nil {
-// 					w.WriteHeader(http.StatusOK)
-// 					w.Write([]byte(returnFinalFileResponse.Data.(string)))
-// 					return
-// 				} else if returnFinalFileResponse.Data == nil {
-// 					w.WriteHeader(http.StatusBadRequest)
-// 					w.Write([]byte(returnFinalFileResponse.Message))
-// 					return
-// 				}
-// 			}
-
 func setFileHeaders(w http.ResponseWriter, fileData []byte, filename string, fileType enum.RESPONSETYPE) {
 	switch fileType {
 	case enum.PDF:

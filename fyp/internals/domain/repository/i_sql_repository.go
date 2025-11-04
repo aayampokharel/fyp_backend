@@ -26,4 +26,5 @@ type ISqlRepository interface {
 	InsertCertificate(certificate entity.CertificateData, blockNumber int, certificatePositionZeroIndex int) error
 	GetFacultyPublicKey(id string) (string, error)
 	GetInfoFromPdfFilesCategories(categoryID string) (*entity.PDFFileCategoryEntity, error)
+	GetInstitutionInfoFromInstitutionID(institutionID string) (*entity.Institution, error)
 }

@@ -79,7 +79,7 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 		if er != nil {
 			return common.HandleErrorResponse(500, err.ErrParsingFileString, er)
 		}
-		//c.sqlUseCase.Service.Logger.Infoln("[certificate_usecase] htmlString", htmlString)
+		c.sqlUseCase.Service.Logger.Infoln("[certificate_usecase] htmlString", htmlString)
 		pdfBytes, er := c.ParseFileUseCase.GenerateAndGetCertificatePDF(htmlString)
 		if er != nil {
 			return common.HandleErrorResponse(500, err.ErrParsingFileString, er)

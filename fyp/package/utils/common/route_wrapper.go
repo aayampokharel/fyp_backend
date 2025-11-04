@@ -15,7 +15,7 @@ type RouteWrapper struct {
 	Route                   string
 	Method                  enum.HTTPMETHOD
 	RequestDataTypeInstance interface{} // no pointer types
-	URLQueries              map[string]string
+	URLQueries              []string
 	InnerFunc               func(interface{}) entity.Response
 	ResponseType            enum.RESPONSETYPE
 }
@@ -70,11 +70,12 @@ func NewRouteWrapper(routeInfos ...RouteWrapper) {
 
 			if routeInfo.RequestDataTypeInstance == nil && (routeInfo.Method == enum.METHODGET || routeInfo.Method == enum.METHODDELETE) {
 				// var queryParams map[string]string
-				for key, _ := range routeInfo.URLQueries {
-					routeInfo.URLQueries[key] = r.URL.Query().Get(key)
+				var requestMap map[string]string = make(map[string]string, 0)
+				for _, val := range routeInfo.URLQueries {
+					requestMap[val] = r.URL.Query().Get(val)
 				}
 
-				returnFinalResponse = routeInfo.InnerFunc(routeInfo.URLQueries)
+				returnFinalResponse = routeInfo.InnerFunc(requestMap)
 
 			} else {
 				reqType := reflect.TypeOf(routeInfo.RequestDataTypeInstance)

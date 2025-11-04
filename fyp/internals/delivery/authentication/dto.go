@@ -77,6 +77,36 @@ func (c *CreateInstitutionRequest) ToEntity() entity.Institution {
 		ToleAddress:     c.ToleAddress,
 		WardNumber:      strconv.Itoa(c.WardNumber),
 		DistrictAddress: c.DistrictAddress,
-		IsActive:        false,
+		IsActive:        nil,
+	}
+}
+
+// type CheckInstitutionIsActiveDto struct {
+// 	InstitutionID string `json:"institution_id"`
+// }
+
+type CheckInstitutionIsActiveDto []string
+
+const InstitutionID = "institution_id"
+
+var CheckInstitutionIsActiveQuery = CheckInstitutionIsActiveDto{InstitutionID}
+
+type CheckInstitutionIsActiveResponse struct {
+	InstitutionID   string `json:"institution_id"`
+	InstitutionName string `json:"institution_name"`
+	ToleAddress     string `json:"tole_address"`
+	WardNumber      string `json:"ward_number"`
+	DistrictAddress string `json:"district_address"`
+	IsActive        *bool  `json:"is_active"`
+}
+
+func (c *CheckInstitutionIsActiveResponse) FromEntity(institutionInfo *entity.Institution) CheckInstitutionIsActiveResponse {
+	return CheckInstitutionIsActiveResponse{
+		InstitutionID:   institutionInfo.InstitutionID,
+		InstitutionName: institutionInfo.InstitutionName,
+		ToleAddress:     institutionInfo.ToleAddress,
+		WardNumber:      institutionInfo.WardNumber,
+		DistrictAddress: institutionInfo.DistrictAddress,
+		IsActive:        institutionInfo.IsActive,
 	}
 }

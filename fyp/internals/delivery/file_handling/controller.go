@@ -75,7 +75,7 @@ func (c *Controller) HandleGetPDFFileInList(request map[string]string) entity.Fi
 	if pdfFileEntity == nil {
 		return common.HandleFileErrorResponse(400, err.ErrFileNotFoundString, nil)
 	}
-
+	//! I have to include principal signature in certificate as well .
 	if isDownloadAll && len(pdfFileEntity) > 1 {
 		fileName = categoryName + "_" + common.GenerateUUID(6)
 		zipBytes, er := c.ParseFileUseCase.Service.CreateZipUsingPDF(pdfFileEntity)

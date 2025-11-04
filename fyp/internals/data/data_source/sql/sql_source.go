@@ -55,7 +55,7 @@ func (s *SQLSource) GetAllPendingInstitutions() ([]entity.Institution, error) {
 			s.logger.Errorln("[sql_source] Error: GetToBeVerifiedInstitutions::", err)
 			return nil, err
 		}
-		institution.IsActive = false
+		institution.IsActive = nil
 		institutions = append(institutions, institution)
 	}
 	return institutions, nil
@@ -464,4 +464,25 @@ func (s *SQLSource) GetInfoFromPdfFilesCategories(categoryID string) (*entity.PD
 		return nil, er
 	}
 	return &pdfFileCategory, nil
+}
+
+func (s *SQLSource) GetInstitutionInfoFromInstitutionID(institutionID string) (*entity.Institution, error) {
+	var institutionInfo entity.Institution
+	var isActive sql.NullBool
+
+	query := `select institution_name,tole_address,district_address,ward_number,is_active from institutions where institution_id=$1 AND is_signup_completed=true;`
+	er := s.DB.QueryRow(query, institutionID).Scan(&institutionInfo.InstitutionName, &institutionInfo.ToleAddress, &institutionInfo.DistrictAddress, &institutionInfo.WardNumber, &isActive)
+	if er != nil {
+		s.logger.Errorln("[sql_source] Error: GetInstitutionInfoFromInstitutionID::", er)
+		return nil, er
+	}
+
+	if isActive.Valid {
+		institutionInfo.IsActive = &isActive.Bool
+	} else {
+		institutionInfo.IsActive = nil
+	}
+
+	institutionInfo.InstitutionID = institutionID
+	return &institutionInfo, nil
 }

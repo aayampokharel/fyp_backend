@@ -26,6 +26,7 @@ import (
 func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 	var prefix = "/blockchain"
 
+	//! I have to include principal/etc signature in certificate as well .
 	// POST /blockchain/certificates
 	var routes []common.RouteWrapper = []common.RouteWrapper{
 		{

@@ -96,3 +96,20 @@ func (c *Controller) HandleCreateNewFaculty(newFaculty CreateFacultyRequest) (*e
 	})
 
 }
+
+func (c *Controller) HandleCheckInstitutionIsActive(request map[string]string) entity.Response {
+	//esma , first email ra password college ko manche le insert garcha , I will compulsorily return list of all institutions associated to the user  .BUT THAT IS HANDLED BY ANOTHER ENDPOINT , as after this that person can choose from multiple list 1 institution , ani tyo select garepachi we hit this associated endpoint and use this controller .
+	requestMap, er := common.CheckMapKeysReturnValues(request, CheckInstitutionIsActiveQuery)
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrParsingQueryParametersString, er)
+	}
+	institutionID := requestMap[InstitutionID]
+
+	institutionInfo, er := c.useCase.GetInstitutionInfoUseCase(institutionID)
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrCheckingIsActiveString, er)
+	}
+	var checkInstitutionIsActiveResponse CheckInstitutionIsActiveResponse
+
+	return common.HandleSuccessResponse(checkInstitutionIsActiveResponse.FromEntity(institutionInfo))
+}

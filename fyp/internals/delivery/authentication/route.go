@@ -51,6 +51,20 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 				return response
 			},
 		},
+		// /auth/verify-institution/{id}
+		{
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/verify-institution",
+			Method:                  enum.METHODGET,
+			RequestDataTypeInstance: nil,
+			URLQueries:              CheckInstitutionIsActiveQuery,
+			InnerFunc: func(i interface{}) entity.Response {
+
+				return module.Controller.HandleCheckInstitutionIsActive(i.(map[string]string))
+
+			},
+		},
 	}
 
 	return routes
