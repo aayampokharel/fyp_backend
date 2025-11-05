@@ -18,6 +18,7 @@ type ISqlRepository interface {
 	GetAllPendingInstitutionsForAdmin(adminID string) ([]entity.Institution, error)
 	//GetPendingInstitutionFromInstitutionID(institutionID string) (*entity.Institution, error)
 	GetPDFCategoriesList(institutionID, institutionFacultyID string) ([]entity.PDFFileCategoryEntity, error)
+
 	VerifyAdminLogin(userMail, password string) (string, time.Time, error)
 	InsertPDFFile(pdfFile entity.PDFFileEntity) error
 	InsertAndGetPDFCategory(pdfFileCategory entity.PDFFileCategoryEntity) (*entity.PDFFileCategoryEntity, error)

@@ -27,8 +27,8 @@ type BasicStudentInfoDto struct {
 	////remainiing later .
 }
 type CreateAllCertificateResponse struct {
-	Message     string                `json:"message"`
-	StudentList []BasicStudentInfoDto `json:"student_list"`
+	Message string `json:"message"`
+	// StudentList []BasicStudentInfoDto `json:"student_list"`
 }
 
 type MinimalCertificateData struct {
@@ -99,18 +99,17 @@ func (m *CreateCertificateDataRequest) ToPdfFileCategoryEntity() (entity.PDFFile
 	}, nil
 }
 
-func (m *MinimalCertificateData) ToEntity() *entity.CertificateData {
+func (m *MinimalCertificateData) ToEntity(categoryID string) *entity.CertificateData {
 
 	return &entity.CertificateData{
 		CertificateID: common.GenerateUUID(16),
-		StudentID:     m.StudentID,
-		StudentName:   m.StudentName,
 
+		PDFCategoryID:        categoryID,
+		StudentID:            m.StudentID,
+		StudentName:          m.StudentName,
 		InstitutionID:        m.InstitutionID,
 		InstitutionFacultyID: m.InstitutionFacultyID,
-		// //PDFCategoryID        string `json:"pdf_category_id"`  "this isnot made at the time . i have to create it before doing anything."
-
-		CertificateType: m.CertificateType, // COURSE_COMPLETION, CHARACTER, LEAVING, TRANSFER, PROVISIONAL
+		CertificateType:      m.CertificateType, // COURSE_COMPLETION, CHARACTER, LEAVING, TRANSFER, PROVISIONAL
 
 		// Academic Information (Optional)
 		Degree:         m.Degree,
@@ -150,3 +149,11 @@ func FromPDFFileCategoryToPDFFileEntity(categoryID string, studentName, faculty 
 		FileName:   common.GeneratePDFFileName(studentName, faculty, index),
 	}
 }
+
+type GetCertificateDataListRequest []string
+
+const InstitutionID string = "institution_id"
+const InstitutionFacultyID string = "institution_faculty_id"
+const CategoryID string = "category_id"
+
+var GetCertificateDataListRequestQuery = GetCertificateDataListRequest{InstitutionID, InstitutionFacultyID, CategoryID}

@@ -20,7 +20,7 @@ func NewController(useCase usecase.BlockChainUseCase, parseFileUseCase *usecase.
 }
 
 func (c *Controller) InsertNewCertificateData(request CreateCertificateDataRequest) entity.Response {
-	var basicStudentInfoDto []BasicStudentInfoDto
+	//var basicStudentInfoDto []BasicStudentInfoDto
 	blockChainLength := c.useCase.GetBlockChainLength()
 	if blockChainLength == 0 {
 		//mock data
@@ -50,7 +50,7 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 
 	for i := 0; i < len(request.CertificateData); i++ {
 
-		certificateData := request.CertificateData[i].ToEntity()
+		certificateData := request.CertificateData[i].ToEntity(request.CategoryID)
 
 		latestBlockFromChain, newBlock, latestBlockFromChainCertificateLength, newBlockCertificateLength, er := c.useCase.CompleteBlockFromCertificate(certificateData)
 		if er != nil {
@@ -88,7 +88,7 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 		pdfEntityWithoutData := FromPDFFileCategoryToPDFFileEntity(request.CategoryID, certificateData.StudentName, request.InstitutionFacultyName, i)
 
 		pdfEntityWithoutData.PDFData = pdfBytes
-		fileID, er := c.sqlUseCase.InsertPDFFileUseCase(pdfEntityWithoutData)
+		_, er = c.sqlUseCase.InsertPDFFileUseCase(pdfEntityWithoutData)
 		if er != nil {
 			c.useCase.Service.Logger.Errorln("[certificate_usecase] error while storing pdfbytes ", er)
 			return common.HandleErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
@@ -102,17 +102,31 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 		// })
 		// blockchain, _ := c.useCase.BlockChainRepo.GetBlockChain()
 
-		basicStudentInfoDto = append(basicStudentInfoDto, BasicStudentInfoDto{
-			StudentID:   certificateData.StudentID,
-			StudentName: certificateData.StudentName,
-			FileID:      fileID,
-			FileName:    pdfEntityWithoutData.FileName,
-			FacultyName: request.InstitutionFacultyName,
-		})
+		// basicStudentInfoDto = append(basicStudentInfoDto, BasicStudentInfoDto{
+		// 	StudentID:   certificateData.StudentID,
+		// 	StudentName: certificateData.StudentName,
+		// 	FileID:      fileID,
+		// 	FileName:    pdfEntityWithoutData.FileName,
+		// 	FacultyName: request.InstitutionFacultyName,
+		// })
 
 	}
 	return common.HandleSuccessResponse(CreateAllCertificateResponse{
-		Message:     "All Certificates Inserted Successfully",
-		StudentList: basicStudentInfoDto,
+		Message: "All Certificates Inserted Successfully",
 	})
+}
+
+func (c *Controller) GetCertificateDataList(request map[string]string) entity.Response {
+	requestMap, er := common.CheckMapKeysReturnValues(request, GetCertificateDataListRequestQuery)
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrParsingQueryParametersString, er)
+	}
+	institutionID := requestMap[InstitutionID]
+	institutionFacultyID := requestMap[InstitutionFacultyID]
+	categoryID := requestMap[CategoryID]
+	certificates, er := c.useCase.GetCertificateDataListUseCase(institutionID, institutionFacultyID, categoryID)
+	if er != nil {
+		return common.HandleErrorResponse(401, er.Error(), er)
+	}
+	return common.HandleSuccessResponse(certificates)
 }

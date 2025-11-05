@@ -26,9 +26,8 @@ import (
 func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 	var prefix = "/blockchain"
 
-	//! I have to include principal/etc signature in certificate as well .
-	// POST /blockchain/certificates
 	var routes []common.RouteWrapper = []common.RouteWrapper{
+		// POST /blockchain/certificates
 		{
 			Mux:                     mux,
 			Prefix:                  prefix,
@@ -37,6 +36,18 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 			RequestDataTypeInstance: CreateCertificateDataRequest{},
 			InnerFunc: func(i interface{}) entity.Response {
 				return module.Controller.InsertNewCertificateData(i.(CreateCertificateDataRequest))
+			},
+		},
+		// GET /blockchain/certificate-batch?institution_id=_____&institution_faculty_id=_____&category_id=_____
+		{
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/certificate-batch",
+			Method:                  enum.METHODGET,
+			RequestDataTypeInstance: nil,
+			URLQueries:              GetCertificateDataListRequestQuery,
+			InnerFunc: func(i interface{}) entity.Response {
+				return module.Controller.GetCertificateDataList(i.(map[string]string))
 			},
 		},
 	}

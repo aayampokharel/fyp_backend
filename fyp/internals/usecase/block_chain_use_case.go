@@ -190,3 +190,6 @@ func (uc *BlockChainUseCase) GetBlockChain() int {
 	uc.Service.Logger.Infoln("[get_block_chain] Info: GetBlockChain::", uc.BlockChainRepo.GetBlockChainLength())
 	return uc.BlockChainRepo.GetBlockChainLength()
 }
+func (uc *BlockChainUseCase) GetCertificateDataListUseCase(institutionID, institutionFacultyID, categoryID string) ([]entity.CertificateData, error) {
+	return uc.BlockChainRepo.GetCertificateDataList(institutionID, institutionFacultyID, categoryID)
+}

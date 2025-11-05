@@ -23,6 +23,8 @@ type IBlockChainRepository interface {
 
 	InsertCertificateIntoBlock(certificate *entity.CertificateData, block entity.Block) (*entity.Block, int, error)
 
+	GetCertificateDataList(institutionID, institutionFacultyID, categoryID string) ([]entity.CertificateData, error)
+
 	UpdateCurrentBlock(nonce int, merkleRoot string, currentHash string, block entity.Block) (*entity.Block, error)
 
 	GetAnyBlockHeader(length int) (entity.Header, error)

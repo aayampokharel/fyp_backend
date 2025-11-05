@@ -138,3 +138,15 @@ func (b *BlockChainMemorySource) ReceiveFromPeer(currentPort string) error {
 func (b *BlockChainMemorySource) GetInfoFromPdfFilesCategories(categoryID string) (*entity.PDFFileCategoryEntity, error) {
 	return nil, nil
 }
+func (b *BlockChainMemorySource) GetCertificateDataList(institutionID, institutionFacultyID, categoryID string) ([]entity.CertificateData, error) {
+
+	var certificateDataList []entity.CertificateData
+	for _, block := range b.blockChain {
+		for _, certificate := range block.CertificateData {
+			if certificate.InstitutionID == institutionID && certificate.InstitutionFacultyID == institutionFacultyID && certificate.PDFCategoryID == categoryID {
+				certificateDataList = append(certificateDataList, certificate)
+			}
+		}
+	}
+	return certificateDataList, nil
+}
