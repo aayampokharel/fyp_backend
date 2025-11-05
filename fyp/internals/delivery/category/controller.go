@@ -4,6 +4,7 @@ import (
 	"log"
 	"project/internals/domain/entity"
 	"project/internals/usecase"
+	err "project/package/errors"
 	"project/package/utils/common"
 )
 
@@ -29,4 +30,19 @@ func (c *Controller) HandleCreatePDFCategory(request CreatePDFCategoryDto) entit
 		CategoryID:   insertedpdfFileCategory.CategoryID,
 		CategoryName: insertedpdfFileCategory.CategoryName,
 	})
+}
+
+func (c *Controller) HandleGetPDFCategoriesList(request map[string]string) entity.Response {
+	requestMap, er := common.CheckMapKeysReturnValues(request, GetPDFCategoryRequestDtoQuery)
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrParsingQueryParametersString, er)
+	}
+	institutionFacultyID := requestMap[InstitutionFacultyID]
+	institutionID := requestMap[InstitutionID]
+	pdfFileCategories, er := c.sqlUseCase.GetPDFCategoriesListUseCase(institutionID, institutionFacultyID)
+	if er != nil {
+		return common.HandleErrorResponse(401, er.Error(), er)
+	}
+	return common.HandleSuccessResponse(pdfFileCategories)
+
 }

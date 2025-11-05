@@ -38,6 +38,28 @@ func (s *SQLSource) GetPendingInstitutionFromInstitutionID(institutionID string)
 	return &institution, nil
 
 }
+func (s *SQLSource) GetPDFCategoriesList(institutionID, institutionFacultyID string) ([]entity.PDFFileCategoryEntity, error) {
+	query := `select category_id,institution_id,institution_faculty_id,category_name,created_at from pdf_file_categories where institution_id=$1 and institution_faculty_id=$2;`
+
+	rows, err := s.DB.Query(query, institutionID, institutionFacultyID)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: GetPDFCategoriesList::", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var pdfFileCategories []entity.PDFFileCategoryEntity
+	for rows.Next() {
+		var pdfFileCategory entity.PDFFileCategoryEntity
+		if er := rows.Scan(&pdfFileCategory.CategoryID, &pdfFileCategory.InstitutionID, &pdfFileCategory.InstitutionFacultyID, &pdfFileCategory.CategoryName, &pdfFileCategory.CreatedAt); er != nil {
+			s.logger.Errorln("[sql_source] Error: GetPDFCategoriesList::", er)
+			return nil, er
+		}
+		pdfFileCategories = append(pdfFileCategories, pdfFileCategory)
+	}
+	return pdfFileCategories, nil
+
+}
 func (s *SQLSource) GetAllPendingInstitutionsForAdmin(adminID string) ([]entity.Institution, error) {
 	var count int
 	checkAdminQuery := `select count(*) from user_accounts where id=$1 and system_role=$2;`

@@ -8,18 +8,30 @@ import (
 )
 
 func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
-	var prefix = "/category"
+	var prefix = "/institution"
 
 	var routes []common.RouteWrapper = []common.RouteWrapper{
-		//POST /category
+		//POST /institution/category
 		{
 			Mux:                     mux,
 			Prefix:                  prefix,
-			Route:                   "",
+			Route:                   "/category",
 			Method:                  enum.METHODPOST,
 			RequestDataTypeInstance: CreatePDFCategoryDto{},
 			InnerFunc: func(i interface{}) entity.Response {
 				return module.Controller.HandleCreatePDFCategory(i.(CreatePDFCategoryDto))
+			},
+		},
+		//GET /institution/categories?institution_id=12345&institution_faculty_id=12345
+		{
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/categories",
+			Method:                  enum.METHODGET,
+			RequestDataTypeInstance: nil,
+			URLQueries:              GetPDFCategoryRequestDtoQuery,
+			InnerFunc: func(i interface{}) entity.Response {
+				return module.Controller.HandleGetPDFCategoriesList(i.(map[string]string))
 			},
 		},
 	}

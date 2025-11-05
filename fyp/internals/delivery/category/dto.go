@@ -17,6 +17,13 @@ type CreatePDFCategoryResponseDto struct {
 	CategoryName string `json:"category_name"`
 }
 
+type GetPDFCategoryRequest []string
+
+const InstitutionID string = "institution_id"
+const InstitutionFacultyID string = "institution_faculty_id"
+
+var GetPDFCategoryRequestDtoQuery = GetPDFCategoryRequest{InstitutionID, InstitutionFacultyID}
+
 func (m *CreatePDFCategoryDto) ToPdfFileCategoryEntity() (entity.PDFFileCategoryEntity, error) {
 
 	if m.InstitutionFacultyID == "" || m.InstitutionID == "" || m.PreferredCategoryName == "" || m.FacultyName == "" {

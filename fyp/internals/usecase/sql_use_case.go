@@ -91,3 +91,6 @@ func (uc *SqlUseCase) GetInstitutionInfoUseCase(institutionID string) (*entity.I
 func (uc *SqlUseCase) GetAllPendingInstitutionsUseCase(adminID string) ([]entity.Institution, error) {
 	return uc.SqlRepo.GetAllPendingInstitutionsForAdmin(adminID)
 }
+func (uc *SqlUseCase) GetPDFCategoriesListUseCase(institutionID, institutionFacultyID string) ([]entity.PDFFileCategoryEntity, error) {
+	return uc.SqlRepo.GetPDFCategoriesList(institutionID, institutionFacultyID)
+}
