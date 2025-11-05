@@ -241,8 +241,7 @@ func (s *SQLSource) GetInstitutionsForUser(userID string) ([]entity.Institution,
         FROM institutions i
         INNER JOIN institution_user iu 
             ON i.institution_id = iu.institution_id
-        WHERE iu.user_id = $1 
-          AND i.deleted_at IS NULL;
+        WHERE iu.user_id = $1 ;
     `
 
 	rows, err := s.DB.Query(query, userID)
