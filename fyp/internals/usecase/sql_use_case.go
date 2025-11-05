@@ -4,7 +4,9 @@ import (
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
 	"project/internals/domain/service"
+	"project/package/enum"
 	err "project/package/errors"
+	"time"
 )
 
 type SqlUseCase struct {
@@ -93,4 +95,15 @@ func (uc *SqlUseCase) GetAllPendingInstitutionsUseCase(adminID string) ([]entity
 }
 func (uc *SqlUseCase) GetPDFCategoriesListUseCase(institutionID, institutionFacultyID string) ([]entity.PDFFileCategoryEntity, error) {
 	return uc.SqlRepo.GetPDFCategoriesList(institutionID, institutionFacultyID)
+}
+
+func (uc *SqlUseCase) VerifyUserLoginUseCase(userEmail, password string, role enum.ROLE) (string, time.Time, error) {
+	userID, createdAt, er := uc.SqlRepo.VerifyRoleLogin(userEmail, password, role)
+	if er != nil {
+		return "", time.Time{}, er
+	}
+	return userID, createdAt, nil
+}
+func (uc *SqlUseCase) GetInstitutionsForUserUseCase(userID string) ([]entity.Institution, error) {
+	return uc.SqlRepo.GetInstitutionsForUser(userID)
 }

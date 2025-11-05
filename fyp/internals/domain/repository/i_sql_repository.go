@@ -2,6 +2,7 @@ package repository
 
 import (
 	"project/internals/domain/entity"
+	"project/package/enum"
 	"time"
 )
 
@@ -19,7 +20,7 @@ type ISqlRepository interface {
 	//GetPendingInstitutionFromInstitutionID(institutionID string) (*entity.Institution, error)
 	GetPDFCategoriesList(institutionID, institutionFacultyID string) ([]entity.PDFFileCategoryEntity, error)
 
-	VerifyAdminLogin(userMail, password string) (string, time.Time, error)
+	VerifyRoleLogin(userMail, password string, role enum.ROLE) (string, time.Time, error)
 	InsertPDFFile(pdfFile entity.PDFFileEntity) error
 	InsertAndGetPDFCategory(pdfFileCategory entity.PDFFileCategoryEntity) (*entity.PDFFileCategoryEntity, error)
 	RetrievePDFFileByFileIDOrCategoryID(fileID string, categoryID string, isDownloadAll bool) ([]entity.PDFFileEntity, error)
@@ -29,4 +30,5 @@ type ISqlRepository interface {
 	GetFacultyPublicKey(id string) (string, error)
 	GetInfoFromPdfFilesCategories(categoryID string) (*entity.PDFFileCategoryEntity, error)
 	GetInstitutionInfoFromInstitutionID(institutionID string) (*entity.Institution, error)
+	GetInstitutionsForUser(userID string) ([]entity.Institution, error)
 }

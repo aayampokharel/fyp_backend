@@ -3,6 +3,7 @@ package admin
 import (
 	"project/internals/domain/entity"
 	"project/internals/usecase"
+	"project/package/enum"
 	err "project/package/errors"
 	"project/package/utils/common"
 	"time"
@@ -18,12 +19,15 @@ func NewController(sqlUseCase *usecase.SqlUseCase, sseUseCase *usecase.SSEUseCas
 }
 
 func (c *Controller) HandleAdminLogin(AdminLoginRequest AdminLoginRequest) entity.Response {
-	adminLoginResponse, er := c.sseUseCase.VerifyAdminLoginUseCase(AdminLoginRequest.AdminEmail, AdminLoginRequest.Password)
+	userID, createdAt, er := c.sqlUseCase.VerifyUserLoginUseCase(AdminLoginRequest.AdminEmail, AdminLoginRequest.Password, enum.ADMIN)
 
 	if er != nil {
 		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
 	}
-
+	adminLoginResponse, er := c.sseUseCase.GetAllPendingInstitutionsForAdminsUseCase(userID, createdAt)
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
+	}
 	return common.HandleSuccessResponse(AdminLoginResponse{UserID: adminLoginResponse.UserID, CreatedAt: adminLoginResponse.CreatedTime.Format(time.RFC3339), InstitutionList: adminLoginResponse.InstitutionList})
 
 }

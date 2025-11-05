@@ -217,22 +217,63 @@ func (s *SQLSource) InsertInstitutionUser(institutionUser entity.InstitutionUser
 	return nil
 }
 
-func (s *SQLSource) VerifyAdminLogin(userMail, password string) (string, time.Time, error) {
+func (s *SQLSource) VerifyRoleLogin(userMail, password string, role enum.ROLE) (string, time.Time, error) {
 	////CHECK FOR USER_NOT FOUND RETURN ERROR ,errorz package used here
 	//// incorrect password case as well for matching email.
 	//! or simply user not found
 
-	query := `SELECT id,created_at FROM user_accounts WHERE email=$1 AND password=$2 AND system_role=$3 AND institution_role IS NULL AND deleted_at IS NULL;`
-	var adminID string
+	roleString := role.String()
+	query := `SELECT id,created_at FROM user_accounts WHERE email=$1 AND password=$2 AND system_role=$3 AND deleted_at IS NULL;`
+	var userID string
 	var createdAt time.Time
-	err := s.DB.QueryRow(query, userMail, password, enum.ADMIN.String()).Scan(&adminID, &createdAt)
+	err := s.DB.QueryRow(query, userMail, password, roleString).Scan(&userID, &createdAt)
 	if err != nil {
-		s.logger.Errorln("[sql_source] Error: VerifyAdminLogin::", err)
+		s.logger.Errorln("[sql_source] Error: VerifyRoleLogin::", err)
 		return "", time.Time{}, err
 	}
-	return adminID, createdAt, nil
+	return userID, createdAt, nil
 
 }
+func (s *SQLSource) GetInstitutionsForUser(userID string) ([]entity.Institution, error) {
+	query := `
+        SELECT i.institution_id, i.institution_name, i.tole_address,
+               i.ward_number, i.district_address, i.is_active
+        FROM institutions i
+        INNER JOIN institution_user iu 
+            ON i.institution_id = iu.institution_id
+        WHERE iu.user_id = $1 
+          AND i.deleted_at IS NULL;
+    `
+
+	rows, err := s.DB.Query(query, userID)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error fetching institutions for user:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var institutions []entity.Institution
+
+	for rows.Next() {
+		var inst entity.Institution
+		err := rows.Scan(
+			&inst.InstitutionID,
+			&inst.InstitutionName,
+			&inst.ToleAddress,
+			&inst.WardNumber,
+			&inst.DistrictAddress,
+			&inst.IsActive,
+		)
+		if err != nil {
+			s.logger.Errorln("[sql_source] Error scanning institution:", err)
+			return nil, err
+		}
+		institutions = append(institutions, inst)
+	}
+
+	return institutions, nil
+}
+
 func (s *SQLSource) InsertFaculty(faculty entity.InstitutionFaculty) (facultyID string, er error) {
 	query := `
 		INSERT INTO institution_faculty (

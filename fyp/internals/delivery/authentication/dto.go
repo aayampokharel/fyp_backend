@@ -100,6 +100,16 @@ type CheckInstitutionIsActiveResponse struct {
 	IsActive        *bool  `json:"is_active"`
 }
 
+type InstitutionLoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+type InstitutionLoginResponse struct {
+	UserID          string               `json:"user_id"`
+	CreatedAt       string               `json:"created_at"`
+	InstitutionList []entity.Institution `json:"institution_list"`
+}
+
 func (c *CheckInstitutionIsActiveResponse) FromEntity(institutionInfo *entity.Institution) CheckInstitutionIsActiveResponse {
 	return CheckInstitutionIsActiveResponse{
 		InstitutionID:   institutionInfo.InstitutionID,

@@ -65,6 +65,18 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 
 			},
 		},
+		//POST /auth/institution/login
+		{
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/institution/login",
+			Method:                  enum.METHODPOST,
+			RequestDataTypeInstance: InstitutionLoginRequest{},
+			InnerFunc: func(i interface{}) entity.Response {
+				return module.Controller.HandleInstitutionsLogin(i.(InstitutionLoginRequest))
+
+			},
+		},
 	}
 
 	return routes

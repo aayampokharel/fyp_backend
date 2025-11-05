@@ -3,6 +3,7 @@ package authentication
 import (
 	"project/internals/domain/entity"
 	"project/internals/usecase"
+	"project/package/enum"
 	err "project/package/errors"
 	"project/package/utils/common"
 	"time"
@@ -112,4 +113,19 @@ func (c *Controller) HandleCheckInstitutionIsActive(request map[string]string) e
 	var checkInstitutionIsActiveResponse CheckInstitutionIsActiveResponse
 
 	return common.HandleSuccessResponse(checkInstitutionIsActiveResponse.FromEntity(institutionInfo))
+}
+
+func (c *Controller) HandleInstitutionsLogin(request InstitutionLoginRequest) entity.Response {
+	userID, createdAt, er := c.useCase.VerifyUserLoginUseCase(request.Email, request.Password, enum.INSTITUTE)
+
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
+	}
+	institutionList, er := c.useCase.GetInstitutionsForUserUseCase(userID)
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
+	}
+
+	return common.HandleSuccessResponse(InstitutionLoginResponse{UserID: userID, CreatedAt: createdAt.Format(time.RFC3339), InstitutionList: institutionList})
+
 }
