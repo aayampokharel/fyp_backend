@@ -315,6 +315,7 @@ func (s *SQLSource) InsertPDFFile(pdfFile entity.PDFFileEntity) error {
 		s.logger.Errorln("[sql_source] Error: InsertPDFFile::", err)
 		return err
 	}
+	s.logger.Infoln("[sql_source] Info: inserted for InsertPDFFile::", pdfFile.FileID)
 	return nil
 }
 

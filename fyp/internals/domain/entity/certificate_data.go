@@ -21,13 +21,13 @@ type CertificateData struct {
 	CertificateType string `json:"certificate_type"` // COURSE_COMPLETION, CHARACTER, LEAVING, TRANSFER, PROVISIONAL
 
 	// Academic Information (Optional)
-	Degree         string  `json:"degree,omitempty"`
-	College        string  `json:"college,omitempty"`
-	Major          string  `json:"major,omitempty"`
-	GPA            string  `json:"gpa,omitempty"`
-	Percentage     float64 `json:"percentage,omitempty"`
-	Division       string  `json:"division,omitempty"`
-	UniversityName string  `json:"university_name,omitempty"`
+	Degree         string   `json:"degree,omitempty"`
+	College        string   `json:"college,omitempty"`
+	Major          string   `json:"major,omitempty"`
+	GPA            string   `json:"gpa,omitempty"`
+	Percentage     *float64 `json:"percentage,omitempty"`
+	Division       string   `json:"division,omitempty"`
+	UniversityName string   `json:"university_name,omitempty"`
 
 	// Date Information
 	IssueDate      time.Time `json:"issue_date"`

@@ -50,7 +50,11 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 
 	for i := 0; i < len(request.CertificateData); i++ {
 
-		certificateData := request.CertificateData[i].ToEntity(request.CategoryID)
+		certificateData, er := request.CertificateData[i].ToEntity(request.CategoryID)
+		if er != nil {
+			log.Println(er)
+			return common.HandleErrorResponse(401, er.Error(), er)
+		}
 
 		latestBlockFromChain, newBlock, latestBlockFromChainCertificateLength, newBlockCertificateLength, er := c.useCase.CompleteBlockFromCertificate(certificateData)
 		if er != nil {
@@ -79,7 +83,7 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 		if er != nil {
 			return common.HandleErrorResponse(500, err.ErrParsingFileString, er)
 		}
-		c.sqlUseCase.Service.Logger.Infoln("[certificate_usecase] htmlString", htmlString)
+		//c.sqlUseCase.Service.Logger.Infoln("[certificate_usecase] htmlString", htmlString)
 		pdfBytes, er := c.ParseFileUseCase.GenerateAndGetCertificatePDF(htmlString)
 		if er != nil {
 			return common.HandleErrorResponse(500, err.ErrParsingFileString, er)

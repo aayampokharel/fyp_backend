@@ -39,6 +39,7 @@ var (
 	ErrInstitutionAlreadyRegistered = errorz.Status400BadRequest.Wrap("Institution already registered")
 	ErrCannotConvertToBool          = errorz.Status400BadRequest.Wrap("cannot convert to bool type")
 	ErrCannotConvertToInt           = errorz.Status400BadRequest.Wrap("cannot convert to int type")
+	ErrCannotConvertToFloat         = errorz.Status400BadRequest.Wrap("cannot convert to floattype")
 	ErrEmptyString                  = errorz.Status400BadRequest.Wrap("empty string provided")
 	ErrWritingZip                   = errorz.Status400BadRequest.Wrap("Error while writing in zip")
 	ErrPDFDataIsNil                 = errorz.Status400BadRequest.Wrap("PDF Data is empty")

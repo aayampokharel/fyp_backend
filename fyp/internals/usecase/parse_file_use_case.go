@@ -40,7 +40,7 @@ func (uc *ParseFileUseCase) GenerateCertificateHTML(id, url, templatePath string
 }
 
 func (uc *ParseFileUseCase) GenerateAndGetCertificatePDF(htmlContent string) ([]byte, error) {
-	uc.Service.Logger.Debugln(htmlContent)
+	// uc.Service.Logger.Debugln(htmlContent)
 	pdfBytes, er := uc.Service.ConvertHTMLToPDF(htmlContent)
 	if er != nil {
 		uc.Service.Logger.Errorln("[certificate_usecase] error while generating pdfbytes ", er)

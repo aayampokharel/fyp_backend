@@ -40,3 +40,14 @@ func ConvertToInt(intStr string) (int, error) {
 	}
 	return int(val), nil
 }
+
+func ConvertToFloat(floatStr string) (float64, error) {
+	if floatStr == "" {
+		return 0.0, err.ErrEmptyString
+	}
+	val, er := strconv.ParseFloat(floatStr, 64)
+	if er != nil {
+		return 0.0, err.ErrCannotConvertToFloat
+	}
+	return val, nil
+}

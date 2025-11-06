@@ -53,7 +53,7 @@ type MinimalCertificateData struct {
 	College        string  `json:"college"`
 	Major          string  `json:"major"`
 	GPA            string  `json:"gpa"`
-	Percentage     float64 `json:"percentage"`
+	Percentage     *string `json:"percentage"`
 	Division       string  `json:"division"`
 	UniversityName string  `json:"university_name"`
 
@@ -99,8 +99,12 @@ func (m *CreateCertificateDataRequest) ToPdfFileCategoryEntity() (entity.PDFFile
 	}, nil
 }
 
-func (m *MinimalCertificateData) ToEntity(categoryID string) *entity.CertificateData {
+func (m *MinimalCertificateData) ToEntity(categoryID string) (*entity.CertificateData, error) {
+	percentageFloat, er := common.ConvertToFloat(*m.Percentage)
+	if er != nil {
 
+		return nil, er
+	}
 	return &entity.CertificateData{
 		CertificateID: common.GenerateUUID(16),
 
@@ -116,7 +120,7 @@ func (m *MinimalCertificateData) ToEntity(categoryID string) *entity.Certificate
 		College:        m.College,
 		Major:          m.Major,
 		GPA:            m.GPA,
-		Percentage:     m.Percentage,
+		Percentage:     &percentageFloat,
 		Division:       m.Division,
 		UniversityName: m.UniversityName,
 
@@ -139,7 +143,7 @@ func (m *MinimalCertificateData) ToEntity(categoryID string) *entity.Certificate
 
 		// Timestamps
 		//CreatedAt time.Time `json:"created_at"`
-	}
+	}, nil
 }
 
 func FromPDFFileCategoryToPDFFileEntity(categoryID string, studentName, faculty string, index int) entity.PDFFileEntity {
