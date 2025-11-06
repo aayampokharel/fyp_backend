@@ -51,7 +51,7 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 				return response
 			},
 		},
-		// /auth/verify-institution/{id}
+		// /auth/verify-institution?institution_id=12345
 		{
 			Mux:                     mux,
 			Prefix:                  prefix,

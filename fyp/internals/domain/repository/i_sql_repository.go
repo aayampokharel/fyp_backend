@@ -30,5 +30,6 @@ type ISqlRepository interface {
 	GetFacultyPublicKey(id string) (string, error)
 	GetInfoFromPdfFilesCategories(categoryID string) (*entity.PDFFileCategoryEntity, error)
 	GetInstitutionInfoFromInstitutionID(institutionID string) (*entity.Institution, error)
+	GetFacultyListInfoFromInstitutionID(institutionID string) ([]entity.InstitutionFaculty, error)
 	GetInstitutionsForUser(userID string) ([]entity.Institution, error)
 }

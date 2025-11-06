@@ -107,3 +107,6 @@ func (uc *SqlUseCase) VerifyUserLoginUseCase(userEmail, password string, role en
 func (uc *SqlUseCase) GetInstitutionsForUserUseCase(userID string) ([]entity.Institution, error) {
 	return uc.SqlRepo.GetInstitutionsForUser(userID)
 }
+func (uc *SqlUseCase) GetFacultyListUseCase(institutionID string) ([]entity.InstitutionFaculty, error) {
+	return uc.SqlRepo.GetFacultyListInfoFromInstitutionID(institutionID)
+}

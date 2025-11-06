@@ -92,12 +92,13 @@ const InstitutionID = "institution_id"
 var CheckInstitutionIsActiveQuery = CheckInstitutionIsActiveDto{InstitutionID}
 
 type CheckInstitutionIsActiveResponse struct {
-	InstitutionID   string `json:"institution_id"`
-	InstitutionName string `json:"institution_name"`
-	ToleAddress     string `json:"tole_address"`
-	WardNumber      string `json:"ward_number"`
-	DistrictAddress string `json:"district_address"`
-	IsActive        *bool  `json:"is_active"`
+	InstitutionID   string                      `json:"institution_id"`
+	InstitutionName string                      `json:"institution_name"`
+	ToleAddress     string                      `json:"tole_address"`
+	WardNumber      string                      `json:"ward_number"`
+	DistrictAddress string                      `json:"district_address"`
+	IsActive        *bool                       `json:"is_active"`
+	FacultiesList   []entity.InstitutionFaculty `json:"faculties_list"`
 }
 
 type InstitutionLoginRequest struct {
@@ -110,7 +111,7 @@ type InstitutionLoginResponse struct {
 	InstitutionList []entity.Institution `json:"institution_list"`
 }
 
-func (c *CheckInstitutionIsActiveResponse) FromEntity(institutionInfo *entity.Institution) CheckInstitutionIsActiveResponse {
+func (c *CheckInstitutionIsActiveResponse) FromEntity(institutionInfo *entity.Institution, facultyList []entity.InstitutionFaculty) CheckInstitutionIsActiveResponse {
 	return CheckInstitutionIsActiveResponse{
 		InstitutionID:   institutionInfo.InstitutionID,
 		InstitutionName: institutionInfo.InstitutionName,
@@ -118,5 +119,6 @@ func (c *CheckInstitutionIsActiveResponse) FromEntity(institutionInfo *entity.In
 		WardNumber:      institutionInfo.WardNumber,
 		DistrictAddress: institutionInfo.DistrictAddress,
 		IsActive:        institutionInfo.IsActive,
+		FacultiesList:   facultyList,
 	}
 }

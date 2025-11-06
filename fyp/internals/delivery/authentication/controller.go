@@ -110,9 +110,13 @@ func (c *Controller) HandleCheckInstitutionIsActive(request map[string]string) e
 	if er != nil {
 		return common.HandleErrorResponse(500, err.ErrCheckingIsActiveString, er)
 	}
+	facultyListInfo, er := c.useCase.GetFacultyListUseCase(institutionID)
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrCheckingIsActiveString, er)
+	}
 	var checkInstitutionIsActiveResponse CheckInstitutionIsActiveResponse
 
-	return common.HandleSuccessResponse(checkInstitutionIsActiveResponse.FromEntity(institutionInfo))
+	return common.HandleSuccessResponse(checkInstitutionIsActiveResponse.FromEntity(institutionInfo, facultyListInfo))
 }
 
 func (c *Controller) HandleInstitutionsLogin(request InstitutionLoginRequest) entity.Response {

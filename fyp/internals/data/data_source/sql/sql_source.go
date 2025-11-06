@@ -560,3 +560,53 @@ func (s *SQLSource) GetInstitutionInfoFromInstitutionID(institutionID string) (*
 	institutionInfo.InstitutionID = institutionID
 	return &institutionInfo, nil
 }
+func (s *SQLSource) GetFacultyListInfoFromInstitutionID(institutionID string) ([]entity.InstitutionFaculty, error) {
+	var faculties []entity.InstitutionFaculty
+
+	query := `
+        SELECT 
+            institution_faculty_id,
+            institution_id,
+            faculty_name,
+            faculty_public_key,
+            university_affiliation,
+            university_college_code,
+            faculty_authority_with_signature
+        FROM institution_faculty 
+        WHERE institution_id = $1;`
+
+	rows, err := s.DB.Query(query, institutionID)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: GetFacultyListInfoFromInstitutionID::", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var faculty entity.InstitutionFaculty
+		var authorityWithSignature []byte
+
+		err := rows.Scan(
+			&faculty.InstitutionFacultyID,
+			&faculty.InstitutionID,
+			&faculty.FacultyName,
+			&faculty.FacultyPublicKey,
+			&faculty.UniversityAffiliation,
+			&faculty.UniversityCollegeCode,
+			&authorityWithSignature,
+		)
+		if err != nil {
+			s.logger.Errorln("[sql_source] Error scanning faculty row:", err)
+			continue
+		}
+
+		faculties = append(faculties, faculty)
+	}
+
+	if err := rows.Err(); err != nil {
+		s.logger.Errorln("[sql_source] Error iterating faculty rows:", err)
+		return nil, err
+	}
+
+	return faculties, nil
+}
