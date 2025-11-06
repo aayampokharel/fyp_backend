@@ -16,6 +16,7 @@ type CertificateData struct {
 	InstitutionID        string `json:"institution_id"`
 	InstitutionFacultyID string `json:"institution_faculty_id"`
 	PDFCategoryID        string `json:"pdf_category_id"`
+	PDFFileID            string `json:"pdf_file_id"`
 
 	// Certificate Type
 	CertificateType string `json:"certificate_type"` // COURSE_COMPLETION, CHARACTER, LEAVING, TRANSFER, PROVISIONAL

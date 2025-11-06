@@ -100,9 +100,8 @@ CREATE TABLE IF NOT EXISTS  certificates(
     institution_id VARCHAR(16) REFERENCES institutions(institution_id) ON DELETE CASCADE,
     institution_faculty_id VARCHAR(16) REFERENCES institution_faculty(institution_faculty_id) ON DELETE CASCADE,
      pdf_category_id VARCHAR(16) REFERENCES pdf_file_categories(category_id) ON DELETE SET NULL,
-
-
-    
+    pdf_file_id VARCHAR(16) REFERENCES pdf_files(file_id) ON DELETE SET NULL,
+ 
     
     -- Certificate type and basic info
     certificate_type VARCHAR(50) NOT NULL CHECK (certificate_type IN (

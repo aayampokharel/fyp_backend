@@ -106,8 +106,8 @@ func (m *MinimalCertificateData) ToEntity(categoryID string) (*entity.Certificat
 		return nil, er
 	}
 	return &entity.CertificateData{
-		CertificateID: common.GenerateUUID(16),
-
+		CertificateID:        common.GenerateUUID(16),
+		PDFFileID:            common.GenerateUUID(16),
 		PDFCategoryID:        categoryID,
 		StudentID:            m.StudentID,
 		StudentName:          m.StudentName,
@@ -146,10 +146,10 @@ func (m *MinimalCertificateData) ToEntity(categoryID string) (*entity.Certificat
 	}, nil
 }
 
-func FromPDFFileCategoryToPDFFileEntity(categoryID string, studentName, faculty string, index int) entity.PDFFileEntity {
+func FromPDFFileCategoryToPDFFileEntity(categoryID string, studentName, faculty string, fileID string, index int) entity.PDFFileEntity {
 	return entity.PDFFileEntity{
 		CategoryID: categoryID,
-		FileID:     common.GenerateUUID(16),
+		FileID:     fileID,
 		FileName:   common.GeneratePDFFileName(studentName, faculty, index),
 	}
 }

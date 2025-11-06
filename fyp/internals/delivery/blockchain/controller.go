@@ -89,7 +89,7 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 			return common.HandleErrorResponse(500, err.ErrParsingFileString, er)
 		}
 
-		pdfEntityWithoutData := FromPDFFileCategoryToPDFFileEntity(request.CategoryID, certificateData.StudentName, request.InstitutionFacultyName, i)
+		pdfEntityWithoutData := FromPDFFileCategoryToPDFFileEntity(request.CategoryID, certificateData.StudentName, request.InstitutionFacultyName, certificateData.PDFFileID, i)
 
 		pdfEntityWithoutData.PDFData = pdfBytes
 		_, er = c.sqlUseCase.InsertPDFFileUseCase(pdfEntityWithoutData)
