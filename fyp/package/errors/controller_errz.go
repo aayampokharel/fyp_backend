@@ -8,6 +8,8 @@ var (
 	ErrCreatingUserAccountString           = "error creating user account"
 	ErrCreatingInstitutionFacultyString    = "error creating institution faculty"
 	ErrCheckingIsActiveString              = "error checking institution is_active string"
+	ErrEmptyImageString                    = "error empty image data string"
+	ErrInvalidLengthString                 = "error invalid length "
 	ErrRemovingClientString                = "error removing client"
 	ErrGettingCertificateString            = "error getting certificate "
 	ErrParsingFileString                   = " error parsing file"

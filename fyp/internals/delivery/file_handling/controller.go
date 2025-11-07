@@ -1,12 +1,14 @@
 package filehandling
 
 import (
+	"encoding/base64"
 	"project/constants"
 	"project/internals/domain/entity"
 	"project/internals/usecase"
 	"project/package/enum"
 	err "project/package/errors"
 	"project/package/utils/common"
+	"strings"
 )
 
 type Controller struct {
@@ -94,5 +96,33 @@ func (c *Controller) HandleGetPDFFileInList(request map[string]string) entity.Fi
 	fileName = pdfFileEntity[0].CategoryID + "_" + fileName
 
 	return common.HandleFileSuccessResponse(enum.PDF, fileName, pdfFileEntity[0].PDFData)
+
+}
+
+func (c *Controller) HandleGetImageFile(request GetImageFileRequestDto) entity.FileResponse {
+	cleanBase64 := request.ImageBase64
+	var cleanBase64slice []string
+	var encodedString string
+	if strings.Contains(cleanBase64, "base64,") {
+		cleanBase64slice = strings.Split(cleanBase64, ",")
+		if len(cleanBase64slice) != 2 {
+			return common.HandleFileErrorResponse(400, err.ErrInvalidBase64.Error(), nil)
+		}
+		encodedString = cleanBase64slice[1]
+	} else {
+		encodedString = cleanBase64
+	}
+	decodedBytes, er := base64.StdEncoding.DecodeString(encodedString)
+	if er != nil {
+		return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
+	}
+	if len(decodedBytes) == 0 {
+		return common.HandleFileErrorResponse(400, err.ErrInvalidLengthString, nil)
+	}
+	resultImageBytes, er := c.ParseFileUseCase.Service.RemoveBackgroundService(decodedBytes)
+	if er != nil {
+		return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
+	}
+	return common.HandleFileSuccessResponse(enum.IMAGE, "removed_background_"+request.ImageName, resultImageBytes)
 
 }

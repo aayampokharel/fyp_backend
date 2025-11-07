@@ -4,6 +4,7 @@ type RESPONSETYPE string
 
 const (
 	HTML     RESPONSETYPE = "HTML"
+	IMAGE    RESPONSETYPE = "IMAGE"
 	JSON     RESPONSETYPE = "JSON"
 	PDF      RESPONSETYPE = "PDF"
 	ZIP      RESPONSETYPE = "ZIP"
@@ -22,6 +23,8 @@ func (m *RESPONSETYPE) ToString() string {
 		return "ZIP"
 	case PDFORZIP:
 		return "PDFORZIP"
+	case IMAGE:
+		return "IMAGE"
 	default:
 		return ""
 	}

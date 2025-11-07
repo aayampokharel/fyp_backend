@@ -35,6 +35,17 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.FileRouteWrappe
 				return module.Controller.HandleGetPDFFileInList(i)
 			},
 		},
+		//  /image/remove-background
+		{
+			Mux:             mux,
+			Prefix:          "",
+			Route:           "/image/remove-background",
+			Method:          enum.METHODPOST,
+			RequestDataType: GetImageFileRequestDto{},
+			PostHandler: func(i interface{}) entity.FileResponse {
+				return module.Controller.HandleGetImageFile(i.(GetImageFileRequestDto))
+			},
+		},
 	}
 	return routes
 }
