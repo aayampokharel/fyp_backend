@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"log"
 	"os/exec"
+	"project/constants"
 	err "project/package/errors"
 )
 
 func (s *Service) RemoveBackgroundService(imgBytes []byte) ([]byte, error) {
-	cmd := exec.Command("python", "../scripts/bg_remover.py")
+	cmd := exec.Command("python", constants.BackgroundRemoverPythonScriptPath)
 	cmd.Stdin = bytes.NewReader(imgBytes)
 
 	var out bytes.Buffer

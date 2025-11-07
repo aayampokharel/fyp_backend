@@ -58,6 +58,7 @@ func (c *Controller) HandleGetHTMLFile(request map[string]string) entity.FileRes
 
 func (c *Controller) HandleGetPDFFileInList(request map[string]string) entity.FileResponse {
 	var fileName string
+	c.BlockChainUseCase.Service.Logger.Infoln("[handle_get_pdf_file_in_list] Info: HandleGetPDFFileInList::", request)
 	checkedMap, er := common.CheckMapKeysReturnValues(request, GetPDFFileInListQuery)
 	if er != nil {
 		return common.HandleFileErrorResponse(500, err.ErrParsingQueryParametersString, nil)
@@ -79,7 +80,7 @@ func (c *Controller) HandleGetPDFFileInList(request map[string]string) entity.Fi
 	}
 	//! I have to include principal signature in certificate as well .
 	if isDownloadAll && len(pdfFileEntity) > 1 {
-		fileName = categoryName + "_" + common.GenerateUUID(6)
+		fileName = common.GenerateFileNameWithExtension(categoryName, 6, "zip")
 		zipBytes, er := c.ParseFileUseCase.Service.CreateZipUsingPDF(pdfFileEntity)
 		if er != nil {
 			return common.HandleFileErrorResponse(500, err.ErrZipWritingString, er)
