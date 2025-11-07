@@ -16,7 +16,7 @@ func NewModule(service service.Service, BlockChainRepo repository.IBlockChainRep
 	NodeRepo repository.INodeRepository,
 	SqlRepo repository.ISqlRepository) *Module {
 
-	parseFileUseCase := usecase.NewParseFileUseCase(service)
+	parseFileUseCase := usecase.NewParseFileUseCase(service, SqlRepo)
 	blockChainUseCase := usecase.NewBlockChainUseCase(BlockChainRepo, NodeRepo, SqlRepo, service)
 	return &Module{Controller: NewController(parseFileUseCase, blockChainUseCase), ParseFileUseCase: parseFileUseCase, BlockChainUseCase: blockChainUseCase}
 }

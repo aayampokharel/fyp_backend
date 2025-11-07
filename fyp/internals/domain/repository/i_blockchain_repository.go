@@ -9,7 +9,7 @@ type IBlockChainRepository interface {
 
 	GenerateNewBlock(blockNumber int, previousHash string) (entity.Block, error)
 
-	GetCertificateData() (entity.CertificateData, error)
+	GetCertificateData() (*entity.CertificateData, error)
 
 	GetLatestBlock() (entity.Block, error)
 
@@ -21,7 +21,9 @@ type IBlockChainRepository interface {
 
 	GetTwoLatestBlocksInSlice() ([2]entity.Block, error)
 
-	InsertCertificateIntoBlock(certificate entity.CertificateData, block entity.Block) (*entity.Block, int, error)
+	InsertCertificateIntoBlock(certificate *entity.CertificateData, block entity.Block) (*entity.Block, int, error)
+
+	GetCertificateDataList(institutionID, institutionFacultyID, categoryID string) ([]entity.CertificateData, error)
 
 	UpdateCurrentBlock(nonce int, merkleRoot string, currentHash string, block entity.Block) (*entity.Block, error)
 

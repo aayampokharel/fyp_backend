@@ -4,36 +4,76 @@ import "time"
 
 type CertificateData struct {
 	// Core Certificate Identity
-	CertificateID  string  `json:"certificate_id" gorm:"primaryKey"` // Unique hash of certificate
-	StudentID      string  `json:"student_id"`                       // University student ID
-	StudentName    string  `json:"student_name"`
-	UniversityName string  `json:"university_name"`
-	Degree         string  `json:"degree"`
-	College        string  `json:"college"`
-	Major          string  `json:"major"` // ADDED: Specific field of study
-	GPA            string  `json:"gpa"`   // ADDED: Academic performance
-	Percentage     float64 `json:"percentage"`
-	Division       string  `json:"division"`
+	CertificateID string `json:"certificate_id"`
+	BlockNumber   int    `json:"block_number"`
+	Position      int    `json:"position"` // 1-4
 
-	// Dates
-	IssueDate      time.Time `json:"issue_date"`      // When cert was issued
-	EnrollmentDate time.Time `json:"enrollment_date"` // ADDED: When student started
-	CompletionDate time.Time `json:"completion_date"` // ADDED: When course completed
+	// Student Information (Required)
+	StudentID   string `json:"student_id"`
+	StudentName string `json:"student_name"`
 
-	// Digital Signatures & Verification
-	PrincipalSignature string `json:"principal_signature"` // Principal's digital signature
+	// Institution & Faculty Information
+	InstitutionID        string `json:"institution_id"`
+	InstitutionFacultyID string `json:"institution_faculty_id"`
+	PDFCategoryID        string `json:"pdf_category_id"`
+	PDFFileID            string `json:"pdf_file_id"`
+
+	// Certificate Type
+	CertificateType string `json:"certificate_type"` // COURSE_COMPLETION, CHARACTER, LEAVING, TRANSFER, PROVISIONAL
+
+	// Academic Information (Optional)
+	Degree         string   `json:"degree,omitempty"`
+	College        string   `json:"college,omitempty"`
+	Major          string   `json:"major,omitempty"`
+	GPA            string   `json:"gpa,omitempty"`
+	Percentage     *float64 `json:"percentage,omitempty"`
+	Division       string   `json:"division,omitempty"`
+	UniversityName string   `json:"university_name,omitempty"`
+
+	// Date Information
+	IssueDate      time.Time `json:"issue_date"`
+	EnrollmentDate time.Time `json:"enrollment_date,omitempty"`
+	CompletionDate time.Time `json:"completion_date,omitempty"`
+	LeavingDate    time.Time `json:"leaving_date,omitempty"`
+
+	// Reason Fields
+	ReasonForLeaving string `json:"reason_for_leaving,omitempty"`
+	CharacterRemarks string `json:"character_remarks,omitempty"`
+	GeneralRemarks   string `json:"general_remarks,omitempty"`
 
 	// Cryptographic Verification
-	DataHash        string `json:"data_hash"`         // ADDED: Hash of certificate data
-	IssuerPublicKey string `json:"issuer_public_key"` // ADDED: Who issued this certificate
+	CertificateHash  string `json:"certificate_hash"`
+	FacultyPublicKey string `json:"faculty_public_key"`
 
-	// Metadata
-	CertificateType string    `json:"certificate_type"` // ADDED: "DEGREE", "DIPLOMA", "TRANSCRIPT"
-	CollegeSeal     string    `json:"college_seal"`     // ADDED: Official seal of university
-	CreatedAt       time.Time `json:"created_at"`       // ADDED: When this record was created
+	// Timestamps
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type CertificateDataWithQRCode struct {
 	CertificateData `json:"certificate_data"`
 	QRCodeBase64    string `json:"qr_code"`
+}
+
+func (c *CertificateData) ToHashableData() *HashableData {
+	return &HashableData{
+		CertificateID:        c.CertificateID,
+		StudentID:            c.StudentID,
+		StudentName:          c.StudentName,
+		InstitutionID:        c.InstitutionID,
+		InstitutionFacultyID: c.InstitutionFacultyID,
+		UniversityName:       c.UniversityName,
+		Degree:               c.Degree,
+		College:              c.College,
+		Major:                c.Major,
+		GPA:                  c.GPA,
+		Division:             c.Division,
+		EnrollmentDate:       c.EnrollmentDate,
+		CompletionDate:       c.CompletionDate,
+		IssueDate:            c.IssueDate,
+		CertificateType:      c.CertificateType,
+		FacultyPublicKey:     c.FacultyPublicKey,
+		ReasonForLeaving:     c.ReasonForLeaving,
+		CharacterRemarks:     c.CharacterRemarks,
+		GeneralRemarks:       c.GeneralRemarks,
+	}
 }

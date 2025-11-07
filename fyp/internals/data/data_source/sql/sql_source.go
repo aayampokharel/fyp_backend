@@ -2,10 +2,13 @@ package sql_source
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"project/internals/data/models"
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
+	"project/package/enum"
+	err "project/package/errors"
 	errorz "project/package/errors"
 	logger "project/package/utils/pkg"
 	"time"
@@ -24,8 +27,8 @@ func NewSQLSource(db *sql.DB) *SQLSource {
 
 var _ repository.ISqlRepository = (*SQLSource)(nil)
 
-func (s *SQLSource) GetInstitutionFromInstitutionID(institutionID string) (*entity.Institution, error) {
-	query := `select institution_id, institution_name, tole_address, district_address,ward_number from institutions where institution_id=$1 AND is_active=false AND is_signup_completed=true;`
+func (s *SQLSource) GetPendingInstitutionFromInstitutionID(institutionID string) (*entity.Institution, error) {
+	query := `select institution_id, institution_name, tole_address, district_address,ward_number from institutions where institution_id=$1 AND is_active IS NULL AND is_signup_completed=true;`
 	var institution entity.Institution
 	er := s.DB.QueryRow(query, institutionID).Scan(&institution.InstitutionID, &institution.InstitutionName, &institution.ToleAddress, &institution.DistrictAddress, &institution.WardNumber)
 	if er != nil {
@@ -35,9 +38,43 @@ func (s *SQLSource) GetInstitutionFromInstitutionID(institutionID string) (*enti
 	return &institution, nil
 
 }
-func (s *SQLSource) GetToBeVerifiedInstitutions() ([]entity.Institution, error) {
+func (s *SQLSource) GetPDFCategoriesList(institutionID, institutionFacultyID string) ([]entity.PDFFileCategoryEntity, error) {
+	query := `select category_id,institution_id,institution_faculty_id,category_name,created_at from pdf_file_categories where institution_id=$1 and institution_faculty_id=$2;`
 
-	query := `select institution_id, institution_name, tole_address, district_address,ward_number from institutions where is_active=false and is_signup_completed=true;`
+	rows, err := s.DB.Query(query, institutionID, institutionFacultyID)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: GetPDFCategoriesList::", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var pdfFileCategories []entity.PDFFileCategoryEntity
+	for rows.Next() {
+		var pdfFileCategory entity.PDFFileCategoryEntity
+		if er := rows.Scan(&pdfFileCategory.CategoryID, &pdfFileCategory.InstitutionID, &pdfFileCategory.InstitutionFacultyID, &pdfFileCategory.CategoryName, &pdfFileCategory.CreatedAt); er != nil {
+			s.logger.Errorln("[sql_source] Error: GetPDFCategoriesList::", er)
+			return nil, er
+		}
+		pdfFileCategories = append(pdfFileCategories, pdfFileCategory)
+	}
+	return pdfFileCategories, nil
+
+}
+func (s *SQLSource) GetAllPendingInstitutionsForAdmin(adminID string) ([]entity.Institution, error) {
+	var count int
+	checkAdminQuery := `select count(*) from user_accounts where id=$1 and system_role=$2;`
+
+	if er := s.DB.QueryRow(checkAdminQuery, adminID, enum.ADMIN).Scan(&count); er != nil {
+		s.logger.Errorln("[sql_source] Error: GetAllPendingInstitutionsForAdmin::", er)
+		return nil, er
+	}
+
+	if count == 0 {
+		s.logger.Errorln("[sql_source] Error: GetAllPendingInstitutionsForAdmin::", err.ErrUserDoesnotExist)
+		return nil, err.ErrUserDoesnotExist
+	}
+
+	query := `select institution_id, institution_name, tole_address, district_address,ward_number from institutions where is_active IS NULL and is_signup_completed=true;`
 	rows, err := s.DB.Query(query)
 	if err != nil {
 		s.logger.Errorln("[sql_source] Error: GetToBeVerifiedInstitutions::", err)
@@ -52,15 +89,24 @@ func (s *SQLSource) GetToBeVerifiedInstitutions() ([]entity.Institution, error) 
 			s.logger.Errorln("[sql_source] Error: GetToBeVerifiedInstitutions::", err)
 			return nil, err
 		}
-		institution.IsActive = false
+		institution.IsActive = nil
 		institutions = append(institutions, institution)
 	}
 	return institutions, nil
 }
 
-func (s *SQLSource) UpdateFormSubmittedByInstitutionID(institutionID string) error {
+func (s *SQLSource) UpdateSignUpCompletedByInstitutionID(institutionID string) error {
 	query := `update institutions set is_signup_completed=true where institution_id=$1;`
 	_, err := s.DB.Exec(query, institutionID)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: UpdateFormSubmittedByInstitutionID::", err)
+		return err
+	}
+	return nil
+}
+func (s *SQLSource) UpdateIsActiveByInstitutionID(institutionID string, isActive bool) error {
+	query := `update institutions set is_active=$1 where institution_id=$2;`
+	_, err := s.DB.Exec(query, isActive, institutionID)
 	if err != nil {
 		s.logger.Errorln("[sql_source] Error: UpdateFormSubmittedByInstitutionID::", err)
 		return err
@@ -136,10 +182,10 @@ func (s *SQLSource) GetUserAccountsForEmail(userEmail string) (entity.UserAccoun
 
 func (s *SQLSource) InsertInstitutions(institution entity.Institution) (string, error) {
 
-	query := `INSERT INTO institutions (institution_id, institution_name, tole_address, district_address,ward_number,is_active)
-		VALUES ($1, $2, $3, $4, $5,$6);`
+	query := `INSERT INTO institutions (institution_id, institution_name, tole_address, district_address,ward_number)
+		VALUES ($1, $2, $3, $4, $5);`
 
-	if _, er := s.DB.Exec(query, institution.InstitutionID, institution.InstitutionName, institution.ToleAddress, institution.DistrictAddress, institution.WardNumber, institution.IsActive); er != nil {
+	if _, er := s.DB.Exec(query, institution.InstitutionID, institution.InstitutionName, institution.ToleAddress, institution.DistrictAddress, institution.WardNumber); er != nil {
 		s.logger.Errorln("[sql_source] Error: InsertInstitutions::", er)
 		return "", er
 	}
@@ -160,58 +206,96 @@ func (s *SQLSource) InsertUserAccounts(userAccounts entity.UserAccount) (string,
 }
 
 func (s *SQLSource) InsertInstitutionUser(institutionUser entity.InstitutionUser) error {
-	query := `INSERT INTO institution_user (institution_id, user_id, public_key,  institution_logo_base64) VALUES ($1, $2, $3, $4);`
+	query := `INSERT INTO institution_user (institution_id, user_id, institution_logo_base64) VALUES ($1, $2, $3);`
 
-	_, err := s.DB.Exec(query, institutionUser.InstitutionID, institutionUser.UserID, institutionUser.PublicKey, institutionUser.InstitutionLogoBase64)
+	_, err := s.DB.Exec(query, institutionUser.InstitutionID, institutionUser.UserID, institutionUser.InstitutionLogoBase64)
 	if err != nil {
-		s.logger.Errorln("[sql_source] Error: InsertInstitutionUser::", query+"::"+institutionUser.InstitutionID+"::"+institutionUser.UserID+institutionUser.PublicKey+"::"+institutionUser.InstitutionLogoBase64)
+		s.logger.Errorln("[sql_source] Error: InsertInstitutionUser::", query+"::"+institutionUser.InstitutionID+"::"+institutionUser.UserID+"::"+institutionUser.InstitutionLogoBase64)
 		s.logger.Errorln("[sql_source] Error: InsertInstitutionUser::", err)
 		return err
 	}
 	return nil
-
 }
 
-func (s *SQLSource) VerifyAdminLogin(userMail, password string) (string, time.Time, error) {
+func (s *SQLSource) VerifyRoleLogin(userMail, password string, role enum.ROLE) (string, time.Time, error) {
 	////CHECK FOR USER_NOT FOUND RETURN ERROR ,errorz package used here
 	//// incorrect password case as well for matching email.
 	//! or simply user not found
 
-	query := `SELECT id,created_at FROM user_accounts WHERE email=$1 AND password=$2 AND system_role='ADMIN' AND institution_role IS NULL AND deleted_at IS NULL;`
-	var adminID string
+	roleString := role.String()
+	query := `SELECT id,created_at FROM user_accounts WHERE email=$1 AND password=$2 AND system_role=$3 AND deleted_at IS NULL;`
+	var userID string
 	var createdAt time.Time
-	err := s.DB.QueryRow(query, userMail, password).Scan(&adminID, &createdAt)
+	err := s.DB.QueryRow(query, userMail, password, roleString).Scan(&userID, &createdAt)
 	if err != nil {
-		s.logger.Errorln("[sql_source] Error: VerifyAdminLogin::", err)
+		s.logger.Errorln("[sql_source] Error: VerifyRoleLogin::", err)
 		return "", time.Time{}, err
 	}
-	return adminID, createdAt, nil
+	return userID, createdAt, nil
 
 }
+func (s *SQLSource) GetInstitutionsForUser(userID string) ([]entity.Institution, error) {
+	query := `
+        SELECT i.institution_id, i.institution_name, i.tole_address,
+               i.ward_number, i.district_address, i.is_active
+        FROM institutions i
+        INNER JOIN institution_user iu 
+            ON i.institution_id = iu.institution_id
+        WHERE iu.user_id = $1 ;
+    `
+
+	rows, err := s.DB.Query(query, userID)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error fetching institutions for user:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var institutions []entity.Institution
+
+	for rows.Next() {
+		var inst entity.Institution
+		err := rows.Scan(
+			&inst.InstitutionID,
+			&inst.InstitutionName,
+			&inst.ToleAddress,
+			&inst.WardNumber,
+			&inst.DistrictAddress,
+			&inst.IsActive,
+		)
+		if err != nil {
+			s.logger.Errorln("[sql_source] Error scanning institution:", err)
+			return nil, err
+		}
+		institutions = append(institutions, inst)
+	}
+
+	return institutions, nil
+}
+
 func (s *SQLSource) InsertFaculty(faculty entity.InstitutionFaculty) (facultyID string, er error) {
 	query := `
 		INSERT INTO institution_faculty (
 			institution_faculty_id,
 			institution_id,
-			faculty,
-			principal_name,
-			principal_signature_base64,
-			faculty_hod_name,
-			faculty_hod_signature_base64,
+			faculty_name,
+			faculty_authority_with_signature,
+			faculty_public_key,
 			university_affiliation,
 			university_college_code
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+		) VALUES ($1, $2, $3, $4, $5, $6, $7);
 	`
-
+	signatureJSON, er := json.Marshal(faculty.FacultyAuthorityWithSignatures)
+	if er != nil {
+		return "", er
+	}
 	_, er = s.DB.Exec(
 		query,
 		faculty.InstitutionFacultyID,
 		faculty.InstitutionID,
-		faculty.Faculty,
-		faculty.PrincipalName,
-		faculty.PrincipalSignatureBase64,
-		faculty.FacultyHODName,
-		faculty.FacultyHODSignatureBase64,
+		faculty.FacultyName,
+		signatureJSON,
+		faculty.FacultyPublicKey,
 		faculty.UniversityAffiliation,
 		faculty.UniversityCollegeCode,
 	)
@@ -220,4 +304,310 @@ func (s *SQLSource) InsertFaculty(faculty entity.InstitutionFaculty) (facultyID 
 		return "", er
 	}
 	return faculty.InstitutionFacultyID, nil
+}
+
+func (s *SQLSource) InsertPDFFile(pdfFile entity.PDFFileEntity) error {
+	fmt.Println("PDF size before saving: ", len(pdfFile.PDFData))
+	query := `INSERT INTO pdf_files (file_id,category_id, file_name, pdf_data) VALUES ($1, $2, $3,$4);`
+
+	_, err := s.DB.Exec(query, pdfFile.FileID, pdfFile.CategoryID, pdfFile.FileName, pdfFile.PDFData)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: InsertPDFFile::", err)
+		return err
+	}
+	s.logger.Infoln("[sql_source] Info: inserted for InsertPDFFile::", pdfFile.FileID)
+	return nil
+}
+
+func (s *SQLSource) InsertAndGetPDFCategory(pdfFileCategory entity.PDFFileCategoryEntity) (*entity.PDFFileCategoryEntity, error) {
+	query := `
+		INSERT INTO pdf_file_categories 
+		(category_id, category_name, institution_id, institution_faculty_id)
+		VALUES ($1, $2, $3, $4)
+		RETURNING category_id, category_name, institution_id, institution_faculty_id;
+	`
+
+	var inserted entity.PDFFileCategoryEntity
+	err := s.DB.QueryRow(
+		query,
+		pdfFileCategory.CategoryID,
+		pdfFileCategory.CategoryName,
+		pdfFileCategory.InstitutionID,
+		pdfFileCategory.InstitutionFacultyID,
+	).Scan(
+		&inserted.CategoryID,
+		&inserted.CategoryName,
+		&inserted.InstitutionID,
+		&inserted.InstitutionFacultyID,
+	)
+
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: InsertAndGetPDFCategory::", err)
+		return nil, err
+	}
+
+	return &inserted, nil
+}
+
+func (s *SQLSource) RetrievePDFFileByFileIDOrCategoryID(fileID string, categoryID string, isDownloadAll bool) ([]entity.PDFFileEntity, error) {
+
+	var (
+		pdfFileEntities     []entity.PDFFileEntity
+		singlePdfFileEntity entity.PDFFileEntity
+		query               string
+		rows                *sql.Rows
+		er                  error
+	)
+	if !isDownloadAll {
+		query = `select file_id,pdf_data,file_name,uploaded_at from pdf_files where file_id=$1 AND category_id=$2;`
+		rows, er = s.DB.Query(query, fileID, categoryID)
+		if er != nil {
+			s.logger.Errorln("[sql_source] Error: retrievePDFfileByFileIDOrCategoryID", er)
+			return nil, er
+		}
+
+	} else {
+		query = `select file_id,pdf_data,file_name,uploaded_at from pdf_files where category_id=$1;`
+		rows, er = s.DB.Query(query, categoryID)
+		if er != nil {
+			s.logger.Errorln("[sql_source] Error: retrievePDFfileByFileIDOrCategoryID", er)
+			return nil, er
+		}
+	}
+	for rows.Next() {
+		er = rows.Scan(&singlePdfFileEntity.FileID, &singlePdfFileEntity.PDFData, &singlePdfFileEntity.FileName, &singlePdfFileEntity.UploadedAt)
+		if er != nil {
+			s.logger.Errorln("[sql_source] Error: retrievePDFfileByFileIDOrCategoryID", er)
+			return nil, er
+		}
+		pdfFileEntities = append(pdfFileEntities, singlePdfFileEntity)
+	}
+	if er = rows.Err(); er != nil {
+		s.logger.Errorln("[sql_source] Error during rows iteration:", er)
+		return nil, er
+	}
+	return pdfFileEntities, nil
+}
+
+func (s *SQLSource) InsertBlockWithSingleCertificate(blockHeader entity.Header, certificateData entity.CertificateData, certificatePositionZeroIndex int) error {
+
+	if certificatePositionZeroIndex < 0 || certificatePositionZeroIndex >= 4 {
+		s.logger.Errorln("[sql_source] certificate position index error::", certificatePositionZeroIndex)
+		return err.ErrArrayOutOfBound
+
+	}
+	// Start transaction
+	tx, err := s.DB.Begin()
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error starting transaction:", err)
+		return err
+	}
+	defer tx.Rollback() // Safe error rollback
+
+	blockQuery := `
+        INSERT INTO blocks (
+            block_number, timestamp, previous_hash, nonce, 
+            current_hash, merkle_root, status, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `
+
+	_, err = tx.Exec(
+		blockQuery,
+		blockHeader.BlockNumber,
+		blockHeader.TimeStamp,
+		blockHeader.PreviousHash,
+		blockHeader.Nonce,
+		blockHeader.CurrentHash,
+		blockHeader.MerkleRoot,
+		time.Now(),
+	)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error inserting block:", err)
+		return err
+	}
+
+	er := s.InsertCertificate(certificateData, blockHeader.BlockNumber, certificatePositionZeroIndex)
+	if er != nil {
+		s.logger.Errorln("[sql_source] Error inserting certificate:", er)
+		return er
+	}
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		s.logger.Errorln("[sql_source] Error committing transaction:", err)
+		return err
+	}
+
+	s.logger.Infof("[sql_source] Successfully inserted block %d with certificate", blockHeader.BlockNumber)
+	return nil
+}
+
+func (s *SQLSource) InsertCertificate(certificateData entity.CertificateData, blockNumber int, certificatePositionZeroIndex int) error {
+
+	certQuery := `
+        INSERT INTO certificates (
+            certificate_id, block_number, position,
+            student_id, student_name, 
+            institution_id, institution_faculty_id, pdf_category_id,
+            certificate_type,
+            degree, college, major, gpa, percentage, division, university_name,
+            issue_date, enrollment_date, completion_date, leaving_date,
+            reason_for_leaving, character_remarks, general_remarks,
+            data_hash, faculty_public_key, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+    `
+
+	_, er := s.DB.Exec(
+		certQuery,
+		certificateData.CertificateID,
+		blockNumber,
+		certificatePositionZeroIndex+1, // Position 1-4
+
+		// Student Information
+		certificateData.StudentID,
+		certificateData.StudentName,
+
+		// Institution Information
+		certificateData.InstitutionID,
+		certificateData.InstitutionFacultyID,
+		certificateData.PDFCategoryID,
+
+		// Certificate Type
+		certificateData.CertificateType,
+
+		// Academic Information
+		certificateData.Degree,
+		certificateData.College,
+		certificateData.Major,
+		certificateData.GPA,
+		certificateData.Percentage,
+		certificateData.Division,
+		certificateData.UniversityName,
+
+		// Date Information
+		certificateData.IssueDate,
+		certificateData.EnrollmentDate,
+		certificateData.CompletionDate,
+		certificateData.LeavingDate,
+
+		// Reason Fields
+		certificateData.ReasonForLeaving,
+		certificateData.CharacterRemarks,
+		certificateData.GeneralRemarks,
+
+		// Cryptographic Verification
+		certificateData.CertificateHash,
+		certificateData.FacultyPublicKey, // Changed from IssuerPublicKey
+
+		// Timestamp
+		certificateData.CreatedAt,
+	)
+	if er != nil {
+		s.logger.Errorln("[sql_source] Error inserting certificate at position", certificatePositionZeroIndex+1, ":", er)
+		return er
+	}
+
+	s.logger.Infof("[sql_source] Successfully inserted certificate for block %d ", blockNumber)
+	return nil
+}
+
+func (s *SQLSource) UpdateBlockDataByID(blockHeader entity.Header, id string) error {
+	query := `update blocks set timestamp=$1, previous_hash=$2, nonce=$3, current_hash=$4, merkle_root=$5 where block_number=$7;`
+	_, err := s.DB.Exec(query, blockHeader.TimeStamp, blockHeader.PreviousHash, blockHeader.Nonce, blockHeader.CurrentHash, blockHeader.MerkleRoot, id)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: UpdateBlockDataByID::", err)
+		return err
+	}
+	return nil
+}
+
+func (s *SQLSource) GetFacultyPublicKey(id string) (string, error) {
+	query := `select faculty_public_key from institution_faculty where institution_faculty_id=$1;`
+	var facultyPublicKey string
+	if er := s.DB.QueryRow(query, id).Scan(&facultyPublicKey); er != nil {
+		s.logger.Errorln("[sql_source] Error: GetIssuerPublicKey::", er)
+		return "", er
+	}
+	return facultyPublicKey, nil
+
+}
+func (s *SQLSource) GetInfoFromPdfFilesCategories(categoryID string) (*entity.PDFFileCategoryEntity, error) {
+	query := `select * from pdf_file_categories where category_id=$1;`
+	var pdfFileCategory entity.PDFFileCategoryEntity
+	if er := s.DB.QueryRow(query, categoryID).Scan(&pdfFileCategory.CategoryID, &pdfFileCategory.CategoryName, &pdfFileCategory.InstitutionID, &pdfFileCategory.InstitutionFacultyID, &pdfFileCategory.CreatedAt); er != nil {
+		s.logger.Errorln("[sql_source] Error: GetInfoFromPdfFilesCategories::", er)
+		return nil, er
+	}
+	return &pdfFileCategory, nil
+}
+
+func (s *SQLSource) GetInstitutionInfoFromInstitutionID(institutionID string) (*entity.Institution, error) {
+	var institutionInfo entity.Institution
+	var isActive sql.NullBool
+
+	query := `select institution_name,tole_address,district_address,ward_number,is_active from institutions where institution_id=$1 AND is_signup_completed=true;`
+	er := s.DB.QueryRow(query, institutionID).Scan(&institutionInfo.InstitutionName, &institutionInfo.ToleAddress, &institutionInfo.DistrictAddress, &institutionInfo.WardNumber, &isActive)
+	if er != nil {
+		s.logger.Errorln("[sql_source] Error: GetInstitutionInfoFromInstitutionID::", er)
+		return nil, er
+	}
+
+	if isActive.Valid {
+		institutionInfo.IsActive = &isActive.Bool
+	} else {
+		institutionInfo.IsActive = nil
+	}
+
+	institutionInfo.InstitutionID = institutionID
+	return &institutionInfo, nil
+}
+func (s *SQLSource) GetFacultyListInfoFromInstitutionID(institutionID string) ([]entity.InstitutionFaculty, error) {
+	var faculties []entity.InstitutionFaculty
+
+	query := `
+        SELECT 
+            institution_faculty_id,
+            institution_id,
+            faculty_name,
+            faculty_public_key,
+            university_affiliation,
+            university_college_code,
+            faculty_authority_with_signature
+        FROM institution_faculty 
+        WHERE institution_id = $1;`
+
+	rows, err := s.DB.Query(query, institutionID)
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error: GetFacultyListInfoFromInstitutionID::", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var faculty entity.InstitutionFaculty
+		var authorityWithSignature []byte
+
+		err := rows.Scan(
+			&faculty.InstitutionFacultyID,
+			&faculty.InstitutionID,
+			&faculty.FacultyName,
+			&faculty.FacultyPublicKey,
+			&faculty.UniversityAffiliation,
+			&faculty.UniversityCollegeCode,
+			&authorityWithSignature,
+		)
+		if err != nil {
+			s.logger.Errorln("[sql_source] Error scanning faculty row:", err)
+			continue
+		}
+
+		faculties = append(faculties, faculty)
+	}
+
+	if err := rows.Err(); err != nil {
+		s.logger.Errorln("[sql_source] Error iterating faculty rows:", err)
+		return nil, err
+	}
+
+	return faculties, nil
 }

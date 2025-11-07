@@ -175,7 +175,7 @@ var (
 	}
 )
 
-func GenerateRandomCertificateData() entity.CertificateData {
+func GenerateRandomCertificateData() *entity.CertificateData {
 	studentRandomNum := generateRandomNumber(len(studentNamesSlice))
 	degreeRandomNum := generateRandomNumber(len(degreesSlice))
 	universityRandomNum := generateRandomNumber(len(universitySlice))
@@ -190,34 +190,34 @@ func GenerateRandomCertificateData() entity.CertificateData {
 	completionDate := enrollmentDate.AddDate(4, 0, 0) // Typically 4 years after enrollment
 	issueDate := completionDate.AddDate(0, 3, 0)      // Issued 3 months after completion
 
+	nilPercentage := 0.0
 	// Generate certificate data first to create hash
 	certData := entity.CertificateData{
-		CertificateID:      common.GenerateUUID(8),
-		StudentID:          "STU" + common.GenerateUUID(6),
-		StudentName:        studentNamesSlice[studentRandomNum],
-		UniversityName:     universitySlice[universityRandomNum],
-		Degree:             degreesSlice[degreeRandomNum],
-		College:            collegesSlice[collegeRandomNum],
-		Major:              majorsSlice[majorRandomNum],
-		GPA:                cgpaSlice[cgpaRandomNum],
-		Percentage:         0.0,
-		Division:           divisionSlice[divisionRandomNum],
-		EnrollmentDate:     enrollmentDate,
-		CompletionDate:     completionDate,
-		IssueDate:          issueDate,
-		PrincipalSignature: common.GenerateUUID(12),
-		CertificateType:    certificateTypesSlice[certTypeRandomNum],
-		CreatedAt:          time.Now(),
-		IssuerPublicKey:    "PUBKEY_" + common.GenerateUUID(8),
+		CertificateID:    common.GenerateUUID(8),
+		StudentID:        "STU" + common.GenerateUUID(6),
+		StudentName:      studentNamesSlice[studentRandomNum],
+		UniversityName:   universitySlice[universityRandomNum],
+		Degree:           degreesSlice[degreeRandomNum],
+		College:          collegesSlice[collegeRandomNum],
+		Major:            majorsSlice[majorRandomNum],
+		GPA:              cgpaSlice[cgpaRandomNum],
+		Percentage:       &nilPercentage,
+		Division:         divisionSlice[divisionRandomNum],
+		EnrollmentDate:   enrollmentDate,
+		CompletionDate:   completionDate,
+		IssueDate:        issueDate,
+		CertificateType:  certificateTypesSlice[certTypeRandomNum],
+		CreatedAt:        time.Now(),
+		FacultyPublicKey: "PUBKEY_" + common.GenerateUUID(8),
 	}
+	percentage := 53.33
 	if certData.GPA == "" {
-		certData.Percentage = 53.33
+		certData.Percentage = &percentage
 	}
 
 	// Generate data hash based on the certificate content
-	certData.DataHash = generateCertificateHash(certData)
 
-	return certData
+	return &certData
 }
 
 func generateRandomPastDate(minYears, maxYears int) time.Time {
@@ -231,19 +231,4 @@ func generateRandomPastDate(minYears, maxYears int) time.Time {
 	pastDate = pastDate.Add(-time.Duration(minutesAgo) * time.Minute)
 
 	return pastDate
-}
-
-func generateCertificateHash(cert entity.CertificateData) string {
-	// Create a hash from the certificate data for integrity verification
-	data := cert.CertificateID + cert.StudentID + cert.StudentName +
-		cert.UniversityName + cert.Degree + cert.College + cert.Major +
-		cert.GPA + cert.Division + cert.EnrollmentDate.Format("2006-01-02") +
-		cert.CompletionDate.Format("2006-01-02") + cert.IssueDate.Format("2006-01-02") +
-		cert.CertificateType + cert.IssuerPublicKey
-
-	hash, er := common.HashData(data)
-	if er != nil {
-		return ""
-	}
-	return hash
 }

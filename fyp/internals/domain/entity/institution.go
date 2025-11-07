@@ -6,5 +6,5 @@ type Institution struct {
 	ToleAddress     string `json:"tole_address"`
 	WardNumber      string `json:"ward_number"`
 	DistrictAddress string `json:"district_address"`
-	IsActive        bool   `json:"is_active"`
+	IsActive        *bool  `json:"is_active"`
 }

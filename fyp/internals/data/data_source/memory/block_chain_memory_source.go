@@ -46,7 +46,7 @@ func (b *BlockChainMemorySource) GetBlockChain() ([]entity.Block, error) {
 	return b.blockChain, nil
 
 }
-func (b *BlockChainMemorySource) GetCertificateData() (entity.CertificateData, error) {
+func (b *BlockChainMemorySource) GetCertificateData() (*entity.CertificateData, error) {
 	return seed.GenerateRandomCertificateData(), nil
 }
 
@@ -102,12 +102,12 @@ func (b *BlockChainMemorySource) GetTwoLatestBlocksInSlice() ([2]entity.Block, e
 	}
 	return [2]entity.Block{b.blockChain[len(b.blockChain)-2], b.blockChain[len(b.blockChain)-1]}, nil
 }
-func (b *BlockChainMemorySource) InsertCertificateIntoBlock(certificate entity.CertificateData, block entity.Block) (*entity.Block, int, error) {
+func (b *BlockChainMemorySource) InsertCertificateIntoBlock(certificate *entity.CertificateData, block entity.Block) (*entity.Block, int, error) {
 	nextIndex, err := common.CalculateCertificateDataLength(block.CertificateData)
 	if err != nil {
 		return nil, -1, err
 	}
-	block.CertificateData[nextIndex] = certificate
+	block.CertificateData[nextIndex] = *certificate
 	b.logger.Infoln("[block_chain_memory_source] Info: InsertCertificateIntoBlock::", block)
 	return &block, nextIndex + 1, nil
 }
@@ -134,4 +134,19 @@ func (b *BlockChainMemorySource) UpdateCurrentBlock(nonce int, merkleRoot string
 
 func (b *BlockChainMemorySource) ReceiveFromPeer(currentPort string) error {
 	return nil
+}
+func (b *BlockChainMemorySource) GetInfoFromPdfFilesCategories(categoryID string) (*entity.PDFFileCategoryEntity, error) {
+	return nil, nil
+}
+func (b *BlockChainMemorySource) GetCertificateDataList(institutionID, institutionFacultyID, categoryID string) ([]entity.CertificateData, error) {
+
+	var certificateDataList []entity.CertificateData
+	for _, block := range b.blockChain {
+		for _, certificate := range block.CertificateData {
+			if certificate.InstitutionID == institutionID && certificate.InstitutionFacultyID == institutionFacultyID && certificate.PDFCategoryID == categoryID {
+				certificateDataList = append(certificateDataList, certificate)
+			}
+		}
+	}
+	return certificateDataList, nil
 }

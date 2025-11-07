@@ -10,14 +10,14 @@ import (
 )
 
 type RouteWrapper struct {
-	Mux             *http.ServeMux
-	Prefix          string
-	Route           string
-	Method          enum.HTTPMETHOD
-	RequestDataType interface{}
-	URLQueries      map[string]string
-	InnerFunc       func(interface{}) entity.Response
-	ResponseType    enum.RESPONSETYPE
+	Mux                     *http.ServeMux
+	Prefix                  string
+	Route                   string
+	Method                  enum.HTTPMETHOD
+	RequestDataTypeInstance interface{} // no pointer types
+	URLQueries              []string
+	InnerFunc               func(interface{}) entity.Response
+	ResponseType            enum.RESPONSETYPE
 }
 
 type SSERouteWrapper struct {
@@ -68,16 +68,17 @@ func NewRouteWrapper(routeInfos ...RouteWrapper) {
 			}
 			var returnFinalResponse entity.Response
 
-			if routeInfo.RequestDataType == nil && routeInfo.Method == enum.METHODGET {
+			if routeInfo.RequestDataTypeInstance == nil && (routeInfo.Method == enum.METHODGET || routeInfo.Method == enum.METHODDELETE) {
 				// var queryParams map[string]string
-				for key, _ := range routeInfo.URLQueries {
-					routeInfo.URLQueries[key] = r.URL.Query().Get(key)
+				var requestMap map[string]string = make(map[string]string, 0)
+				for _, val := range routeInfo.URLQueries {
+					requestMap[val] = r.URL.Query().Get(val)
 				}
 
-				returnFinalResponse = routeInfo.InnerFunc(routeInfo.URLQueries)
+				returnFinalResponse = routeInfo.InnerFunc(requestMap)
 
 			} else {
-				reqType := reflect.TypeOf(routeInfo.RequestDataType)
+				reqType := reflect.TypeOf(routeInfo.RequestDataTypeInstance)
 				reqValue := reflect.New(reqType).Interface()
 
 				if er := json.NewDecoder(r.Body).Decode(reqValue); er != nil {
@@ -88,19 +89,7 @@ func NewRouteWrapper(routeInfos ...RouteWrapper) {
 
 				returnFinalResponse = routeInfo.InnerFunc(reflect.ValueOf(reqValue).Elem().Interface())
 			}
-			if routeInfo.ResponseType == enum.HTML {
-				w.Header().Set("Content-Type", "text/html; charset=utf-8")
-				if returnFinalResponse.Data != nil {
-					w.WriteHeader(http.StatusOK)
-					w.Write([]byte(returnFinalResponse.Data.(string)))
-					return
-				} else if returnFinalResponse.Data == nil {
-					w.WriteHeader(http.StatusBadRequest)
-					w.Write([]byte(returnFinalResponse.Message))
-					return
-				}
 
-			}
 			(w).WriteHeader(returnFinalResponse.Code)
 			json.NewEncoder(w).Encode(returnFinalResponse)
 

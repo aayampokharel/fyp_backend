@@ -1,4 +1,4 @@
-package admin
+package category
 
 import (
 	"net/http"
@@ -8,31 +8,30 @@ import (
 )
 
 func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
-	var prefix = "/admin"
+	var prefix = "/institution"
 
 	var routes []common.RouteWrapper = []common.RouteWrapper{
-		// /admin/login
+		//POST /institution/category
 		{
 			Mux:                     mux,
 			Prefix:                  prefix,
-			Route:                   "/login",
+			Route:                   "/category",
 			Method:                  enum.METHODPOST,
-			RequestDataTypeInstance: AdminLoginRequest{},
+			RequestDataTypeInstance: CreatePDFCategoryDto{},
 			InnerFunc: func(i interface{}) entity.Response {
-				return module.Controller.HandleAdminLogin(i.(AdminLoginRequest))
+				return module.Controller.HandleCreatePDFCategory(i.(CreatePDFCategoryDto))
 			},
 		},
-
-		// /admin/pending-institutions?admin_id=12345
+		//GET /institution/categories?institution_id=12345&institution_faculty_id=12345
 		{
 			Mux:                     mux,
 			Prefix:                  prefix,
-			Route:                   "/pending-institutions",
+			Route:                   "/categories",
 			Method:                  enum.METHODGET,
-			URLQueries:              GetAllPendingInstitutionsQuery,
 			RequestDataTypeInstance: nil,
+			URLQueries:              GetPDFCategoryRequestDtoQuery,
 			InnerFunc: func(i interface{}) entity.Response {
-				return module.Controller.HandleGetPendingInstitutionList(i.(map[string]string))
+				return module.Controller.HandleGetPDFCategoriesList(i.(map[string]string))
 			},
 		},
 	}

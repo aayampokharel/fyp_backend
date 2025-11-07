@@ -12,7 +12,6 @@ func (s *Service) ParseAndExecute(templatePath string, data interface{}) (string
 		s.Logger.Errorln("[service] Error: ParseAndExecute::", er)
 		return "", err.ErrFileParsing
 	}
-
 	var buf bytes.Buffer
 	er = tmpl.Execute(&buf, data)
 	if er != nil {

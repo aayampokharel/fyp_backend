@@ -31,27 +31,22 @@ type CreateUserAccountRequest struct {
 }
 
 type CreateFacultyRequest struct {
-	InstitutionID             string `json:"institution_id"`
-	Faculty                   string `json:"faculty"`
-	FacultyHODName            string `json:"faculty_hod_name"`
-	FacultyHODSignatureBase64 string `json:"faculty_hod_signature_base64"`
-	PrincipalName             string `json:"principal_name"`
-	PrincipalSignatureBase64  string `json:"principal_signature_base64"`
-	UniversityAffiliation     string `json:"university_affiliation"`
-	UniversityCollegeCode     string `json:"university_college_code"`
+	InstitutionID                  string              `json:"institution_id"`
+	Faculty                        string              `json:"faculty"`
+	FacultyAuthorityWithSignatures []map[string]string `json:"faculty_authority_with_signatures"`
+	UniversityAffiliation          string              `json:"university_affiliation"`
+	UniversityCollegeCode          string              `json:"university_college_code"`
 }
 
 func (c *CreateFacultyRequest) ToEntity() entity.InstitutionFaculty {
 	return entity.InstitutionFaculty{
-		InstitutionFacultyID:      common.GenerateUUID(16),
-		InstitutionID:             c.InstitutionID,
-		Faculty:                   c.Faculty,
-		FacultyHODName:            c.FacultyHODName,
-		FacultyHODSignatureBase64: c.FacultyHODSignatureBase64,
-		PrincipalName:             c.PrincipalName,
-		PrincipalSignatureBase64:  c.PrincipalSignatureBase64,
-		UniversityAffiliation:     c.UniversityAffiliation,
-		UniversityCollegeCode:     c.UniversityCollegeCode,
+		InstitutionFacultyID:           common.GenerateUUID(16),
+		InstitutionID:                  c.InstitutionID,
+		FacultyName:                    c.Faculty,
+		FacultyAuthorityWithSignatures: c.FacultyAuthorityWithSignatures,
+		UniversityAffiliation:          c.UniversityAffiliation,
+		UniversityCollegeCode:          c.UniversityCollegeCode,
+		FacultyPublicKey:               "abc", //!TO BE DETERMINED
 	}
 }
 
@@ -82,6 +77,48 @@ func (c *CreateInstitutionRequest) ToEntity() entity.Institution {
 		ToleAddress:     c.ToleAddress,
 		WardNumber:      strconv.Itoa(c.WardNumber),
 		DistrictAddress: c.DistrictAddress,
-		IsActive:        false,
+		IsActive:        nil,
+	}
+}
+
+// type CheckInstitutionIsActiveDto struct {
+// 	InstitutionID string `json:"institution_id"`
+// }
+
+type CheckInstitutionIsActiveDto []string
+
+const InstitutionID = "institution_id"
+
+var CheckInstitutionIsActiveQuery = CheckInstitutionIsActiveDto{InstitutionID}
+
+type CheckInstitutionIsActiveResponse struct {
+	InstitutionID   string                      `json:"institution_id"`
+	InstitutionName string                      `json:"institution_name"`
+	ToleAddress     string                      `json:"tole_address"`
+	WardNumber      string                      `json:"ward_number"`
+	DistrictAddress string                      `json:"district_address"`
+	IsActive        *bool                       `json:"is_active"`
+	FacultiesList   []entity.InstitutionFaculty `json:"faculties_list"`
+}
+
+type InstitutionLoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+type InstitutionLoginResponse struct {
+	UserID          string               `json:"user_id"`
+	CreatedAt       string               `json:"created_at"`
+	InstitutionList []entity.Institution `json:"institution_list"`
+}
+
+func (c *CheckInstitutionIsActiveResponse) FromEntity(institutionInfo *entity.Institution, facultyList []entity.InstitutionFaculty) CheckInstitutionIsActiveResponse {
+	return CheckInstitutionIsActiveResponse{
+		InstitutionID:   institutionInfo.InstitutionID,
+		InstitutionName: institutionInfo.InstitutionName,
+		ToleAddress:     institutionInfo.ToleAddress,
+		WardNumber:      institutionInfo.WardNumber,
+		DistrictAddress: institutionInfo.DistrictAddress,
+		IsActive:        institutionInfo.IsActive,
+		FacultiesList:   facultyList,
 	}
 }
