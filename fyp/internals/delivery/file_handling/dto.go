@@ -9,3 +9,8 @@ const IsDownloadAll = "is_download_all"
 
 var GetHTMLRequestQuery = GetRequestQueryType{"id"}
 var GetPDFFileInListQuery = GetRequestQueryType{CategoryId, CategoryName, FileID, IsDownloadAll}
+
+type GetImageFileRequestDto struct {
+	ImageBase64 string `json:"image_base64"`
+	ImageName   string `json:"image_name"`
+}

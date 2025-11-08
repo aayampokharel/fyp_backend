@@ -32,7 +32,7 @@ type CreateUserAccountRequest struct {
 
 type CreateFacultyRequest struct {
 	InstitutionID                  string              `json:"institution_id"`
-	Faculty                        string              `json:"faculty"`
+	FacultyName                    string              `json:"faculty_name"`
 	FacultyAuthorityWithSignatures []map[string]string `json:"faculty_authority_with_signatures"`
 	UniversityAffiliation          string              `json:"university_affiliation"`
 	UniversityCollegeCode          string              `json:"university_college_code"`
@@ -42,7 +42,7 @@ func (c *CreateFacultyRequest) ToEntity() entity.InstitutionFaculty {
 	return entity.InstitutionFaculty{
 		InstitutionFacultyID:           common.GenerateUUID(16),
 		InstitutionID:                  c.InstitutionID,
-		FacultyName:                    c.Faculty,
+		FacultyName:                    c.FacultyName,
 		FacultyAuthorityWithSignatures: c.FacultyAuthorityWithSignatures,
 		UniversityAffiliation:          c.UniversityAffiliation,
 		UniversityCollegeCode:          c.UniversityCollegeCode,

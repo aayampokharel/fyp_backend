@@ -236,12 +236,16 @@ func (s *SQLSource) VerifyRoleLogin(userMail, password string, role enum.ROLE) (
 }
 func (s *SQLSource) GetInstitutionsForUser(userID string) ([]entity.Institution, error) {
 	query := `
-        SELECT i.institution_id, i.institution_name, i.tole_address,
-               i.ward_number, i.district_address, i.is_active
-        FROM institutions i
-        INNER JOIN institution_user iu 
-            ON i.institution_id = iu.institution_id
-        WHERE iu.user_id = $1 ;
+       SELECT DISTINCT i.institution_id, i.institution_name, i.tole_address,
+       i.ward_number, i.district_address, i.is_active
+FROM institutions i
+INNER JOIN institution_user iu ON i.institution_id = iu.institution_id
+WHERE iu.user_id IN (
+    SELECT u2.id 
+    FROM user_accounts u1
+    JOIN user_accounts u2 ON u1.email = u2.email AND u1.password = u2.password
+    WHERE u1.id = $1
+);
     `
 
 	rows, err := s.DB.Query(query, userID)

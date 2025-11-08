@@ -26,52 +26,34 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 		//mock data
 		if er := c.useCase.InsertGenesisBlock(); er != nil {
 			log.Println(er)
-			return common.HandleErrorResponse(401, er.Error(), er)
+			return common.HandleErrorResponse(500, er.Error(), er)
 		}
 	}
-	// certificateData, er := c.useCase.GetCertificateData()
-	// if er != nil {
-	// 	log.Println(er)
-	// 	return nil, er
-	// }
-	//
-	//
-	//
-	// pdfFileCategory, er := request.ToPdfFileCategoryEntity()
-	// if er != nil {
-	// 	log.Println(er)
-	// 	return common.HandleErrorResponse(401, er.Error(), er)
-	// }
-	// insertedpdfFileCategory, er := c.useCase.SqlRepo.InsertAndGetPDFCategory(pdfFileCategory)
-	// if er != nil {
-	// 	return common.HandleErrorResponse(401, er.Error(), er)
-	// }
-	// c.useCase.SqlRepo.InsertAndGetPDFCategory(pdfFileCategory)
 
 	for i := 0; i < len(request.CertificateData); i++ {
 
 		certificateData, er := request.CertificateData[i].ToEntity(request.CategoryID)
 		if er != nil {
 			log.Println(er)
-			return common.HandleErrorResponse(401, er.Error(), er)
+			return common.HandleErrorResponse(400, er.Error(), er)
 		}
 
 		latestBlockFromChain, newBlock, latestBlockFromChainCertificateLength, newBlockCertificateLength, er := c.useCase.CompleteBlockFromCertificate(certificateData)
 		if er != nil {
 			log.Println(er)
-			return common.HandleErrorResponse(401, er.Error(), er)
+			return common.HandleErrorResponse(500, er.Error(), er)
 		}
 		var strNodeInfoMap map[int]string
 		strNodeInfoMap, er = c.useCase.BroadcastNewBlock(newBlock)
 		if er != nil {
 			log.Println(er)
-			return common.HandleErrorResponse(401, er.Error(), er)
+			return common.HandleErrorResponse(500, er.Error(), er)
 		}
 		log.Println("Acknowledgement from nodes: ", strNodeInfoMap)
 
 		if er = c.useCase.UpsertBlockChain(*latestBlockFromChain, *newBlock, latestBlockFromChainCertificateLength, newBlockCertificateLength); er != nil {
 			log.Println(er)
-			return common.HandleErrorResponse(401, er.Error(), er)
+			return common.HandleErrorResponse(500, er.Error(), er)
 		}
 
 		templatePath := constants.TemplateBasePath + constants.CertificateTemplate
@@ -81,12 +63,12 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 		// }
 		htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", "url", templatePath, *certificateData)
 		if er != nil {
-			return common.HandleErrorResponse(500, err.ErrParsingFileString, er)
+			return common.HandleErrorResponse(422, err.ErrParsingFileString, er)
 		}
 		//c.sqlUseCase.Service.Logger.Infoln("[certificate_usecase] htmlString", htmlString)
 		pdfBytes, er := c.ParseFileUseCase.GenerateAndGetCertificatePDF(htmlString)
 		if er != nil {
-			return common.HandleErrorResponse(500, err.ErrParsingFileString, er)
+			return common.HandleErrorResponse(422, err.ErrParsingFileString, er)
 		}
 
 		pdfEntityWithoutData := FromPDFFileCategoryToPDFFileEntity(request.CategoryID, certificateData.StudentName, request.InstitutionFacultyName, certificateData.PDFFileID, i)
@@ -123,14 +105,14 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 func (c *Controller) GetCertificateDataList(request map[string]string) entity.Response {
 	requestMap, er := common.CheckMapKeysReturnValues(request, GetCertificateDataListRequestQuery)
 	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrParsingQueryParametersString, er)
+		return common.HandleErrorResponse(400, err.ErrParsingQueryParametersString, er)
 	}
 	institutionID := requestMap[InstitutionID]
 	institutionFacultyID := requestMap[InstitutionFacultyID]
 	categoryID := requestMap[CategoryID]
 	certificates, er := c.useCase.GetCertificateDataListUseCase(institutionID, institutionFacultyID, categoryID)
 	if er != nil {
-		return common.HandleErrorResponse(401, er.Error(), er)
+		return common.HandleErrorResponse(500, er.Error(), er)
 	}
 	return common.HandleSuccessResponse(certificates)
 }
