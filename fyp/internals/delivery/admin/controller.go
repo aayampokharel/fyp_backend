@@ -22,7 +22,7 @@ func (c *Controller) HandleAdminLogin(AdminLoginRequest AdminLoginRequest) entit
 	userID, createdAt, er := c.sqlUseCase.VerifyUserLoginUseCase(AdminLoginRequest.AdminEmail, AdminLoginRequest.Password, enum.ADMIN)
 
 	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
+		return common.HandleErrorResponse(401, err.ErrVerifyingAdminString, er)
 	}
 	adminLoginResponse, er := c.sseUseCase.GetAllPendingInstitutionsForAdminsUseCase(userID, createdAt)
 	if er != nil {
@@ -43,7 +43,7 @@ func (c *Controller) HandleDeleteSSEClient(token string) entity.Response {
 func (c *Controller) HandleGetPendingInstitutionList(request map[string]string) entity.Response {
 	requestMap, er := common.CheckMapKeysReturnValues(request, GetAllPendingInstitutionsQuery)
 	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrParsingQueryParametersString, er)
+		return common.HandleErrorResponse(400, err.ErrParsingQueryParametersString, er)
 	}
 	adminID := requestMap["admin_id"]
 	pendingInstitutionList, er := c.sqlUseCase.GetAllPendingInstitutionsUseCase(adminID)

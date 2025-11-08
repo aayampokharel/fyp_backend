@@ -30,14 +30,14 @@ func (c *Controller) HandleCreateNewInstitution(institution CreateInstitutionReq
 
 	if institution.InstitutionName == "" || institution.ToleAddress == "" || institution.DistrictAddress == "" || institution.WardNumber == 0 {
 		c.useCase.Service.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", err.ErrEmptyInstitutionInfo)
-		return common.HandleErrorResponse(500, err.ErrCreatingInstitutionString, err.ErrEmptyInstitutionInfo)
+		return common.HandleErrorResponse(400, err.ErrCreatingInstitutionString, err.ErrEmptyInstitutionInfo)
 
 	}
 	institutionEntity := institution.ToEntity()
 
 	if er := c.useCase.CheckDuplicationByInstitutionInfoUseCase(institutionEntity); er != nil {
 		c.useCase.Service.Logger.Errorln("[authentication_controller] Error: HandleCreateNewInstitution::", er)
-		return common.HandleErrorResponse(500, err.ErrDuplicateString, er)
+		return common.HandleErrorResponse(409, err.ErrDuplicateString, er)
 
 	}
 
@@ -88,6 +88,12 @@ func (c *Controller) HandleCreateNewFaculty(newFaculty CreateFacultyRequest) (*e
 	facultyID, institutionInfo, er := c.useCase.InsertFacultyAndRetrieveInstitutionUseCase(newFacultyEntity)
 
 	if er != nil {
+		if er == err.ErrInstitutionAlreadyVerified {
+			//nil because we don't need to broadcast this information.
+			return nil, common.HandleSuccessResponse(CreateFacultyResponse{
+				InstitutionFacultyID: facultyID,
+			})
+		}
 		return nil, common.HandleErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
 
 	}
@@ -102,7 +108,7 @@ func (c *Controller) HandleCheckInstitutionIsActive(request map[string]string) e
 	//esma , first email ra password college ko manche le insert garcha , I will compulsorily return list of all institutions associated to the user  .BUT THAT IS HANDLED BY ANOTHER ENDPOINT , as after this that person can choose from multiple list 1 institution , ani tyo select garepachi we hit this associated endpoint and use this controller .
 	requestMap, er := common.CheckMapKeysReturnValues(request, CheckInstitutionIsActiveQuery)
 	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrParsingQueryParametersString, er)
+		return common.HandleErrorResponse(400, err.ErrParsingQueryParametersString, er)
 	}
 	institutionID := requestMap[InstitutionID]
 
@@ -123,7 +129,7 @@ func (c *Controller) HandleInstitutionsLogin(request InstitutionLoginRequest) en
 	userID, createdAt, er := c.useCase.VerifyUserLoginUseCase(request.Email, request.Password, enum.INSTITUTE)
 
 	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
+		return common.HandleErrorResponse(401, err.ErrVerifyingAdminString, er)
 	}
 	institutionList, er := c.useCase.GetInstitutionsForUserUseCase(userID)
 	if er != nil {

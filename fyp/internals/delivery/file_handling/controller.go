@@ -61,7 +61,7 @@ func (c *Controller) HandleGetPDFFileInList(request map[string]string) entity.Fi
 	c.BlockChainUseCase.Service.Logger.Infoln("[handle_get_pdf_file_in_list] Info: HandleGetPDFFileInList::", request)
 	checkedMap, er := common.CheckMapKeysReturnValues(request, GetPDFFileInListQuery)
 	if er != nil {
-		return common.HandleFileErrorResponse(500, err.ErrParsingQueryParametersString, nil)
+		return common.HandleFileErrorResponse(400, err.ErrParsingQueryParametersString, nil)
 	}
 
 	categoryID := checkedMap[CategoryId]
@@ -69,14 +69,14 @@ func (c *Controller) HandleGetPDFFileInList(request map[string]string) entity.Fi
 	categoryName := checkedMap[CategoryName]
 	isDownloadAll, er := common.ConvertToBool(checkedMap[IsDownloadAll])
 	if er != nil {
-		return common.HandleFileErrorResponse(500, err.ErrDataTypeMismatchString, er)
+		return common.HandleFileErrorResponse(400, err.ErrDataTypeMismatchString, er)
 	}
 	pdfFileEntity, er := c.ParseFileUseCase.RetrievePDFFileByFileIDOrCategoryID(fileID, categoryID, isDownloadAll)
 	if er != nil {
 		return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
 	}
 	if pdfFileEntity == nil {
-		return common.HandleFileErrorResponse(400, err.ErrFileNotFoundString, nil)
+		return common.HandleFileErrorResponse(404, err.ErrFileNotFoundString, nil)
 	}
 	//! I have to include principal signature in certificate as well .
 	if isDownloadAll && len(pdfFileEntity) > 1 {
@@ -89,13 +89,10 @@ func (c *Controller) HandleGetPDFFileInList(request map[string]string) entity.Fi
 	}
 
 	fileName = pdfFileEntity[0].FileName
+
 	if pdfFileEntity[0].PDFData == nil {
-		return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
+		return common.HandleFileErrorResponse(422, err.ErrParsingFileString, er)
 	}
-	c.ParseFileUseCase.Service.Logger.Debugln(pdfFileEntity[0].PDFData[:1000])
-
-	fileName = pdfFileEntity[0].CategoryID + "_" + fileName
-
 	return common.HandleFileSuccessResponse(enum.PDF, fileName, pdfFileEntity[0].PDFData)
 
 }
@@ -115,7 +112,7 @@ func (c *Controller) HandleGetImageFile(request GetImageFileRequestDto) entity.F
 	}
 	decodedBytes, er := base64.StdEncoding.DecodeString(encodedString)
 	if er != nil {
-		return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
+		return common.HandleFileErrorResponse(422, err.ErrParsingFileString, er)
 	}
 	if len(decodedBytes) == 0 {
 		return common.HandleFileErrorResponse(400, err.ErrInvalidLengthString, nil)

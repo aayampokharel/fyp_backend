@@ -63,7 +63,7 @@ func (uc *SqlUseCase) InsertFacultyAndRetrieveInstitutionUseCase(faculty entity.
 		return "", nil, er
 	}
 	if institutionInfo.IsActive != nil {
-		return "", nil, err.ErrInstitutionAlreadyVerified
+		return facultyID, nil, err.ErrInstitutionAlreadyVerified
 	}
 	return facultyID, institutionInfo, nil
 }

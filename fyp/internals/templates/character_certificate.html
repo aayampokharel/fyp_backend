@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Certificate - {{.StudentName}}</title>
+    <style>
+        /* ===== GENERAL STYLING ===== */
+        body {
+            font-family: 'Times New Roman', serif;
+            margin: 0;
+            padding: 60px;
+            background-color: #f7f7f7;
+        }
+
+        .certificate-container {
+            width: 820px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 12px solid #1a4d8c;
+            border-radius: 8px;
+            padding: 60px 50px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+
+        /* Seal Styling */
+        .signature-stamp.over-signature {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-5deg);
+            width: 140px;
+            height: 140px;
+            z-index: 3;
+            opacity: 0.2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .stamp-image {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid #1a4d8c;
+            background-color: rgba(26, 77, 140, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .stamp-image img {
+            width: 60%;
+            height: 60%;
+            object-fit: contain;
+            opacity: 0.5;
+        }
+
+        .stamp-content {
+            position: absolute;
+            text-align: center;
+            font-size: 9px;
+            font-weight: bold;
+            color: #1a4d8c;
+            line-height: 1.1;
+        }
+
+        /* HEADER */
+        .university-header {
+            text-align: center;
+            border-bottom: 2px solid #1a4d8c;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        .university-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1a4d8c;
+            margin: 0;
+        }
+
+        .college-name {
+            font-size: 20px;
+            color: #333;
+            margin-top: 5px;
+        }
+
+        /* CERTIFICATE TITLE */
+        .certificate-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 30px 0;
+            color: #2d3748;
+            letter-spacing: 1px;
+        }
+
+        /* STUDENT INFO */
+        .student-info {
+            margin: 25px 0;
+            font-size: 16px;
+            line-height: 1.7;
+            color: #2d3748;
+        }
+
+        .student-name {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #1a202c;
+        }
+
+        /* CHARACTER DETAILS */
+        .character-details {
+            background: #f9fafc;
+            padding: 20px;
+            border-left: 4px solid #1a4d8c;
+            border-radius: 4px;
+            margin: 25px 0;
+            font-size: 15px;
+            color: #2d3748;
+        }
+
+        .info-row {
+            margin: 8px 0;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #2c5282;
+        }
+
+        /* DATE SECTION */
+        .dates-section {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-top: 25px;
+            font-size: 15px;
+        }
+
+        .date-item {
+            width: 45%;
+            margin-bottom: 15px;
+        }
+
+        /* SIGNATURE SECTION */
+        .signature-section {
+            text-align: right;
+            margin-top: 60px;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 250px;
+            margin-left: auto;
+            margin-top: 60px;
+        }
+
+        .signature-title {
+            margin-top: 5px;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        /* QR CODE */
+        .qr-section {
+            position: absolute;
+            bottom: 40px;
+            left: 60px;
+            text-align: center;
+            font-size: 11px;
+            color: #555;
+        }
+
+        .qr-section img {
+            width: 90px;
+            height: 90px;
+            margin-bottom: 5px;
+        }
+
+        /* FOOTER SECURITY INFO */
+        .security-info {
+            font-size: 11px;
+            color: #555;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 60px;
+            padding-top: 10px;
+            line-height: 1.5;
+        }
+
+        /* CERTIFICATE ID */
+        .certificate-id {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            font-size: 12px;
+            color: #4a5568;
+            text-align: right;
+        }
+
+        .block-info {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            font-size: 12px;
+            color: #4a5568;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="certificate-container">
+
+        <!-- Certificate ID and Block Info -->
+        <div class="certificate-id">
+            Certificate ID: {{.CertificateID}}<br>
+            Type: {{.CertificateType}}
+        </div>
+
+        <!-- Header -->
+        <div class="university-header">
+            <h1 class="university-name">{{.UniversityName}}</h1>
+            <h2 class="college-name">{{.College}}</h2>
+        </div>
+
+        <!-- Title -->
+        <div class="certificate-title">
+            CHARACTER CERTIFICATE
+        </div>
+
+        <!-- Student Info -->
+        <div class="student-info">
+            <p>This is to certify that</p>
+            <div class="student-name">{{.StudentName}}</div>
+            <p>Student ID: <span class="label">{{.StudentID}}</span></p>
+            <p>has exhibited good character, conduct, and behavior during their tenure at <span
+                    class="label">{{.College}}</span>.</p>
+        </div>
+
+        <!-- Character Details -->
+        <div class="character-details">
+            {{if .CharacterRemarks}}<div class="info-row"><span class="label">Character Remarks:</span>
+                {{.CharacterRemarks}}</div>{{end}}
+            {{if .GeneralRemarks}}<div class="info-row"><span class="label">General Remarks:</span> {{.GeneralRemarks}}
+            </div>{{end}}
+            {{if .EnrollmentDate}}<div class="info-row"><span class="label">Enrollment Date:</span> {{.EnrollmentDate}}
+            </div>{{end}}
+            {{if .LeavingDate}}<div class="info-row"><span class="label">Leaving Date:</span> {{.LeavingDate}}</div>
+            {{end}}
+        </div>
+
+        <!-- Signature -->
+        <div class="signature-section">
+            <!-- College Official Seal -->
+            <div class="signature-stamp over-signature">
+                <div class="stamp-image">
+                    <img src="data:image/png;base64,{{.QRCodeBase64}}" alt="Official Seal Icon">
+                </div>
+                <div class="stamp-content">
+                    <div class="stamp-text">OFFICIAL SEAL<br>{{.UniversityName}}</div>
+                </div>
+            </div>
+
+            <div class="signature-line"></div>
+            <div class="signature-title">Principal / Director</div>
+            <div class="signature-title">{{.College}}</div>
+        </div>
+
+        <!-- QR Code Section -->
+        <div class="qr-section">
+            <img src="data:image/png;base64,{{.QRCodeBase64}}" alt="QR Code"><br>
+            Scan to Verify
+        </div>
+
+        <!-- Footer Security Info -->
+        <div class="security-info">
+            Data Hash: {{.CertificateHash}}<br>
+            Issuer Public Key: {{.FacultyPublicKey}}<br>
+            This certificate is digitally secured and verifiable on the blockchain.
+        </div>
+
+    </div>
+</body>
+
+</html>

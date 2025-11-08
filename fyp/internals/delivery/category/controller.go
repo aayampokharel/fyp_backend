@@ -20,11 +20,11 @@ func (c *Controller) HandleCreatePDFCategory(request CreatePDFCategoryDto) entit
 	pdfFileCategory, er := request.ToPdfFileCategoryEntity()
 	if er != nil {
 		log.Println(er)
-		return common.HandleErrorResponse(401, er.Error(), er)
+		return common.HandleErrorResponse(400, er.Error(), er)
 	}
 	insertedpdfFileCategory, er := c.sqlUseCase.InsertAndGetPDFCategoryUseCase(pdfFileCategory)
 	if er != nil {
-		return common.HandleErrorResponse(401, er.Error(), er)
+		return common.HandleErrorResponse(500, er.Error(), er)
 	}
 	return common.HandleSuccessResponse(CreatePDFCategoryResponseDto{
 		CategoryID:   insertedpdfFileCategory.CategoryID,
@@ -35,13 +35,13 @@ func (c *Controller) HandleCreatePDFCategory(request CreatePDFCategoryDto) entit
 func (c *Controller) HandleGetPDFCategoriesList(request map[string]string) entity.Response {
 	requestMap, er := common.CheckMapKeysReturnValues(request, GetPDFCategoryRequestDtoQuery)
 	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrParsingQueryParametersString, er)
+		return common.HandleErrorResponse(400, err.ErrParsingQueryParametersString, er)
 	}
 	institutionFacultyID := requestMap[InstitutionFacultyID]
 	institutionID := requestMap[InstitutionID]
 	pdfFileCategories, er := c.sqlUseCase.GetPDFCategoriesListUseCase(institutionID, institutionFacultyID)
 	if er != nil {
-		return common.HandleErrorResponse(401, er.Error(), er)
+		return common.HandleErrorResponse(500, er.Error(), er)
 	}
 	return common.HandleSuccessResponse(pdfFileCategories)
 
