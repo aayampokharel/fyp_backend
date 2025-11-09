@@ -1,7 +1,10 @@
 package common
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
+	"log"
 	"net/http"
 	"project/internals/domain/entity"
 	"project/package/enum"
@@ -23,7 +26,7 @@ type FileRouteWrapper struct {
 	PostHandler        func(interface{}) entity.FileResponse
 }
 
-func setFileHeaders(w http.ResponseWriter, fileData []byte, filename string, fileType enum.RESPONSETYPE) {
+func setFileHeaders(w http.ResponseWriter, filename string, fileType enum.RESPONSETYPE, contentLength int) {
 	switch fileType {
 	case enum.PDF:
 		w.Header().Set("Content-Type", "application/pdf")
@@ -34,7 +37,7 @@ func setFileHeaders(w http.ResponseWriter, fileData []byte, filename string, fil
 	case enum.HTML:
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	}
-	w.Header().Set("Content-Length", strconv.Itoa(len(fileData)))
+	w.Header().Set("Content-Length", strconv.Itoa(contentLength))
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 }
 
@@ -45,7 +48,7 @@ func NewFileRouteWrapper(routeInfos ...FileRouteWrapper) {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
-			// (w).Header().Set("Content-Type", "application/json")
+
 			if r.Method == http.MethodOptions {
 				w.WriteHeader(http.StatusOK)
 				return
@@ -55,33 +58,32 @@ func NewFileRouteWrapper(routeInfos ...FileRouteWrapper) {
 				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 				return
 			}
+
 			var returnFinalFileResponse entity.FileResponse
 
+			// GET / DELETE
 			if routeInfo.RequestDataType == nil && (routeInfo.Method == enum.METHODGET || routeInfo.Method == enum.METHODDELETE) {
-				var queryParams map[string]string = make(map[string]string, 0)
+				queryParams := make(map[string]string)
 				for _, val := range routeInfo.URLQueries {
 					queryParams[val] = r.URL.Query().Get(val)
 				}
-
 				returnFinalFileResponse = routeInfo.GetORDeleteHandler(queryParams)
 
-			} else {
+			} else { // POST / PUT with body
 				reqType := reflect.TypeOf(routeInfo.RequestDataType)
 				reqValue := reflect.New(reqType).Interface()
-
 				if er := json.NewDecoder(r.Body).Decode(reqValue); er != nil {
 					w.WriteHeader(http.StatusBadRequest)
 					json.NewEncoder(w).Encode(HandleErrorResponse(400, err.ErrDecodingJSONString, er))
 					return
 				}
-
 				returnFinalFileResponse = routeInfo.PostHandler(reflect.ValueOf(reqValue).Elem().Interface())
 			}
 
-			setFileHeaders(w, returnFinalFileResponse.Data, returnFinalFileResponse.FileName, returnFinalFileResponse.FileType)
-			(w).WriteHeader(returnFinalFileResponse.Code)
+			// If there is no data, send JSON response
 			if returnFinalFileResponse.Data == nil {
 				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(returnFinalFileResponse.Code)
 				json.NewEncoder(w).Encode(entity.Response{
 					Code:    returnFinalFileResponse.Code,
 					Message: returnFinalFileResponse.Message,
@@ -89,10 +91,14 @@ func NewFileRouteWrapper(routeInfos ...FileRouteWrapper) {
 				})
 				return
 			}
-			w.Write(returnFinalFileResponse.Data)
 
+			setFileHeaders(w, returnFinalFileResponse.FileName, returnFinalFileResponse.FileType, len(returnFinalFileResponse.Data))
+			w.WriteHeader(returnFinalFileResponse.Code)
+
+			reader := bytes.NewReader(returnFinalFileResponse.Data)
+			if _, err := io.Copy(w, reader); err != nil {
+				log.Println("Error streaming file:", err)
+			}
 		})
-
 	}
-
 }

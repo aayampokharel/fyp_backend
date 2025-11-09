@@ -49,9 +49,9 @@ type CertificateData struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type CertificateDataWithQRCode struct {
-	CertificateData `json:"certificate_data"`
-	QRCodeBase64    string `json:"qr_code"`
+type CertificateDataWithLogosAndQRCode struct {
+	CertificateDataWithLogos `json:"certificate_data_with_logos"`
+	QRCodeBase64             string `json:"qr_code_base_64"`
 }
 
 func (c *CertificateData) ToHashableData() *HashableData {
@@ -76,4 +76,10 @@ func (c *CertificateData) ToHashableData() *HashableData {
 		CharacterRemarks:     c.CharacterRemarks,
 		GeneralRemarks:       c.GeneralRemarks,
 	}
+}
+
+type CertificateDataWithLogos struct {
+	CertificateData                `json:"certificate_data"`
+	InstitutionLogoBase64          string                         `json:"institution_logo_base64"`
+	AuthorityWithSignatureEntities []AuthorityWithSignatureEntity `json:"authority_entities"`
 }

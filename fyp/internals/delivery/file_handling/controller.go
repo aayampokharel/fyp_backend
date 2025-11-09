@@ -47,7 +47,8 @@ func (c *Controller) HandleGetHTMLFile(request map[string]string) entity.FileRes
 	if er != nil {
 		return common.HandleFileErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
 	}
-	htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", "url", templatePath, *fakeCertificateData)
+	//! incomplete here: to add institutionid and facultyid in request remove fakeCertificateData later ....
+	htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", "url", templatePath, *fakeCertificateData, "123", "123")
 	if er != nil {
 		return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
 	}

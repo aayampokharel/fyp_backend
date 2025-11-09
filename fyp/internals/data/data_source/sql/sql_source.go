@@ -615,3 +615,34 @@ func (s *SQLSource) GetFacultyListInfoFromInstitutionID(institutionID string) ([
 
 	return faculties, nil
 }
+
+func (s *SQLSource) GetAllLogosForCertificate(institutionID string, facultyID string) (string, string, error) {
+	var logoBase64 string
+	err := s.DB.QueryRow(`
+		SELECT institution_logo_base64
+		FROM institution_user
+		WHERE institution_id = $1
+		LIMIT 1
+	`, institutionID).Scan(&logoBase64)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", "", fmt.Errorf("no logo found for institution_id %s", institutionID)
+		}
+		return "", "", fmt.Errorf("failed to fetch institution logo: %w", err)
+	}
+
+	var facultyName string
+	var authorityJSON string
+	err = s.DB.QueryRow(`
+		SELECT faculty_name, faculty_authority_with_signature
+		FROM institution_faculty
+		WHERE institution_id = $1 AND institution_faculty_id = $2
+	`, institutionID, facultyID).Scan(&facultyName, &authorityJSON)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return logoBase64, "", fmt.Errorf("no faculty found for id %s", facultyID)
+		}
+		return logoBase64, "", fmt.Errorf("failed to fetch faculty: %w", err)
+	}
+	return logoBase64, authorityJSON, nil
+}
