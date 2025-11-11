@@ -2,7 +2,6 @@ package filehandling
 
 import (
 	"encoding/base64"
-	"project/constants"
 	"project/internals/domain/entity"
 	"project/internals/usecase"
 	"project/package/enum"
@@ -41,19 +40,33 @@ func (c *Controller) HandleGetHTMLFile(request map[string]string) entity.FileRes
 
 	//! extract type of certificate in future implementation
 	//// add college seal section in database .
-	// templatePath := "../internals/templates/certificate.html"
-	templatePath := constants.TemplateBasePath + constants.CertificateTemplate
+	//
+	//
+	//
+	//
+	//
+
+	//templatePath := constants.TemplateBasePath + constants.CertificateTemplate
 	fakeCertificateData, er := c.BlockChainUseCase.GetCertificateData()
 	if er != nil {
 		return common.HandleFileErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
 	}
 	//! incomplete here: to add institutionid and facultyid in request remove fakeCertificateData later ....
-	htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", "url", templatePath, *fakeCertificateData, "123", "123")
-	if er != nil {
-		return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
-	}
 
-	return common.HandleFileSuccessResponse(enum.HTML, "", []byte(htmlString))
+	c.BlockChainUseCase.SendPBFTMessageToPeer(entity.PBFTMessage{
+		VerificationType: enum.INITIAL,
+		ViewNumber:       0,
+		QRVerificationRequestData: entity.QRVerificationRequestData{
+			CertificateHash: fakeCertificateData.CertificateHash,
+			ClientID:        fakeCertificateData.CertificateID,
+		},
+	})
+	// htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", "url", templatePath, *fakeCertificateData, "123", "123")
+	// if er != nil {
+	// 	return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
+	// }
+
+	return common.HandleFileSuccessResponse(enum.HTML, "", []byte("helllo change this string to variable "))
 
 }
 
