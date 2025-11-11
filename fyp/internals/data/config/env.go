@@ -7,10 +7,12 @@ import (
 )
 
 type Env struct {
-	PowNumberRule string   `mapstructure:"POW_NUMBER_RULE"`
-	NodePorts     []string `mapstructure:"NODE_PORTS"`
-	TCPPorts      []string `mapstructure:"TCP_PORTS"`
-	DBPassword    string   `mapstructure:"DB_PASS"`
+	PowNumberRule  string   `mapstructure:"POW_NUMBER_RULE"`
+	NodePorts      []string `mapstructure:"NODE_PORTS"`
+	TCPPorts       []string `mapstructure:"TCP_PORTS"`
+	DBPassword     string   `mapstructure:"DB_PASS"`
+	PbftLeaderNode string   `mapstructure:"PBFT_LEADER_NODE"`
+	PbftPorts      []string `mapstructure:"PBFT_PORTS"` //=9500,9501,9502
 }
 
 func NewEnv() (*Env, error) {

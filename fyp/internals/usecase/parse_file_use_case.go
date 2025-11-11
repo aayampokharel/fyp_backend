@@ -18,18 +18,26 @@ func NewParseFileUseCase(service service.Service, sqlRepo repository.ISqlReposit
 	}
 }
 
-func (uc *ParseFileUseCase) GenerateCertificateHTML(id, url, templatePath string, certificateData entity.CertificateData) (string, error) {
+func (uc *ParseFileUseCase) GenerateCertificateHTML(id, url, templatePath string, certificateData entity.CertificateData, institutionLogo, authorityNameWithSignature string) (string, error) {
 	qrCodeBase64, er := uc.Service.GenerateQRCodeBase64(id, url)
 	if er != nil {
 		return "", er
 	}
 
-	certificateDataWithQR := entity.CertificateDataWithQRCode{
-		CertificateData: certificateData,
-		QRCodeBase64:    qrCodeBase64,
+	authorityEntityList, er := entity.AuthorityWithSignatureEntity{}.FromString(authorityNameWithSignature)
+	if er != nil {
+		return "", er
+	}
+	certificateDataWithLogosAndQR := entity.CertificateDataWithLogosAndQRCode{
+		CertificateDataWithLogos: entity.CertificateDataWithLogos{
+			CertificateData:                certificateData,
+			InstitutionLogoBase64:          institutionLogo,
+			AuthorityWithSignatureEntities: authorityEntityList,
+		},
+		QRCodeBase64: qrCodeBase64,
 	}
 
-	htmlContent, err := uc.Service.ParseAndExecute(templatePath, certificateDataWithQR)
+	htmlContent, err := uc.Service.ParseAndExecute(templatePath, certificateDataWithLogosAndQR)
 	if err != nil {
 		uc.Service.Logger.Errorw("[certificate_usecase] Failed to generate HTML", "error", err)
 		return "", err

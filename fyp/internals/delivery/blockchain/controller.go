@@ -55,17 +55,23 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 			log.Println(er)
 			return common.HandleErrorResponse(500, er.Error(), er)
 		}
-
+		//! make a function to select path based on type .
 		templatePath := constants.TemplateBasePath + constants.CertificateTemplate
 		//fakeCertificateData, er := c.BlockChainUseCase.GetCertificateData()
 		// if er != nil {
 		// 	return common.HandleFileErrorResponse(500, er.ErrCreatingInstitutionFacultyString, er)
 		// }
-		htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", "url", templatePath, *certificateData)
+
+		institutionLogo, authorityNameWithSignature, er := c.sqlUseCase.GetAllLogosForCertificateUseCase(certificateData.InstitutionID, certificateData.InstitutionFacultyID)
+		if er != nil {
+			return common.HandleErrorResponse(500, er.Error(), er)
+		}
+
+		htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", "url", templatePath, *certificateData, institutionLogo, authorityNameWithSignature)
 		if er != nil {
 			return common.HandleErrorResponse(422, err.ErrParsingFileString, er)
 		}
-		//c.sqlUseCase.Service.Logger.Infoln("[certificate_usecase] htmlString", htmlString)
+
 		pdfBytes, er := c.ParseFileUseCase.GenerateAndGetCertificatePDF(htmlString)
 		if er != nil {
 			return common.HandleErrorResponse(422, err.ErrParsingFileString, er)
