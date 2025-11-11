@@ -133,11 +133,11 @@ func receiveBlocks(uc *usecase.BlockChainUseCase, tcpPort int) {
 	}
 }
 func receivePbftMessage(uc *usecase.BlockChainUseCase, pbftTcpPort int) {
-	uc.Service.Logger.Infoln("stated in port::", pbftTcpPort)
-	for {
-		if _, er := uc.ReceivePBFTMessageFromPeers(pbftTcpPort); er != nil {
-			logger.Logger.Errorw("[node_source] Error receiving pbft message", zap.Error(er))
-			fmt.Println("Error receiving block from peer:", er)
-		}
+	// uc.Service.Logger.Infoln("stated in port::", pbftTcpPort)
+
+	if _, er := uc.ReceivePBFTMessageFromPeers(pbftTcpPort); er != nil {
+		logger.Logger.Errorw("[node_source] Error receiving pbft message", zap.Error(er))
+		fmt.Println("Error receiving block from peer:", er)
 	}
+
 }

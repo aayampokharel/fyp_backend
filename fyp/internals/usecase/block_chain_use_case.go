@@ -207,7 +207,7 @@ func (uc *BlockChainUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessag
 		uc.Service.Logger.Errorln(er)
 		return
 	}
-	uc.NodeRepo.SendPBFTMessageToPeer(pbftMessage, leaderNodeInt, common.GetMappedTCPPort())
+	uc.NodeRepo.SendPBFTMessageToPeer(pbftMessage, leaderNodeInt, common.GetMappedTCPPBFTPort())
 }
 
 func (uc *BlockChainUseCase) ReceivePBFTMessageFromPeers(currentTCPPort int) (*entity.PBFTMessage, error) {

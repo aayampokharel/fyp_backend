@@ -34,6 +34,7 @@ var (
 	ErrInvalidBase64                = errorz.Status400BadRequest.Wrap("Invalid base64 string")
 	ErrGenesisBlockMismatch         = errorz.Status400BadRequest.Wrap("Genesis Block Mismatch")
 	ErrMarshaling                   = errorz.Status400BadRequest.Wrap("Error marshaling")
+	ErrConnection                   = errorz.Status400BadRequest.Wrap("Error Connecting to Peer in TCP")
 	ErrEmptyFields                  = errorz.Status400BadRequest.Wrap("Empty Fields")
 	ErrEmptyPOWRules                = errorz.Status400BadRequest.Wrap("Empty POW Rule String in .env file")
 	ErrEnvParsing                   = errorz.Status400BadRequest.Wrap("Error parsing .env file")
