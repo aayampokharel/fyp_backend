@@ -25,6 +25,8 @@ var (
 	ErrGenesisBlockInsert           = errorz.Status400BadRequest.Wrap("Cannot insert genesis block at index other than 0")
 	ErrNotEnoughBlocks              = errorz.Status400BadRequest.Wrap("Not enough blocks")
 	ErrArrayOutOfBound              = errorz.Status406NotAcceptable.Wrap("index not within the range of 0-3")
+	ErrEmptyPublicKey               = errorz.Status406NotAcceptable.Wrap("Public key cannot be empty")
+	ErrEmptyPrivateKey              = errorz.Status406NotAcceptable.Wrap("Private key cannot be empty")
 	ErrLeaderPort                   = errorz.Status406NotAcceptable.Wrap("leader port wasnot initialized")
 	ErrUserDoesnotExist             = errorz.Status400BadRequest.Wrap("User does not exist")
 	ErrPythonScriptReturnedEmpty    = errorz.Status400BadRequest.Wrap("python script returned empty result")

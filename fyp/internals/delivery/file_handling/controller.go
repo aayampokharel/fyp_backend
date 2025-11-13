@@ -11,12 +11,14 @@ import (
 )
 
 type Controller struct {
-	ParseFileUseCase  *usecase.ParseFileUseCase
-	BlockChainUseCase *usecase.BlockChainUseCase
+	currentMappedTCPPort int
+	ParseFileUseCase     *usecase.ParseFileUseCase
+	BlockChainUseCase    *usecase.BlockChainUseCase
+	PbftUseCase          *usecase.PBFTUseCase
 }
 
-func NewController(parseFileUseCase *usecase.ParseFileUseCase, blockChainUseCase *usecase.BlockChainUseCase) *Controller {
-	return &Controller{ParseFileUseCase: parseFileUseCase, BlockChainUseCase: blockChainUseCase}
+func NewController(parseFileUseCase *usecase.ParseFileUseCase, blockChainUseCase *usecase.BlockChainUseCase, currentMappedTcpPort int, pbftUseCase *usecase.PBFTUseCase) *Controller {
+	return &Controller{ParseFileUseCase: parseFileUseCase, BlockChainUseCase: blockChainUseCase, currentMappedTCPPort: currentMappedTcpPort, PbftUseCase: pbftUseCase}
 }
 
 // func (c *Controller) HandleCreatePDFFile(request )
@@ -53,14 +55,13 @@ func (c *Controller) HandleGetHTMLFile(request map[string]string) entity.FileRes
 	}
 	//! incomplete here: to add institutionid and facultyid in request remove fakeCertificateData later ....
 
-	c.BlockChainUseCase.SendPBFTMessageToPeer(entity.PBFTMessage{
+	c.PbftUseCase.SendPBFTMessageToPeer(entity.PBFTMessage{
 		VerificationType: enum.INITIAL,
-		ViewNumber:       0,
 		QRVerificationRequestData: entity.QRVerificationRequestData{
-			CertificateHash: fakeCertificateData.CertificateHash,
+			CertificateHash: []byte(fakeCertificateData.CertificateHash),
 			ClientID:        fakeCertificateData.CertificateID,
 		},
-	})
+	}, c.currentMappedTCPPort)
 	// htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", "url", templatePath, *fakeCertificateData, "123", "123")
 	// if er != nil {
 	// 	return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)

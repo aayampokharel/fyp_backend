@@ -7,12 +7,12 @@ import (
 	err "project/package/errors"
 )
 
-func HashData(data interface{}) (string, error) {
+func HashData(data interface{}) (string, []byte, error) {
 	bytes, error := json.Marshal(data)
 	if error != nil {
-		return "", err.ErrMarshaling
+		return "", nil, err.ErrMarshaling
 	}
 
 	hash := sha256.Sum256(bytes)
-	return fmt.Sprintf("%x", hash), nil
+	return fmt.Sprintf("%x", hash), hash[:], nil
 }

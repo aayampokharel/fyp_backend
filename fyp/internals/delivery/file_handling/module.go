@@ -7,16 +7,17 @@ import (
 )
 
 type Module struct {
-	Controller        *Controller
-	ParseFileUseCase  *usecase.ParseFileUseCase
-	BlockChainUseCase *usecase.BlockChainUseCase
+	currentMappedTCPPort int
+	Controller           *Controller
+	ParseFileUseCase     *usecase.ParseFileUseCase
+	BlockChainUseCase    *usecase.BlockChainUseCase
 }
 
 func NewModule(service service.Service, BlockChainRepo repository.IBlockChainRepository,
-	NodeRepo repository.INodeRepository,
-	SqlRepo repository.ISqlRepository) *Module {
-
+	NodeRepo repository.INodeRepository, currentMappedTCPPort int, countPrepareMap, countCommitMap map[int]int, operationCounter *int,
+	SqlRepo repository.ISqlRepository, pbftService service.PBFTService) *Module {
+	pbftUseCase := usecase.NewPBFTUseCase(service, SqlRepo, NodeRepo, countPrepareMap, countCommitMap, operationCounter, pbftService)
 	parseFileUseCase := usecase.NewParseFileUseCase(service, SqlRepo)
 	blockChainUseCase := usecase.NewBlockChainUseCase(BlockChainRepo, NodeRepo, SqlRepo, service)
-	return &Module{Controller: NewController(parseFileUseCase, blockChainUseCase), ParseFileUseCase: parseFileUseCase, BlockChainUseCase: blockChainUseCase}
+	return &Module{Controller: NewController(parseFileUseCase, blockChainUseCase, currentMappedTCPPort, pbftUseCase), ParseFileUseCase: parseFileUseCase, BlockChainUseCase: blockChainUseCase, currentMappedTCPPort: currentMappedTCPPort}
 }

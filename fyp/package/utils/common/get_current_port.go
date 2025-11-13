@@ -10,7 +10,12 @@ import (
 )
 
 var httpPort = flag.Int("port", 8000, "Http port to use")
+var privateKey = flag.String("private-key", "", "Private key for this node")
 
+func GetPrivatekey() *string {
+	flag.Parse()
+	return privateKey
+}
 func GetPort() *int {
 	flag.Parse()
 	return httpPort

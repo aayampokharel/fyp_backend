@@ -22,14 +22,15 @@ func (s *Service) CalculateMerkleRoot(certificateDataArray [4]entity.Certificate
 		return "", err
 	}
 	if calculatedLength == 1 {
-		return common.HashData(certificateDataArray[0])
+		hashDataString, _, er := common.HashData(certificateDataArray[0])
+		return hashDataString, er
 	}
 
 	certificateDataSlice := certificateDataArray[:calculatedLength]
 	var hashedCertificateDataSlice []string
 
 	for _, val := range certificateDataSlice {
-		hashedVal, err := common.HashData(val)
+		hashedVal, _, err := common.HashData(val)
 		if err != nil {
 			return "", err
 		}
@@ -47,7 +48,7 @@ func (s *Service) CalculateMerkleRoot(certificateDataArray [4]entity.Certificate
 		}
 
 		for i := 1; i <= len(hashedCertificateDataSlice)-1; i += 2 {
-			hashedCertificateDataSlice[i], err = common.HashData(hashedCertificateDataSlice[i] + hashedCertificateDataSlice[i-1])
+			hashedCertificateDataSlice[i], _, err = common.HashData(hashedCertificateDataSlice[i] + hashedCertificateDataSlice[i-1])
 			if err != nil {
 				return "", err
 			}

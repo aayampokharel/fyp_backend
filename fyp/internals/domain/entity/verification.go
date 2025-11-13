@@ -4,16 +4,15 @@ import "project/package/enum"
 
 type PBFTMessage struct {
 	VerificationType          enum.VERIFICATIONTYPE     `json:"verification_type"` // PREPREPARE, PREPARE, COMMIT
-	ViewNumber                int                       `json:"view_number"`
-	SequenceNumber            int                       `json:"sequence_number"`
+	OperationID               int                       `json:"operation_id"`
 	NodeID                    int                       `json:"node_id"`
 	Digest                    string                    `json:"digest"`
-	Signature                 string                    `json:"signature"`                    // Digital signature
-	QRVerificationRequestData QRVerificationRequestData `json:"qr_verification_request_data"` // Original request
+	Signature                 string                    `json:"signature"`
+	Result                    bool                      `json:"result"`
+	QRVerificationRequestData QRVerificationRequestData `json:"qr_verification_request_data"`
 }
 
 type QRVerificationRequestData struct {
-	CertificateHash string `json:"certificate_hash"`
-	ClientID        string `json:"client_id"` // unique generated ID
-	Timestamp       int64  `json:"timestamp"`
+	CertificateHash []byte `json:"certificate_hash"`
+	ClientID        string `json:"client_id"` //? certificate id or whwt ?
 }
