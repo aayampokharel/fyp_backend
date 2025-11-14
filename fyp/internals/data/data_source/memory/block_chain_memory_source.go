@@ -175,3 +175,29 @@ func (b *BlockChainMemorySource) GetCertificateDataListByHashAndCertificateID(ha
 	return entity.CertificateData{}, err.ErrWithMoreInfo(nil, fmt.Sprintf("error while finding valid certificate data for hash:%s and certificateID:%s", hash, certificateID))
 
 }
+
+func (b *BlockChainMemorySource) ExtractBlockByHashAndCertificateID(hash, certificateID string) (entity.Block, error) {
+	wholeBlockChain, _ := b.GetBlockChain()
+	for _, blocks := range wholeBlockChain {
+		for _, certificateData := range blocks.CertificateData {
+			if certificateData.CertificateHash == hash && certificateData.CertificateID == certificateID {
+				return blocks, nil
+			}
+		}
+	}
+	return entity.Block{}, err.ErrWithMoreInfo(nil, "Couldn't find certificate data with matching certificateID and hash in any block.")
+
+}
+
+func (b *BlockChainMemorySource) GetBlockByBlockNumber(blockNumber int) (entity.Block, error) {
+	if blockNumber < 0 {
+		return entity.Block{}, err.ErrNegativeBlockNumber
+	}
+	wholeBlockChain, _ := b.GetBlockChain()
+	for _, blocks := range wholeBlockChain {
+		if blocks.Header.BlockNumber == blockNumber {
+			return blocks, nil
+		}
+	}
+	return entity.Block{}, err.ErrWithMoreInfo(nil, "couldnot find block with block number "+strconv.Itoa(blockNumber))
+}

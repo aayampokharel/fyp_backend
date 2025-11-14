@@ -7,6 +7,7 @@ var (
 	ErrDuplicateString                     = "duplicate error"
 	ErrCreatingUserAccountString           = "error creating user account"
 	ErrCreatingInstitutionFacultyString    = "error creating institution faculty"
+	ErrGettingBlockString                  = "error getting block data"
 	ErrCheckingIsActiveString              = "error checking institution is_active string"
 	ErrEmptyImageString                    = "error empty image data string"
 	ErrInvalidLengthString                 = "error invalid length "

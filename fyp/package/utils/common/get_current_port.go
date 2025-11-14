@@ -2,6 +2,7 @@ package common
 
 import (
 	"flag"
+	"fmt"
 	"project/constants"
 	"project/internals/data/config"
 	logger "project/package/utils/pkg"
@@ -13,20 +14,21 @@ var httpPort = flag.Int("port", 8000, "Http port to use")
 var privateKey = flag.String("private-key", "", "Private key for this node")
 
 func GetPrivatekey() *string {
-	flag.Parse()
+	// flag.Parse()
+	fmt.Println("private KEY____::::::", *privateKey)
 	return privateKey
 }
 func GetPort() *int {
-	flag.Parse()
+	// flag.Parse()
 	return httpPort
 }
 func GetMappedTCPPort() int {
-	flag.Parse()
+	// flag.Parse()
 	return (*httpPort + 1000)
 }
 
 func GetMappedTCPPBFTPort() int {
-	flag.Parse()
+	// flag.Parse()
 	return (*httpPort + 1500)
 }
 func GetLeaderPort() *int {

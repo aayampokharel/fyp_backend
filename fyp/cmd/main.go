@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 
@@ -26,9 +27,11 @@ import (
 
 func main() {
 	// -------------------------------
-	// 1️⃣ Initialize Logger,maps & Config
+	// 1️⃣ Initialize Logger,flag,maps & Config
 	// -------------------------------
 	logger.InitLogger()
+	flag.Parse()
+	fmt.Println("Private key:", *common.GetPrivatekey())
 
 	currentPort := common.GetPort()
 	tcpPort := *currentPort + 1000
@@ -107,7 +110,7 @@ func main() {
 	// 7️⃣ Initialize Use Cases
 	// -------------------------------
 	blockChainUseCase := usecase.NewBlockChainUseCase(memSource, nodeSource, sqlSource, *svc)
-	pbftUseCase := usecase.NewPBFTUseCase(*svc, sqlSource, nodeSource, countPrepareMap, countCommitMap, &operationCounter, *pbftService)
+	pbftUseCase := usecase.NewPBFTUseCase(*svc, sqlSource, nodeSource, countPrepareMap, countCommitMap, &operationCounter, *pbftService, memSource)
 
 	// -------------------------------
 	// 8️⃣ Start background goroutines

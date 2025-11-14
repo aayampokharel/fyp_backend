@@ -9,7 +9,7 @@ import (
 
 func (s *Service) CalculatePOW(powParams entity.PowStructure, powRuleString string) (nonce int, currentHash string, er error) {
 
-	if powParams.BlockMerkleRoot == "" || powParams.PreviousHash == "" || powParams.BlockNumber == 0 {
+	if powParams.BlockMerkleRoot == "" || powParams.PreviousPOWPuzzleHash == "" || powParams.BlockNumber == 0 {
 		return -1, "", err.ErrEmptyFields
 
 	}

@@ -1,6 +1,9 @@
 package entity
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type CertificateData struct {
 	// Core Certificate Identity
@@ -47,6 +50,43 @@ type CertificateData struct {
 
 	// Timestamps
 	CreatedAt time.Time `json:"created_at"`
+}
+
+func (c *CertificateData) GetCertificateDataForHash() string {
+	dataToHash := fmt.Sprintf("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s",
+		c.StudentID,
+		c.StudentName,
+		c.InstitutionID,
+		c.InstitutionFacultyID,
+		c.CertificateType,
+		c.Degree,
+		c.College,
+		c.Major,
+		c.GPA,
+		c.percentageToString(),
+		c.Division,
+		c.UniversityName,
+		c.IssueDate.Format(time.RFC3339),
+		formatTimeOptional(c.EnrollmentDate),
+		formatTimeOptional(c.CompletionDate),
+		formatTimeOptional(c.LeavingDate),
+	)
+
+	return dataToHash
+}
+
+func (c *CertificateData) percentageToString() string {
+	if c.Percentage == nil {
+		return ""
+	}
+	return fmt.Sprintf("%.2f", *c.Percentage)
+}
+
+func formatTimeOptional(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Format(time.RFC3339)
 }
 
 type CertificateDataWithLogosAndQRCode struct {

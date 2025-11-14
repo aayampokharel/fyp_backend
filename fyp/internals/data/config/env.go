@@ -16,6 +16,7 @@ type Env struct {
 	PublicKeyNode1 string   `mapstructure:"PUBLIC_KEY_NODE_1"`
 	PublicKeyNode2 string   `mapstructure:"PUBLIC_KEY_NODE_2"`
 	PublicKeyNode3 string   `mapstructure:"PUBLIC_KEY_NODE_3"`
+	PublicKeyNode4 string   `mapstructure:"PUBLIC_KEY_NODE_4"`
 }
 
 func NewEnv() (*Env, error) {

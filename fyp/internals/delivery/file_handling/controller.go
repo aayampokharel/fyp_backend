@@ -49,19 +49,28 @@ func (c *Controller) HandleGetHTMLFile(request map[string]string) entity.FileRes
 	//
 
 	//templatePath := constants.TemplateBasePath + constants.CertificateTemplate
-	fakeCertificateData, er := c.BlockChainUseCase.GetCertificateData()
+	// fakeCertificateData, er := c.BlockChainUseCase.GetCertificateData()
+	// if er != nil {
+	// 	return common.HandleFileErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
+	// }
+	fakeCertificateData, er := c.BlockChainUseCase.BlockChainRepo.GetBlockByBlockNumber(1)
+
 	if er != nil {
 		return common.HandleFileErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
 	}
 	//! incomplete here: to add institutionid and facultyid in request remove fakeCertificateData later ....
 
-	c.PbftUseCase.SendPBFTMessageToPeer(entity.PBFTMessage{
+	_, er = c.PbftUseCase.SendPBFTMessageToPeer(entity.PBFTMessage{
 		VerificationType: enum.INITIAL,
 		QRVerificationRequestData: entity.QRVerificationRequestData{
-			CertificateHash: []byte(fakeCertificateData.CertificateHash),
-			ClientID:        fakeCertificateData.CertificateID,
+			CertificateHash: []byte(fakeCertificateData.CertificateData[0].CertificateHash),
+			CertificateID:   fakeCertificateData.CertificateData[0].CertificateID,
 		},
 	}, c.currentMappedTCPPort)
+
+	if er != nil {
+		return common.HandleFileErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
+	}
 	// htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", "url", templatePath, *fakeCertificateData, "123", "123")
 	// if er != nil {
 	// 	return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)

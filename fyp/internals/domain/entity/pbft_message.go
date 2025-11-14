@@ -14,5 +14,5 @@ type PBFTMessage struct {
 
 type QRVerificationRequestData struct {
 	CertificateHash []byte `json:"certificate_hash"`
-	ClientID        string `json:"client_id"` //? certificate id or whwt ?
+	CertificateID   string `json:"certificate_id"` //? certificate id or whwt ?
 }

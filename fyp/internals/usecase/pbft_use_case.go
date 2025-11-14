@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"bufio"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"net"
@@ -10,6 +11,7 @@ import (
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
 	"project/internals/domain/service"
+	"project/internals/usecase/helper"
 	"project/package/enum"
 	err "project/package/errors"
 	"project/package/utils/common"
@@ -22,6 +24,7 @@ import (
 type PBFTUseCase struct {
 	SqlRepo                 repository.ISqlRepository
 	NodeRepo                repository.INodeRepository
+	BlockChainRepo          repository.IBlockChainRepository
 	operationCounter        *int
 	Service                 service.Service
 	DigitalSignatureService service.DigitalSignatureService
@@ -30,9 +33,10 @@ type PBFTUseCase struct {
 	countCommitMap          map[int]int
 }
 
-func NewPBFTUseCase(service service.Service, sqlRepo repository.ISqlRepository, nodeRepo repository.INodeRepository, countPrepareMap map[int]int, countCommitMap map[int]int, operationCounter *int, pbftService service.PBFTService) *PBFTUseCase {
+func NewPBFTUseCase(service service.Service, sqlRepo repository.ISqlRepository, nodeRepo repository.INodeRepository, countPrepareMap map[int]int, countCommitMap map[int]int, operationCounter *int, pbftService service.PBFTService, blockchainRepo repository.IBlockChainRepository) *PBFTUseCase {
 	return &PBFTUseCase{
 		SqlRepo:          sqlRepo,
+		BlockChainRepo:   blockchainRepo,
 		NodeRepo:         nodeRepo,
 		Service:          service,
 		countPrepareMap:  countPrepareMap,
@@ -67,8 +71,16 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 
 	case enum.INITIAL: //pre-prepare actual process .( only for leader node)
 		//n.receivedData = pbftMessage.QRVerificationRequestData
-		messageSignature, er := n.DigitalSignatureService.SignMessage(pbftMessage.QRVerificationRequestData)
+		_, hashByte, er := common.HashData(pbftMessage.QRVerificationRequestData)
 		if er != nil {
+			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while hashing data", er)
+			return nil, er
+		}
+		pbftMessage.Digest = hex.EncodeToString(hashByte[:])
+
+		messageSignature, er := n.DigitalSignatureService.SignMessageWithHash(hashByte[:])
+		if er != nil {
+			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while signing message", er)
 			return nil, er
 		}
 		//! insert using HandleData or some function do these things .
@@ -79,12 +91,9 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 		(*n.operationCounter)++
 		pbftMessage.VerificationType = enum.PREPREPARE
 		n.Service.Logger.Infoln("[send_PBFT_Message_to_Peers]:case INITIAL::", pbftMessage)
-		_, hashByte, er := common.HashData(pbftMessage.QRVerificationRequestData)
-		if er != nil {
-			return nil, er
-		}
-		pbftMessage.QRVerificationRequestData.CertificateHash = hashByte
+
 		if _, er := n.PBFTService.MarshalAndBroadcast(pbftMessage, n.PBFTService.PbftPeerPorts, currentMappedTCPPort); er != nil {
+			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while broadcasting", er)
 			return nil, er
 		}
 		//prepare PREPARE case as well :
@@ -93,6 +102,7 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 		pbftMessage.VerificationType = enum.PREPARE
 		pbftMessage.QRVerificationRequestData = entity.QRVerificationRequestData{}
 		if _, er := n.PBFTService.MarshalAndBroadcast(pbftMessage, n.PBFTService.PbftPeerPorts, currentMappedTCPPort); er != nil {
+			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while broadcasting message", er)
 			return nil, er
 		}
 
@@ -101,7 +111,25 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 		if ok := n.PBFTService.IsSequenceNumberCorrect(n.operationCounter, pbftMessage); !ok {
 			return nil, err.ErrNumberMismatch
 		}
+		if ok := helper.VerifyDigitalSignature(env, n.PBFTService.PbftPeerPorts, leaderNodeString, pbftMessage.Digest, pbftMessage.Signature); !ok {
+			n.Service.Logger.Errorln("[send_PBFT_Message_to_Peers]:error in digital signature::", pbftMessage)
+			return nil, err.ErrDigitalSignature
 
+		}
+		//!  i have to extract exact data from blockchian and set result .
+		resultBlock, er := n.BlockChainRepo.ExtractBlockByHashAndCertificateID(string(pbftMessage.QRVerificationRequestData.CertificateHash), pbftMessage.QRVerificationRequestData.CertificateID)
+		if er != nil {
+			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while extracting block by hash and certificate id", er)
+			return nil, er
+		}
+		previousBlock, _ := n.BlockChainRepo.GetBlockByBlockNumber(resultBlock.Header.BlockNumber - 1)
+		if er = n.Service.VerifyBlock(resultBlock, previousBlock); er != nil {
+			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while verifying block", er)
+			return nil, er
+		}
+
+		pbftMessage.Result = true
+		//! other insertions do it in 1 helper method .
 		pbftMessage.VerificationType = enum.PREPARE
 		//n.receivedData = pbftMessage.QRVerificationRequestData
 		pbftMessage.QRVerificationRequestData = entity.QRVerificationRequestData{}
@@ -109,12 +137,14 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 		//pbftMessage.OperationID = *n.operationCounter
 		n.Service.Logger.Infoln("[send_PBFT_Message_to_Peers]:case PREPREPARE::", pbftMessage)
 		if _, er := n.PBFTService.MarshalAndBroadcast(pbftMessage, n.PBFTService.PbftPeerPorts, currentMappedTCPPort); er != nil {
+			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while broadcasting", er)
 			return nil, er
 		}
 
 	case enum.PREPARE: //commit case
 		// n.countPrepareMap[pbftMessage.OperationID]++
 		if ok := n.PBFTService.IsSequenceNumberCorrect(n.operationCounter, pbftMessage); !ok {
+			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while checking sequence number", er)
 			return nil, err.ErrNumberMismatch
 		}
 		countInt := n.countPrepareMap[pbftMessage.OperationID]
@@ -131,6 +161,7 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 		return ackMap, nil
 	case enum.COMMIT:
 		if ok := n.PBFTService.IsSequenceNumberCorrect(n.operationCounter, pbftMessage); !ok {
+			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while checking sequence number", er)
 			return nil, err.ErrNumberMismatch
 		}
 		countInt := n.countCommitMap[pbftMessage.OperationID]
@@ -152,6 +183,7 @@ func (n *PBFTUseCase) ReceivePBFTMessageToPeer(listenPort int, leaderPort int) (
 	//waiting below as listenAndServe.
 	ln, er := net.Listen("tcp", "localhost:"+strconv.Itoa(listenPort))
 	if er != nil {
+
 		n.Service.Logger.Errorw("[node_source] Error: ReceiveBlockFromPeer::", er)
 		return nil, er
 	}

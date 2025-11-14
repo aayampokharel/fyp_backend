@@ -31,8 +31,8 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 	}
 
 	for i := 0; i < len(request.CertificateData); i++ {
-
-		certificateData, er := request.CertificateData[i].ToEntity(request.CategoryID)
+		blockChainLength = c.useCase.GetBlockChainLength()
+		certificateData, er := request.CertificateData[i].ToEntity(request.CategoryID, blockChainLength, i%4)
 		if er != nil {
 			log.Println(er)
 			return common.HandleErrorResponse(400, er.Error(), er)

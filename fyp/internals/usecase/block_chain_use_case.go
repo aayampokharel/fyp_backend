@@ -193,27 +193,3 @@ func (uc *BlockChainUseCase) GetBlockChain() int {
 func (uc *BlockChainUseCase) GetCertificateDataListUseCase(institutionID, institutionFacultyID, categoryID string) ([]entity.CertificateData, error) {
 	return uc.BlockChainRepo.GetCertificateDataList(institutionID, institutionFacultyID, categoryID)
 }
-
-// func (uc *BlockChainUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage) {
-// 	env, err := config.NewEnv()
-// 	if err != nil {
-// 		uc.Service.Logger.Errorln(err)
-// 		return
-// 	}
-
-// 	leaderNode := env.GetValueForKey(constants.PbftLeaderNode)
-// 	leaderNodeInt, er := common.ConvertToInt(leaderNode)
-// 	if er != nil {
-// 		uc.Service.Logger.Errorln(er)
-// 		return
-// 	}
-// 	uc.NodeRepo.SendPBFTMessageToPeer(pbftMessage, leaderNodeInt, common.GetMappedTCPPBFTPort())
-// }
-
-// func (uc *BlockChainUseCase) ReceivePBFTMessageFromPeers(currentTCPPort int) (*entity.PBFTMessage, error) {
-// 	leaderPort := common.GetLeaderPort()
-// 	if leaderPort == nil {
-// 		return nil, errorz.ErrLeaderPort
-// 	}
-// 	return uc.NodeRepo.ReceivePBFTMessageToPeer(common.GetMappedTCPPBFTPort(), *leaderPort)
-// }

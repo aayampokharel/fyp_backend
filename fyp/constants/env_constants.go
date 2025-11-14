@@ -7,7 +7,8 @@ const (
 	DBPassword       = "DB_PASS"
 	PbftLeaderNode   = "PBFT_LEADER_NODE"
 	PbftPortsKey     = "PBFT_PORTS"
-	PublicKeyNode1   = "PUBLIC_KEY_NODE_1"
+	PublicKeyNode1   = "PUBLIC_KEY_NODE_1" //! to make it scalable , convert to []string
 	PublicKeyNode2   = "PUBLIC_KEY_NODE_2"
 	PublicKeyNode3   = "PUBLIC_KEY_NODE_3"
+	PublicKeyNode4   = "PUBLIC_KEY_NODE_4"
 )
