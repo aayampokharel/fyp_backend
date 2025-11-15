@@ -100,14 +100,14 @@ func (m *CreateCertificateDataRequest) ToPdfFileCategoryEntity() (entity.PDFFile
 	}, nil
 }
 
-func (m *MinimalCertificateData) ToEntity(categoryID string, blockNumber int, position int) (*entity.CertificateData, error) {
+func (m *MinimalCertificateData) ToEntity(categoryID string) (*entity.CertificateData, error) {
 	percentageFloat, er := common.ConvertToFloat(*m.Percentage)
 	if er != nil {
 
 		return nil, er
 	}
 	certificateData := entity.CertificateData{
-		BlockNumber:          blockNumber,
+		// BlockNumber:          blockNumber, //being done inside usecase
 		CertificateID:        common.GenerateUUID(16),
 		PDFFileID:            common.GenerateUUID(16),
 		PDFCategoryID:        categoryID,

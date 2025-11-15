@@ -7,6 +7,7 @@ import (
 	"project/internals/domain/repository"
 	"project/internals/domain/service"
 	"project/package/enum"
+	err "project/package/errors"
 	errorz "project/package/errors"
 	"project/package/utils/common"
 )
@@ -192,4 +193,33 @@ func (uc *BlockChainUseCase) GetBlockChain() int {
 }
 func (uc *BlockChainUseCase) GetCertificateDataListUseCase(institutionID, institutionFacultyID, categoryID string) ([]entity.CertificateData, error) {
 	return uc.BlockChainRepo.GetCertificateDataList(institutionID, institutionFacultyID, categoryID)
+}
+
+func (uc *BlockChainUseCase) GetCertificateDataByCertificateIDAndHashUseCase(hash, certificateID string) (entity.CertificateData, error) {
+	extractedBlock, er := uc.BlockChainRepo.ExtractBlockByHashAndCertificateID(hash, certificateID)
+	if er != nil {
+		return entity.CertificateData{}, er
+	}
+
+	for _, blockCertificateData := range extractedBlock.CertificateData {
+		if blockCertificateData.CertificateHash == hash && blockCertificateData.CertificateID == certificateID {
+			return blockCertificateData, nil
+		}
+	}
+	return entity.CertificateData{}, err.ErrVerifyingBlock
+
+}
+
+func (uc *BlockChainUseCase) GetInstitutionIDAndFacultyIDFromCertificateIDAndHashUseCase(certificateID, hash string) (string, string, error) {
+	extractedBlock, er := uc.BlockChainRepo.ExtractBlockByHashAndCertificateID(hash, certificateID)
+	if er != nil {
+		return "", "", er
+	}
+
+	for _, blockCertificateData := range extractedBlock.CertificateData {
+		if blockCertificateData.CertificateHash == hash && blockCertificateData.CertificateID == certificateID {
+			return blockCertificateData.InstitutionID, blockCertificateData.InstitutionFacultyID, nil
+		}
+	}
+	return "", "", err.ErrVerifyingBlock
 }

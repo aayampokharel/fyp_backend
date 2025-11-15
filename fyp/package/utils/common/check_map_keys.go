@@ -69,12 +69,12 @@ func ConvertToFloat(floatStr string) (float64, error) {
 }
 
 func ConvertToRsaPublicKey(publicKey string) (*rsa.PublicKey, error) {
-	fmt.Printf("=== DEBUG ConvertToRsaPublicKey ===\n")
+	//fmt.Printf("=== DEBUG ConvertToRsaPublicKey ===\n")
 	//fmt.Printf("Original publicKey: '%s'\n", publicKey)
 
 	cleanKey := strings.Split(publicKey, " ")[0]
 	cleanKey = strings.TrimSpace(cleanKey)
-	fmt.Printf("After cleaning: '%s'\n", cleanKey)
+	//fmt.Printf("After cleaning: '%s'\n", cleanKey)
 
 	// ✅ Use RSA PUBLIC KEY headers for PKCS#1 format
 	pemKey := "-----BEGIN RSA PUBLIC KEY-----\n" +
@@ -83,16 +83,16 @@ func ConvertToRsaPublicKey(publicKey string) (*rsa.PublicKey, error) {
 
 	//fmt.Printf("PEM key:\n%s\n", pemKey)
 
-	block, rest := pem.Decode([]byte(pemKey))
-	fmt.Printf("PEM decode - block: %v, rest: %v\n", block != nil, string(rest))
+	block, _ := pem.Decode([]byte(pemKey))
+	//fmt.Printf("PEM decode - block: %v, rest: %v\n", block != nil, string(rest))
 
 	if block == nil {
 		fmt.Printf("❌ PEM decode failed with RSA PUBLIC KEY headers\n")
 		return nil, err.ErrConvertToRsa
 	}
 
-	fmt.Printf("PEM Block Type: %s\n", block.Type)
-	fmt.Printf("PEM Block Bytes length: %d\n", len(block.Bytes))
+	//fmt.Printf("PEM Block Type: %s\n", block.Type)
+	//fmt.Printf("PEM Block Bytes length: %d\n", len(block.Bytes))
 
 	// ✅ Use ParsePKCS1PublicKey for PKCS#1 format
 	rsaPub, er := x509.ParsePKCS1PublicKey(block.Bytes)
@@ -101,6 +101,6 @@ func ConvertToRsaPublicKey(publicKey string) (*rsa.PublicKey, error) {
 		return nil, err.ErrConvertToRsa
 	}
 
-	fmt.Printf("✅ Success with ParsePKCS1PublicKey! Key size: %d bits\n", rsaPub.Size()*8)
+	//fmt.Printf("✅ Success with ParsePKCS1PublicKey! Key size: %d bits\n", rsaPub.Size()*8)
 	return rsaPub, nil
 }

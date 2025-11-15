@@ -126,7 +126,8 @@ func connectionWithRetries(tcpPortValString string, retries int) (net.Conn, erro
 func (p *PBFTService) IsSequenceNumberCorrect(operationCounter *int, pbftMessage entity.PBFTMessage) bool {
 
 	if *operationCounter != pbftMessage.OperationID && *operationCounter < pbftMessage.OperationID {
-		//n.operationCounter = &pbftMessage.OperationID
+		p.Logger.Debug("operationid", pbftMessage.OperationID)
+		p.Logger.Debug("operationcounter", *operationCounter)
 		return false
 	}
 	return true

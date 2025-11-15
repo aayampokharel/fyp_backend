@@ -13,6 +13,7 @@ type Env struct {
 	DBPassword     string   `mapstructure:"DB_PASS"`
 	PbftLeaderNode string   `mapstructure:"PBFT_LEADER_NODE"`
 	PbftPorts      []string `mapstructure:"PBFT_PORTS"` //=9500,9501,9502
+	PinggyQrUrl    string   `mapstructure:"PINGGY_QR_URL"`
 	PublicKeyNode1 string   `mapstructure:"PUBLIC_KEY_NODE_1"`
 	PublicKeyNode2 string   `mapstructure:"PUBLIC_KEY_NODE_2"`
 	PublicKeyNode3 string   `mapstructure:"PUBLIC_KEY_NODE_3"`

@@ -50,10 +50,10 @@ func (d *DigitalSignatureService) SignMessageWithHash(hashedData []byte) (string
 }
 
 func privateOrPublicKeyFromBase64DER(keyString string, isTypePrivateKey bool) (*rsa.PrivateKey, *rsa.PublicKey, error) {
-	fmt.Printf("=== DEBUG KEY PARSING ===\n")
-	fmt.Printf("Key length: %d\n", len(keyString))
-	//fmt.Printf("Key: %s\n", keyString)
-	fmt.Printf("First 50 chars: %s\n", safeSubstring(keyString, 0, 50))
+	// fmt.Printf("=== DEBUG KEY PARSING ===\n")
+	// fmt.Printf("Key length: %d\n", len(keyString))
+	// //fmt.Printf("Key: %s\n", keyString)
+	// fmt.Printf("First 50 chars: %s\n", safeSubstring(keyString, 0, 50))
 
 	cleanKey := strings.TrimSpace(keyString)
 

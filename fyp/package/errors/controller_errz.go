@@ -13,6 +13,7 @@ var (
 	ErrInvalidLengthString                 = "error invalid length "
 	ErrRemovingClientString                = "error removing client"
 	ErrGettingCertificateString            = "error getting certificate "
+	ErrParsingCertificateIDString          = "error parsing certificate id"
 	ErrParsingFileString                   = " error parsing file"
 	ErrFileNotFoundString                  = " error file/s not found"
 	ErrDataTypeMismatchString              = " error datatype mismatch"

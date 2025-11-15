@@ -2,6 +2,7 @@ package filehandling
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"project/constants"
 	"project/internals/domain/entity"
 	"project/internals/usecase"
@@ -13,41 +14,62 @@ import (
 )
 
 type Controller struct {
+	PinggyQrUrl          string
 	currentMappedTCPPort int
 	ParseFileUseCase     *usecase.ParseFileUseCase
+	SqlUseCase           *usecase.SqlUseCase
 	BlockChainUseCase    *usecase.BlockChainUseCase
 	PbftUseCase          *usecase.PBFTUseCase
 }
 
-func NewController(parseFileUseCase *usecase.ParseFileUseCase, blockChainUseCase *usecase.BlockChainUseCase, currentMappedTcpPort int, pbftUseCase *usecase.PBFTUseCase) *Controller {
-	return &Controller{ParseFileUseCase: parseFileUseCase, BlockChainUseCase: blockChainUseCase, currentMappedTCPPort: currentMappedTcpPort, PbftUseCase: pbftUseCase}
+func NewController(parseFileUseCase *usecase.ParseFileUseCase, blockChainUseCase *usecase.BlockChainUseCase, currentMappedTcpPort int, pbftUseCase *usecase.PBFTUseCase, pingyUrl string, sqlUseCase *usecase.SqlUseCase) *Controller {
+	return &Controller{ParseFileUseCase: parseFileUseCase, BlockChainUseCase: blockChainUseCase, currentMappedTCPPort: currentMappedTcpPort, PbftUseCase: pbftUseCase, PinggyQrUrl: pingyUrl, SqlUseCase: sqlUseCase}
 }
 
 func (c *Controller) HandleGetHTMLFile(request map[string]string) entity.FileResponse {
 	c.BlockChainUseCase.Service.Logger.Debugln("currentPORT selected:", c.currentMappedTCPPort)
 
-	fakeCertificateData, er := c.BlockChainUseCase.BlockChainRepo.GetBlockByBlockNumber(1)
-
+	requestMap, er := common.CheckMapKeysReturnValues(request, GetHTMLRequestQuery)
 	if er != nil {
-		return common.HandleFileErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
+		return common.HandleFileErrorResponse(400, err.ErrParsingQueryParametersString, er)
 	}
-	//! incomplete here: to add institutionid and facultyid in request remove fakeCertificateData later ....
 
+	hashString := requestMap[CertificateHash]
+	hashBytes, er := hex.DecodeString(hashString)
+	if er != nil {
+		return common.HandleFileErrorResponse(500, err.ErrParsingCertificateIDString, er)
+	}
+	certificateID := requestMap[CertificateID]
 	pbftExecuteResult := make(chan entity.PBFTExecutionResultEntity)
 	c.PbftUseCase.SendPBFTMessageToPeer(entity.PBFTMessage{
 		VerificationType: enum.INITIAL,
 		QRVerificationRequestData: entity.QRVerificationRequestData{
-			CertificateHash: []byte(fakeCertificateData.CertificateData[0].CertificateHash),
-			CertificateID:   fakeCertificateData.CertificateData[0].CertificateID,
+			CertificateHash: hashBytes,
+			CertificateID:   certificateID,
 		},
 	}, c.currentMappedTCPPort, pbftExecuteResult)
 
 	select {
 	case result := <-pbftExecuteResult:
 		if result.Result {
-			fakeCertificateData, _ := c.BlockChainUseCase.GetCertificateData()
+
+			resultCertificateData, er := c.BlockChainUseCase.GetCertificateDataByCertificateIDAndHashUseCase(hashString, certificateID)
+			if er != nil {
+				return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
+			}
+			institutionID := resultCertificateData.InstitutionID
+			institutionFacultyID := resultCertificateData.InstitutionFacultyID
+			// institutionID, institutionFacultyID, er := c.BlockChainUseCase.GetInstitutionIDAndFacultyIDFromCertificateIDAndHashUseCase(certificateID, hashString)
+
+			institutionLogo, authorityNameWithSignature, er := c.SqlUseCase.GetAllLogosForCertificateUseCase(institutionID, institutionFacultyID)
+			if er != nil {
+				return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
+			}
+
+			// fakeCertificateData, _ := c.BlockChainUseCase.GetCertificateData()
 			templatePath := constants.TemplateBasePath + constants.CertificateTemplate
-			htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML(request[CertificateID], "url", templatePath, *fakeCertificateData, "123", "123")
+			qrUrl := c.PinggyQrUrl
+			htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML(certificateID, hashString, qrUrl, templatePath, resultCertificateData, institutionLogo, authorityNameWithSignature)
 			if er != nil {
 				return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
 			}

@@ -75,12 +75,12 @@ func main() {
 	// -------------------------------
 	// 5️⃣ Initialize Modules
 	// -------------------------------
-	blockchainModule := delivery.NewModule(memSource, nodeSource, sqlSource)
+	blockchainModule := delivery.NewModule(memSource, nodeSource, sqlSource, env)
 	authModule := auth_delivery.NewModule(sqlSource, institutionChannel, channelMap, sseService)
 	sseUseCase := usecase.NewSSEUseCase(sqlSource, sseService)
 	sseModule := sse.NewModule(sqlSource, sseService, sseUseCase)
 	adminModule := admin.NewModule(sqlSource, *svc, sseService)
-	fileHandlingModule := filehandling.NewModule(*svc, memSource, nodeSource, pbftTcpPort, countPrepareMap, countCommitMap, &operationCounter, sqlSource, *pbftService, operationChannelMap)
+	fileHandlingModule := filehandling.NewModule(*svc, memSource, nodeSource, pbftTcpPort, countPrepareMap, countCommitMap, &operationCounter, sqlSource, *pbftService, operationChannelMap, env)
 	categoryModule := category.NewModule(sqlSource, *svc)
 
 	// -------------------------------

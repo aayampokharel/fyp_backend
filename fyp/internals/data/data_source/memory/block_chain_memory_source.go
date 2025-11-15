@@ -109,6 +109,9 @@ func (b *BlockChainMemorySource) InsertCertificateIntoBlock(certificate *entity.
 		return nil, -1, err
 	}
 	block.CertificateData[nextIndex] = *certificate
+	block.CertificateData[nextIndex].BlockNumber = block.Header.BlockNumber
+	block.CertificateData[nextIndex].Position = nextIndex
+
 	b.logger.Infoln("[block_chain_memory_source] Info: InsertCertificateIntoBlock::", block)
 	return &block, nextIndex + 1, nil
 }

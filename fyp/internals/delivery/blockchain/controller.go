@@ -31,8 +31,7 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 	}
 
 	for i := 0; i < len(request.CertificateData); i++ {
-		blockChainLength = c.useCase.GetBlockChainLength()
-		certificateData, er := request.CertificateData[i].ToEntity(request.CategoryID, blockChainLength, i%4)
+		certificateData, er := request.CertificateData[i].ToEntity(request.CategoryID)
 		if er != nil {
 			log.Println(er)
 			return common.HandleErrorResponse(400, er.Error(), er)
@@ -67,7 +66,7 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 			return common.HandleErrorResponse(500, er.Error(), er)
 		}
 
-		htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", "url", templatePath, *certificateData, institutionLogo, authorityNameWithSignature)
+		htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", certificateData.CertificateHash, "url", templatePath, *certificateData, institutionLogo, authorityNameWithSignature)
 		if er != nil {
 			return common.HandleErrorResponse(422, err.ErrParsingFileString, er)
 		}

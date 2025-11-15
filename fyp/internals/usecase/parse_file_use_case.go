@@ -1,25 +1,30 @@
 package usecase
 
 import (
+	"project/constants"
+	"project/internals/data/config"
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
 	"project/internals/domain/service"
 )
 
 type ParseFileUseCase struct {
+	env     *config.Env
 	SqlRepo repository.ISqlRepository
 	Service service.Service
 }
 
-func NewParseFileUseCase(service service.Service, sqlRepo repository.ISqlRepository) *ParseFileUseCase {
+func NewParseFileUseCase(service service.Service, env *config.Env, sqlRepo repository.ISqlRepository) *ParseFileUseCase {
 	return &ParseFileUseCase{
 		Service: service,
 		SqlRepo: sqlRepo,
+		env:     env,
 	}
 }
 
-func (uc *ParseFileUseCase) GenerateCertificateHTML(id, url, templatePath string, certificateData entity.CertificateData, institutionLogo, authorityNameWithSignature string) (string, error) {
-	qrCodeBase64, er := uc.Service.GenerateQRCodeBase64(id, url)
+func (uc *ParseFileUseCase) GenerateCertificateHTML(id, hash, url, templatePath string, certificateData entity.CertificateData, institutionLogo, authorityNameWithSignature string) (string, error) {
+	qrUrl := uc.env.GetValueForKey(constants.PinggyQrUrl)
+	qrCodeBase64, er := uc.Service.GenerateQRCodeBase64(id, hash, qrUrl)
 	if er != nil {
 		return "", er
 	}

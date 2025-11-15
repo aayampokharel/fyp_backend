@@ -12,10 +12,10 @@ import (
 )
 
 func VerifyDigitalSignature(env *config.Env, currentNode string, dataHash []byte, signatureString string) bool {
-	fmt.Printf("=== DEBUG VerifyDigitalSignature ===\n")
-	fmt.Printf("Current node: %s\n", currentNode)
-	fmt.Printf("DataHash length: %d\n", len(dataHash))
-	fmt.Printf("Signature length: %d\n", len(signatureString))
+	// fmt.Printf("=== DEBUG VerifyDigitalSignature ===\n")
+	// fmt.Printf("Current node: %s\n", currentNode)
+	// fmt.Printf("DataHash length: %d\n", len(dataHash))
+	// fmt.Printf("Signature length: %d\n", len(signatureString))
 
 	// 1) Resolve public key for leader
 	var publicKeyValueFromEnv string
@@ -38,7 +38,7 @@ func VerifyDigitalSignature(env *config.Env, currentNode string, dataHash []byte
 		fmt.Printf("❌ Public key conversion failed: %v\n", er)
 		return false
 	}
-	fmt.Printf("✅ Public key parsed successfully\n")
+	//fmt.Printf("✅ Public key parsed successfully\n")
 
 	// 2) Decode signature from base64
 	signatureBytes, er := base64.StdEncoding.DecodeString(signatureString)
@@ -46,7 +46,7 @@ func VerifyDigitalSignature(env *config.Env, currentNode string, dataHash []byte
 		fmt.Printf("❌ Signature base64 decode failed: %v\n", er)
 		return false
 	}
-	fmt.Printf("✅ Signature decoded, length: %d bytes\n", len(signatureBytes))
+	//fmt.Printf("✅ Signature decoded, length: %d bytes\n", len(signatureBytes))
 
 	// 3) Interpret dataHash:
 	// If dataHash is already 32 bytes, assume it's SHA256 digest
@@ -54,11 +54,11 @@ func VerifyDigitalSignature(env *config.Env, currentNode string, dataHash []byte
 	var hashed []byte
 	if len(dataHash) == 32 {
 		hashed = dataHash
-		fmt.Printf("✅ DataHash is already 32-byte SHA256 digest\n")
+		//fmt.Printf("✅ DataHash is already 32-byte SHA256 digest\n")
 	} else {
 		sum := sha256.Sum256(dataHash)
 		hashed = sum[:]
-		fmt.Printf("ℹ️ DataHash computed SHA256: %x\n", hashed)
+		//fmt.Printf("ℹ️ DataHash computed SHA256: %x\n", hashed)
 	}
 
 	// 4) Verify signature: pass the *digest* bytes directly (do NOT hash again)
@@ -68,6 +68,6 @@ func VerifyDigitalSignature(env *config.Env, currentNode string, dataHash []byte
 		return false
 	}
 
-	fmt.Printf("✅ Signature verification SUCCESSFUL!\n")
+	//fmt.Printf("✅ Signature verification SUCCESSFUL!\n")
 	return true
 }

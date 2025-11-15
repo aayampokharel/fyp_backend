@@ -14,6 +14,7 @@ import (
 	"project/package/utils/common"
 	"strconv"
 	"strings"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -84,6 +85,7 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 
 	case enum.INITIAL: //pre-prepare actual process .( only for leader node)
 		//n.receivedData = pbftMessage.QRVerificationRequestData
+
 		_, hashByte, er := common.HashData(pbftMessage.QRVerificationRequestData)
 		if er != nil {
 			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while hashing data", er)
@@ -94,15 +96,13 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while signing message", er)
 			return
 		}
-		//! insert using HandleData or some function do these things...
 		pbftMessage.Digest = hashByte
 		pbftMessage.NodeID = currentMappedTCPPort
 		pbftMessage.Signature = messageSignature
 		pbftMessage.OperationID = *n.operationCounter
-		n.operationChannels[*n.operationCounter] = pbftChan
-		//n.lastSequenceNumber = *n.operationCounter
-		// ////never like this
 		(*n.operationCounter)++
+		n.operationChannels[pbftMessage.OperationID] = pbftChan
+
 		pbftMessage.VerificationType = enum.PREPREPARE
 		//n.Service.Logger.Infoln("[send_PBFT_Message_to_Peers]:case INITIAL::", pbftMessage)
 
@@ -121,12 +121,14 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 		}
 
 	case enum.PREPREPARE: //prepare case
+		// if pbftMessage.OperationID >= *n.operationCounter {
+		// 	*n.operationCounter = pbftMessage.OperationID
+		// }
 
-		if ok := n.PBFTService.IsSequenceNumberCorrect(n.operationCounter, pbftMessage); !ok {
-			return
-		}
+		// if ok := n.PBFTService.IsSequenceNumberCorrect(n.operationCounter, pbftMessage); !ok {
+		// 	return
+		// }
 
-		n.Service.Logger.Infoln("node printing::", pbftMessage.NodeID)
 		if ok := helper.VerifyDigitalSignature(env, strconv.Itoa(pbftMessage.NodeID), pbftMessage.Digest, pbftMessage.Signature); !ok {
 			n.Service.Logger.Errorln("[send_PBFT_Message_to_Peers]:error in digital signature::", pbftMessage)
 			n.Service.Logger.Infoln("[send_PBFT_Message_to_Peers]:node nu", pbftMessage.NodeID)
@@ -174,10 +176,10 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 
 	case enum.PREPARE: //commit case
 		// n.countPrepareMap[pbftMessage.OperationID]++
-		if ok := n.PBFTService.IsSequenceNumberCorrect(n.operationCounter, pbftMessage); !ok {
-			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while checking sequence number", er)
-			return
-		}
+		// if ok := n.PBFTService.IsSequenceNumberCorrect(n.operationCounter, pbftMessage); !ok {
+		// 	n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while checking sequence number", er)
+		// 	return
+		// }
 		if ok := helper.VerifyDigitalSignature(env, strconv.Itoa(pbftMessage.NodeID), pbftMessage.Digest, pbftMessage.Signature); !ok {
 			n.Service.Logger.Errorln("[send_PBFT_Message_to_Peers]:error in digital signature::", pbftMessage)
 			n.Service.Logger.Infoln("[send_PBFT_Message_to_Peers]:NODE NO ", pbftMessage.NodeID)
@@ -210,10 +212,10 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 		}
 
 	case enum.COMMIT:
-		if ok := n.PBFTService.IsSequenceNumberCorrect(n.operationCounter, pbftMessage); !ok {
-			n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while checking sequence number", er)
-			return
-		}
+		// if ok := n.PBFTService.IsSequenceNumberCorrect(n.operationCounter, pbftMessage); !ok {
+		// 	n.PBFTService.Logger.Errorln("[send_pbft_message_to_peer]:: Error while checking sequence number", er)
+		// 	return
+		// }
 		if ok := helper.VerifyDigitalSignature(env, strconv.Itoa(pbftMessage.NodeID), pbftMessage.Digest, pbftMessage.Signature); !ok {
 			n.Service.Logger.Errorln("[send_PBFT_Message_to_Peers]:error in digital signature::", pbftMessage)
 			return
@@ -228,7 +230,15 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 
 			ch, exists := n.operationChannels[pbftMessage.OperationID]
 			if exists && ch != nil {
-				ch <- entity.NewPBFTExecutionResultEntity(true, nil)
+				n.Service.Logger.Infoln("[send_PBFT_Message_to_Peers]:case COMMIT after count::", "SUCCESSSS!!!!!")
+				go func() {
+					select {
+					case ch <- entity.NewPBFTExecutionResultEntity(true, nil):
+						n.Service.Logger.Infoln("Successfully sent to channel")
+					case <-time.After(1 * time.Second):
+						n.Service.Logger.Warn("Timeout sending to channel")
+					}
+				}()
 			} else {
 				// this is a replica node
 				n.Service.Logger.Infoln("Replica node COMMIT reached, ignoring channel send")
@@ -258,7 +268,7 @@ func (n *PBFTUseCase) ReceivePBFTMessageToPeer(listenPort int) (*entity.PBFTMess
 			pbftMessageResponse := entity.PBFTMessage{}
 			var pbftMessageJSON []byte
 			defer func() {
-				n.Service.Logger.Infow("CONNECTION CLOSED BY RECEIVER", zap.Int("port", listenPort))
+				n.Service.Logger.Infow("CONNECTION CLOSED BY RECEIVER", listenPort)
 				conn.Close()
 
 			}()
@@ -305,7 +315,9 @@ func (n *PBFTUseCase) ReceivePBFTMessageToPeer(listenPort int) (*entity.PBFTMess
 				countInt := n.countPrepareMap[pbftMessageResponse.OperationID]
 				if countInt >= 2 {
 					//execution of the service.
-					n.Service.Logger.Debugw("pbft message json for enum.COMMIT::", pbftMessageJSON)
+					n.Service.Logger.Debugw("pbft message json for enum.COMMIT::", "operation_id", pbftMessageResponse.OperationID,
+						"node_id", pbftMessageResponse.NodeID,
+						"verification_type", pbftMessageResponse.VerificationType)
 				}
 			}
 			// _, ok := n.operationChannels[pbftMessageResponse.OperationID]
