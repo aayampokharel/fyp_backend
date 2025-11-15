@@ -2,7 +2,6 @@ package common
 
 import (
 	"flag"
-	"fmt"
 	"project/constants"
 	"project/internals/data/config"
 	logger "project/package/utils/pkg"
@@ -15,7 +14,7 @@ var privateKey = flag.String("private-key", "", "Private key for this node")
 
 func GetPrivatekey() *string {
 	// flag.Parse()
-	fmt.Println("private KEY____::::::", *privateKey)
+	// fmt.Println("private KEY____::::::", *privateKey)
 	return privateKey
 }
 func GetPort() *int {

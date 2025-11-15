@@ -31,7 +31,7 @@ func main() {
 	// -------------------------------
 	logger.InitLogger()
 	flag.Parse()
-	fmt.Println("Private key:", *common.GetPrivatekey())
+	// fmt.Println("Private key:", *common.GetPrivatekey())
 
 	currentPort := common.GetPort()
 	tcpPort := *currentPort + 1000
@@ -55,6 +55,7 @@ func main() {
 	// -------------------------------
 	institutionChannel := make(chan entity.Institution)
 	channelMap := make(map[string]chan<- entity.Institution)
+	operationChannelMap := make(map[int]chan entity.PBFTExecutionResultEntity)
 
 	// -------------------------------
 	// 3️⃣ Initialize Data Sources
@@ -79,7 +80,7 @@ func main() {
 	sseUseCase := usecase.NewSSEUseCase(sqlSource, sseService)
 	sseModule := sse.NewModule(sqlSource, sseService, sseUseCase)
 	adminModule := admin.NewModule(sqlSource, *svc, sseService)
-	fileHandlingModule := filehandling.NewModule(*svc, memSource, nodeSource, pbftTcpPort, countPrepareMap, countCommitMap, &operationCounter, sqlSource, *pbftService)
+	fileHandlingModule := filehandling.NewModule(*svc, memSource, nodeSource, pbftTcpPort, countPrepareMap, countCommitMap, &operationCounter, sqlSource, *pbftService, operationChannelMap)
 	categoryModule := category.NewModule(sqlSource, *svc)
 
 	// -------------------------------
@@ -110,7 +111,7 @@ func main() {
 	// 7️⃣ Initialize Use Cases
 	// -------------------------------
 	blockChainUseCase := usecase.NewBlockChainUseCase(memSource, nodeSource, sqlSource, *svc)
-	pbftUseCase := usecase.NewPBFTUseCase(*svc, sqlSource, nodeSource, countPrepareMap, countCommitMap, &operationCounter, *pbftService, memSource)
+	pbftUseCase := usecase.NewPBFTUseCase(*svc, sqlSource, nodeSource, countPrepareMap, countCommitMap, &operationCounter, *pbftService, memSource, operationChannelMap)
 
 	// -------------------------------
 	// 8️⃣ Start background goroutines
@@ -139,14 +140,14 @@ func receiveBlocks(uc *usecase.BlockChainUseCase, tcpPort int) {
 }
 func receivePbftMessage(env *config.Env, uc *usecase.PBFTUseCase, pbftTcpPort int) {
 	// uc.Service.Logger.Infoln("stated in port::", pbftTcpPort)
-	leaderNodeString := env.GetValueForKey(constants.PbftLeaderNode)
-	leaderNode, er := common.ConvertToInt(leaderNodeString)
-	if er != nil {
-		logger.Logger.Errorw("[node_source] Error receiving pbft message", zap.Error(er))
-		fmt.Println("Error receiving block from peer:", er)
-		return
-	}
-	if _, er := uc.ReceivePBFTMessageToPeer(pbftTcpPort, leaderNode); er != nil {
+	// leaderNodeString := env.GetValueForKey(constants.PbftLeaderNode)
+	// leaderNode, er := common.ConvertToInt(leaderNodeString)
+	// if er != nil {
+	// 	logger.Logger.Errorw("[node_source] Error receiving pbft message", zap.Error(er))
+	// 	fmt.Println("Error receiving block from peer:", er)
+	// 	return
+	// }
+	if _, er := uc.ReceivePBFTMessageToPeer(pbftTcpPort); er != nil {
 		logger.Logger.Errorw("[node_source] Error receiving pbft message", zap.Error(er))
 		fmt.Println("Error receiving block from peer:", er)
 	}

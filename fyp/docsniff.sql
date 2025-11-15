@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS  blocks(
     previous_hash VARCHAR(255) NOT NULL,
     nonce VARCHAR(255) NOT NULL,
     current_hash VARCHAR(255) UNIQUE NOT NULL,
-    merkle_root VARCHAR(255) NOT NULL,
+    merkle_root VARCHAR(255) NOT NULL,    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

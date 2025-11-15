@@ -2,12 +2,14 @@ package filehandling
 
 import (
 	"encoding/base64"
+	"project/constants"
 	"project/internals/domain/entity"
 	"project/internals/usecase"
 	"project/package/enum"
 	err "project/package/errors"
 	"project/package/utils/common"
 	"strings"
+	"time"
 )
 
 type Controller struct {
@@ -21,38 +23,9 @@ func NewController(parseFileUseCase *usecase.ParseFileUseCase, blockChainUseCase
 	return &Controller{ParseFileUseCase: parseFileUseCase, BlockChainUseCase: blockChainUseCase, currentMappedTCPPort: currentMappedTcpPort, PbftUseCase: pbftUseCase}
 }
 
-// func (c *Controller) HandleCreatePDFFile(request )
-//creation of pdf should be handled from blockchain package .
-
 func (c *Controller) HandleGetHTMLFile(request map[string]string) entity.FileResponse {
+	c.BlockChainUseCase.Service.Logger.Debugln("currentPORT selected:", c.currentMappedTCPPort)
 
-	//// in preview dont show this :
-	//  <div class="block-info">
-	//     Block: {{.BlockNumber}}<br>
-	//     Position: {{.Position}}
-	// </div>
-	//===============================================
-	// 	<div class="verification-info">
-	//   <h3>Blockchain Verification Details</h3>
-	//   <p><strong>Block Number:</strong> {{.BlockNumber}}</p>
-	//   <p><strong>Transaction Index:</strong> {{.Position}}</p>
-	//   <p><strong>Data Hash:</strong> {{.DataHash}}</p>
-	// </div>
-	//// but for /verify/ show this as well not for preview/download feature.
-
-	//! extract type of certificate in future implementation
-	//// add college seal section in database .
-	//
-	//
-	//
-	//
-	//
-
-	//templatePath := constants.TemplateBasePath + constants.CertificateTemplate
-	// fakeCertificateData, er := c.BlockChainUseCase.GetCertificateData()
-	// if er != nil {
-	// 	return common.HandleFileErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
-	// }
 	fakeCertificateData, er := c.BlockChainUseCase.BlockChainRepo.GetBlockByBlockNumber(1)
 
 	if er != nil {
@@ -60,23 +33,39 @@ func (c *Controller) HandleGetHTMLFile(request map[string]string) entity.FileRes
 	}
 	//! incomplete here: to add institutionid and facultyid in request remove fakeCertificateData later ....
 
-	_, er = c.PbftUseCase.SendPBFTMessageToPeer(entity.PBFTMessage{
+	pbftExecuteResult := make(chan entity.PBFTExecutionResultEntity)
+	c.PbftUseCase.SendPBFTMessageToPeer(entity.PBFTMessage{
 		VerificationType: enum.INITIAL,
 		QRVerificationRequestData: entity.QRVerificationRequestData{
 			CertificateHash: []byte(fakeCertificateData.CertificateData[0].CertificateHash),
 			CertificateID:   fakeCertificateData.CertificateData[0].CertificateID,
 		},
-	}, c.currentMappedTCPPort)
+	}, c.currentMappedTCPPort, pbftExecuteResult)
 
-	if er != nil {
-		return common.HandleFileErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
+	select {
+	case result := <-pbftExecuteResult:
+		if result.Result {
+			fakeCertificateData, _ := c.BlockChainUseCase.GetCertificateData()
+			templatePath := constants.TemplateBasePath + constants.CertificateTemplate
+			htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML(request[CertificateID], "url", templatePath, *fakeCertificateData, "123", "123")
+			if er != nil {
+				return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
+			}
+
+			return common.HandleFileSuccessResponse(enum.HTML, "certificate.html", []byte(htmlString))
+
+		}
+
+	case <-time.After(20 * time.Second):
+		return common.HandleFileErrorResponse(500, err.ErrParsingFileString, nil)
 	}
-	// htmlString, er := c.ParseFileUseCase.GenerateCertificateHTML("123", "url", templatePath, *fakeCertificateData, "123", "123")
+	return common.HandleFileErrorResponse(500, err.ErrParsingFileString, nil)
+
 	// if er != nil {
 	// 	return common.HandleFileErrorResponse(500, err.ErrParsingFileString, er)
 	// }
 
-	return common.HandleFileSuccessResponse(enum.HTML, "", []byte("helllo change this string to variable "))
+	// return common.HandleFileSuccessResponse(enum.HTML, "", []byte("helllo change this string to variable "))
 
 }
 

@@ -3,6 +3,7 @@ package common
 import (
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	err "project/package/errors"
@@ -34,6 +35,16 @@ func ConvertToBool(boolStr string) (bool, error) {
 	}
 	return val, nil
 }
+func ConvertDigestHexToBytes(hexDigest string) ([]byte, error) {
+	cleanDigest := strings.TrimPrefix(hexDigest, "0x")
+
+	digestBytes, err := hex.DecodeString(cleanDigest)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode hex digest: %v", err)
+	}
+
+	return digestBytes, nil
+}
 
 func ConvertToInt(intStr string) (int, error) {
 	if intStr == "" {
@@ -59,7 +70,7 @@ func ConvertToFloat(floatStr string) (float64, error) {
 
 func ConvertToRsaPublicKey(publicKey string) (*rsa.PublicKey, error) {
 	fmt.Printf("=== DEBUG ConvertToRsaPublicKey ===\n")
-	fmt.Printf("Original publicKey: '%s'\n", publicKey)
+	//fmt.Printf("Original publicKey: '%s'\n", publicKey)
 
 	cleanKey := strings.Split(publicKey, " ")[0]
 	cleanKey = strings.TrimSpace(cleanKey)
@@ -70,7 +81,7 @@ func ConvertToRsaPublicKey(publicKey string) (*rsa.PublicKey, error) {
 		cleanKey + "\n" +
 		"-----END RSA PUBLIC KEY-----"
 
-	fmt.Printf("PEM key:\n%s\n", pemKey)
+	//fmt.Printf("PEM key:\n%s\n", pemKey)
 
 	block, rest := pem.Decode([]byte(pemKey))
 	fmt.Printf("PEM decode - block: %v, rest: %v\n", block != nil, string(rest))
