@@ -33,4 +33,5 @@ type ISqlRepository interface {
 	GetFacultyListInfoFromInstitutionID(institutionID string) ([]entity.InstitutionFaculty, error)
 	GetInstitutionsForUser(userID string) ([]entity.Institution, error)
 	GetAllLogosForCertificate(institutionID string, facultyID string) (institutionLogo string, authorityJSON string, er error)
+	GetFacultiesForInstitutionID(institutionID string) ([]entity.InstitutionFaculty, error)
 }

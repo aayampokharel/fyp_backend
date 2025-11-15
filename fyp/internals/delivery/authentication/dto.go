@@ -90,10 +90,12 @@ func (c *CreateInstitutionRequest) ToEntity() entity.Institution {
 // }
 
 type CheckInstitutionIsActiveDto []string
+type GetInstitutionFacultiesDto []string
 
 const InstitutionID = "institution_id"
 
 var CheckInstitutionIsActiveQuery = CheckInstitutionIsActiveDto{InstitutionID}
+var GetInstitutionFacultiesQuery = GetInstitutionFacultiesDto{InstitutionID}
 
 type CheckInstitutionIsActiveResponse struct {
 	InstitutionID   string                      `json:"institution_id"`

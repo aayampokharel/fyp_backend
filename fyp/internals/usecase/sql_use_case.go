@@ -113,3 +113,6 @@ func (uc *SqlUseCase) GetFacultyListUseCase(institutionID string) ([]entity.Inst
 func (uc *SqlUseCase) GetAllLogosForCertificateUseCase(institutionID, facultyID string) (string, string, error) {
 	return uc.SqlRepo.GetAllLogosForCertificate(institutionID, facultyID)
 }
+func (uc *SqlUseCase) GetFacultiesForInstitutionIDUseCase(institutionID string) ([]entity.InstitutionFaculty, error) {
+	return uc.SqlRepo.GetFacultiesForInstitutionID(institutionID)
+}

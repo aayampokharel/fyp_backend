@@ -139,3 +139,18 @@ func (c *Controller) HandleInstitutionsLogin(request InstitutionLoginRequest) en
 	return common.HandleSuccessResponse(InstitutionLoginResponse{UserID: userID, CreatedAt: createdAt.Format(time.RFC3339), InstitutionList: institutionList})
 
 }
+
+func (c *Controller) HandleGetFacultiesForInstitutionID(request map[string]string) entity.Response {
+	requestMap, er := common.CheckMapKeysReturnValues(request, GetInstitutionFacultiesQuery)
+	if er != nil {
+		return common.HandleErrorResponse(400, err.ErrParsingQueryParametersString, er)
+	}
+
+	institutionID := requestMap[InstitutionID]
+	faculties, er := c.useCase.GetFacultiesForInstitutionIDUseCase(institutionID)
+	if er != nil {
+		return common.HandleErrorResponse(500, er.Error(), er)
+	}
+	return common.HandleSuccessResponse(faculties)
+
+}

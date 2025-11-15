@@ -646,3 +646,54 @@ func (s *SQLSource) GetAllLogosForCertificate(institutionID string, facultyID st
 	}
 	return logoBase64, authorityJSON, nil
 }
+
+func (s *SQLSource) GetFacultiesForInstitutionID(institutionID string) ([]entity.InstitutionFaculty, error) {
+	var faculties []entity.InstitutionFaculty
+
+	query := `
+        SELECT 
+            institution_faculty_id,
+            institution_id,
+            faculty_name,
+            faculty_public_key,
+            university_affiliation,
+            university_college_code,
+            faculty_authority_with_signature
+        FROM institution_faculty 
+        WHERE institution_id = $1
+    `
+
+	rows, err := s.DB.Query(query, institutionID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute query: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var faculty entity.InstitutionFaculty
+		var authorityWithSignatureJSON sql.NullString
+
+		err := rows.Scan(
+			&faculty.InstitutionFacultyID,
+			&faculty.InstitutionID,
+			&faculty.FacultyName,
+			&faculty.FacultyPublicKey,
+			&faculty.UniversityAffiliation,
+			&faculty.UniversityCollegeCode,
+			&authorityWithSignatureJSON,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		faculty.FacultyAuthorityWithSignatures = []map[string]string{}
+
+		faculties = append(faculties, faculty)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	return faculties, nil
+}
