@@ -8,9 +8,10 @@ type AdminLoginRequest struct {
 }
 
 type AdminLoginResponse struct {
-	UserID          string               `json:"user_id"`
-	CreatedAt       string               `json:"created_at"`
-	InstitutionList []entity.Institution `json:"institution_list"`
+	UserID                     string                            `json:"user_id"`
+	CreatedAt                  string                            `json:"created_at"`
+	InstitutionList            []entity.Institution              `json:"institution_list"`
+	AdminDashboardCountDetails entity.AdminDashboardCountsEntity `json:"admin_dashboard_count_details"`
 
 	////many more nested maps
 }

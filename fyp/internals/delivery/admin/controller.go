@@ -28,7 +28,15 @@ func (c *Controller) HandleAdminLogin(AdminLoginRequest AdminLoginRequest) entit
 	if er != nil {
 		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
 	}
-	return common.HandleSuccessResponse(AdminLoginResponse{UserID: adminLoginResponse.UserID, CreatedAt: adminLoginResponse.CreatedTime.Format(time.RFC3339), InstitutionList: adminLoginResponse.InstitutionList})
+
+	adminDashboardDetails, er := c.sqlUseCase.GetAdminDetailsUseCase(userID, enum.ADMIN)
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
+	}
+	if adminDashboardDetails == nil {
+		adminDashboardDetails = &entity.AdminDashboardCountsEntity{}
+	}
+	return common.HandleSuccessResponse(AdminLoginResponse{UserID: adminLoginResponse.UserID, CreatedAt: adminLoginResponse.CreatedTime.Format(time.RFC3339), InstitutionList: adminLoginResponse.InstitutionList, AdminDashboardCountDetails: *adminDashboardDetails})
 
 }
 

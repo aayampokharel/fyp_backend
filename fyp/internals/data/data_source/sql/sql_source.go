@@ -697,3 +697,82 @@ func (s *SQLSource) GetFacultiesForInstitutionID(institutionID string) ([]entity
 
 	return faculties, nil
 }
+
+func (db *SQLSource) GetAdminDashboardCounts(adminID string) (*entity.AdminDashboardCountsEntity, error) {
+	var exists int
+	err := db.DB.QueryRow(`
+		SELECT COUNT(*) 
+		FROM user_accounts 
+		WHERE id = $1 AND system_role = 'ADMIN' AND deleted_at IS NULL
+	`, adminID).Scan(&exists)
+	if err != nil {
+		return nil, err
+	}
+	if exists == 0 {
+		return nil, fmt.Errorf("admin not found or deleted")
+	}
+
+	counts := &entity.AdminDashboardCountsEntity{}
+
+	err = db.DB.QueryRow(`SELECT COUNT(*) FROM institutions WHERE deleted_at IS NULL`).Scan(&counts.ActiveInstitutions)
+	if err != nil {
+		return nil, err
+	}
+	err = db.DB.QueryRow(`SELECT COUNT(*) FROM institutions WHERE deleted_at IS NOT NULL`).Scan(&counts.DeletedInstitutions)
+	if err != nil {
+		return nil, err
+	}
+	err = db.DB.QueryRow(`SELECT COUNT(*) FROM institutions WHERE is_signup_completed = TRUE`).Scan(&counts.SignedUpInstitutions)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.DB.QueryRow(`SELECT COUNT(*) FROM institution_faculty`).Scan(&counts.TotalFaculties)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.DB.QueryRow(`SELECT COUNT(*) FROM user_accounts WHERE deleted_at IS NULL`).Scan(&counts.ActiveUsers)
+	if err != nil {
+		return nil, err
+	}
+	err = db.DB.QueryRow(`SELECT COUNT(*) FROM user_accounts WHERE deleted_at IS NOT NULL`).Scan(&counts.DeletedUsers)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.DB.QueryRow(`SELECT COUNT(*) FROM user_accounts WHERE system_role='ADMIN' AND deleted_at IS NULL`).Scan(&counts.ActiveAdmins)
+	if err != nil {
+		return nil, err
+	}
+	err = db.DB.QueryRow(`SELECT COUNT(*) FROM user_accounts WHERE system_role='INSTITUTE' AND deleted_at IS NULL`).Scan(&counts.ActiveInstitutes)
+	if err != nil {
+		return nil, err
+	}
+
+	// PDF categories
+	err = db.DB.QueryRow(`SELECT COUNT(*) FROM pdf_file_categories`).Scan(&counts.TotalPDFCategories)
+	if err != nil {
+		return nil, err
+	}
+
+	// PDF files
+	err = db.DB.QueryRow(`SELECT COUNT(*) FROM pdf_files`).Scan(&counts.TotalPDFFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	// Certificates
+	err = db.DB.QueryRow(`SELECT COUNT(*) FROM certificates`).Scan(&counts.TotalCertificates)
+	if err != nil {
+		return nil, err
+	}
+
+	// Blockchain blocks
+	err = db.DB.QueryRow(`SELECT COUNT(*) FROM blocks`).Scan(&counts.TotalBlocks)
+	if err != nil {
+		return nil, err
+	}
+
+	return counts, nil
+}

@@ -6,6 +6,7 @@ import (
 	"project/internals/domain/service"
 	"project/package/enum"
 	err "project/package/errors"
+	"project/package/utils/common"
 	"time"
 )
 
@@ -97,11 +98,26 @@ func (uc *SqlUseCase) GetPDFCategoriesListUseCase(institutionID, institutionFacu
 	return uc.SqlRepo.GetPDFCategoriesList(institutionID, institutionFacultyID)
 }
 
+func (uc *SqlUseCase) GetAdminDetailsUseCase(userID string, role enum.ROLE) (*entity.AdminDashboardCountsEntity, error) {
+
+	adminDashboardDetails, er := uc.SqlRepo.GetAdminDashboardCounts(userID)
+	if er != nil {
+		return nil, er
+	}
+
+	return adminDashboardDetails, nil
+}
+
 func (uc *SqlUseCase) VerifyUserLoginUseCase(userEmail, password string, role enum.ROLE) (string, time.Time, error) {
-	userID, createdAt, er := uc.SqlRepo.VerifyRoleLogin(userEmail, password, role)
+	hashedPassword, _, er := common.HashData(password)
 	if er != nil {
 		return "", time.Time{}, er
 	}
+	userID, createdAt, er := uc.SqlRepo.VerifyRoleLogin(userEmail, hashedPassword, role)
+	if er != nil {
+		return "", time.Time{}, er
+	}
+
 	return userID, createdAt, nil
 }
 func (uc *SqlUseCase) GetInstitutionsForUserUseCase(userID string) ([]entity.Institution, error) {

@@ -1,9 +1,9 @@
 
 drop table if exists institution_user;
 drop table if exists user_accounts;
-drop table if exists pdf_files;
 
 drop table if exists certificates;
+drop table if exists pdf_files;
 drop table if exists pdf_file_categories;
 drop table if exists blocks;
 drop table if exists institution_faculty;
@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS  institutions(
     tole_address VARCHAR(250) NOT NULL,
     district_address VARCHAR(250) NOT NULL,
 	is_active BOOLEAN DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
     is_signup_completed BOOLEAN DEFAULT FALSE
     -- UNIQUE(institution_name, ward_number, tole_address, district_address, is_active)
 -- remove unique constraint for above . user cant insert into table only if : is_active =true
@@ -90,7 +92,7 @@ CREATE TABLE IF NOT EXISTS  blocks(
 CREATE TABLE IF NOT EXISTS  certificates(
      certificate_id VARCHAR(255) PRIMARY KEY,
     block_number INTEGER NOT NULL,
-    position INTEGER NOT NULL CHECK (position BETWEEN 1 AND 4),
+    position INTEGER NOT NULL CHECK (position BETWEEN 0 AND 3),
     
     -- Student Information (Required)
     student_id VARCHAR(255) NOT NULL,

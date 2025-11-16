@@ -21,6 +21,7 @@ type ISqlRepository interface {
 	GetPDFCategoriesList(institutionID, institutionFacultyID string) ([]entity.PDFFileCategoryEntity, error)
 
 	VerifyRoleLogin(userMail, password string, role enum.ROLE) (string, time.Time, error)
+	GetAdminDashboardCounts(adminID string) (*entity.AdminDashboardCountsEntity, error)
 	InsertPDFFile(pdfFile entity.PDFFileEntity) error
 	InsertAndGetPDFCategory(pdfFileCategory entity.PDFFileCategoryEntity) (*entity.PDFFileCategoryEntity, error)
 	RetrievePDFFileByFileIDOrCategoryID(fileID string, categoryID string, isDownloadAll bool) ([]entity.PDFFileEntity, error)
