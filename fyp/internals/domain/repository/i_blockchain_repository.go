@@ -28,5 +28,12 @@ type IBlockChainRepository interface {
 	UpdateCurrentBlock(nonce int, merkleRoot string, currentHash string, block entity.Block) (*entity.Block, error)
 
 	GetAnyBlockHeader(length int) (entity.Header, error)
+
 	ReceiveFromPeer(currentPort string) error
+
+	//VerifyBlock(currentBlock, previousBlock entity.Block) error
+
+	ExtractBlockByHashAndCertificateID(hash, certificateID string) (entity.Block, error)
+
+	GetBlockByBlockNumber(blockNumber int) (entity.Block, error)
 }

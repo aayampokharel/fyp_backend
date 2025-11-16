@@ -1,6 +1,7 @@
 package memory_source
 
 import (
+	"fmt"
 	"project/internals/domain/entity"
 	"project/internals/domain/repository"
 	err "project/package/errors"
@@ -108,6 +109,9 @@ func (b *BlockChainMemorySource) InsertCertificateIntoBlock(certificate *entity.
 		return nil, -1, err
 	}
 	block.CertificateData[nextIndex] = *certificate
+	block.CertificateData[nextIndex].BlockNumber = block.Header.BlockNumber
+	block.CertificateData[nextIndex].Position = nextIndex
+
 	b.logger.Infoln("[block_chain_memory_source] Info: InsertCertificateIntoBlock::", block)
 	return &block, nextIndex + 1, nil
 }
@@ -149,4 +153,54 @@ func (b *BlockChainMemorySource) GetCertificateDataList(institutionID, instituti
 		}
 	}
 	return certificateDataList, nil
+}
+
+func (b *BlockChainMemorySource) GetCertificateDataListByHashAndCertificateID(hash, certificateID string) (entity.CertificateData, error) {
+	wholeBlockChain, er := b.GetBlockChain()
+	if wholeBlockChain == nil {
+		return entity.CertificateData{}, err.ErrEmptyBlockChain
+	}
+	if er != nil {
+		return entity.CertificateData{}, err.ErrEmptyBlockChain
+	}
+	if er = common.ValidateChain(wholeBlockChain); er != nil {
+		return entity.CertificateData{}, er
+	}
+
+	for _, val := range wholeBlockChain {
+		for _, certificateData := range val.CertificateData {
+			if certificateData.CertificateHash == hash && certificateData.CertificateID == certificateID {
+				return certificateData, nil
+			}
+		}
+
+	}
+	return entity.CertificateData{}, err.ErrWithMoreInfo(nil, fmt.Sprintf("error while finding valid certificate data for hash:%s and certificateID:%s", hash, certificateID))
+
+}
+
+func (b *BlockChainMemorySource) ExtractBlockByHashAndCertificateID(hash, certificateID string) (entity.Block, error) {
+	wholeBlockChain, _ := b.GetBlockChain()
+	for _, blocks := range wholeBlockChain {
+		for _, certificateData := range blocks.CertificateData {
+			if certificateData.CertificateHash == hash && certificateData.CertificateID == certificateID {
+				return blocks, nil
+			}
+		}
+	}
+	return entity.Block{}, err.ErrWithMoreInfo(nil, "Couldn't find certificate data with matching certificateID and hash in any block.")
+
+}
+
+func (b *BlockChainMemorySource) GetBlockByBlockNumber(blockNumber int) (entity.Block, error) {
+	if blockNumber < 0 {
+		return entity.Block{}, err.ErrNegativeBlockNumber
+	}
+	wholeBlockChain, _ := b.GetBlockChain()
+	for _, blocks := range wholeBlockChain {
+		if blocks.Header.BlockNumber == blockNumber {
+			return blocks, nil
+		}
+	}
+	return entity.Block{}, err.ErrWithMoreInfo(nil, "couldnot find block with block number "+strconv.Itoa(blockNumber))
 }

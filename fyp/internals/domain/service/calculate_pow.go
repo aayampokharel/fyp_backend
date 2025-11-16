@@ -9,7 +9,7 @@ import (
 
 func (s *Service) CalculatePOW(powParams entity.PowStructure, powRuleString string) (nonce int, currentHash string, er error) {
 
-	if powParams.BlockMerkleRoot == "" || powParams.PreviousHash == "" || powParams.BlockNumber == 0 {
+	if powParams.BlockMerkleRoot == "" || powParams.PreviousPOWPuzzleHash == "" || powParams.BlockNumber == 0 {
 		return -1, "", err.ErrEmptyFields
 
 	}
@@ -17,13 +17,13 @@ func (s *Service) CalculatePOW(powParams entity.PowStructure, powRuleString stri
 	if powRuleLengthString == 0 {
 		return -1, "", err.ErrEmptyPOWRules
 	}
-	hashedPowParams, err := common.HashData(powParams)
+	hashedPowParams, _, err := common.HashData(powParams)
 	if err != nil {
 		return -1, "", err
 	}
 
 	for nonce := 0; ; nonce++ {
-		hashedVal, err := common.HashData(hashedPowParams + strconv.Itoa(nonce))
+		hashedVal, _, err := common.HashData(hashedPowParams + strconv.Itoa(nonce))
 		if err != nil {
 			return -1, "", err
 		}

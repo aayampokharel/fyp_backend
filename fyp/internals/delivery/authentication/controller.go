@@ -55,16 +55,11 @@ func (c *Controller) HandleCreateNewInstitution(institution CreateInstitutionReq
 }
 
 func (c *Controller) HandleCreateNewUserAccount(newUserAccount CreateUserAccountRequest) entity.Response {
-	// w.Header().Set("Access-Control-Allow-Origin", "*")
-	// w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	// w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
-	// var newUserAccount CreateUserAccountRequest
-	// if er := json.NewDecoder(r.Body).Decode(&newUserAccount); er != nil {
-	// 	return common.HandleErrorResponse(500, err.ErrDecodingJSONString, er)
 
-	// }
-
-	newUserAccountEntity := newUserAccount.ToEntity()
+	newUserAccountEntity, er := newUserAccount.ToEntity()
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrCreatingUserAccountString, er)
+	}
 
 	createdAtStr, userAccountID, er := c.useCase.InsertUserAccountUseCase(newUserAccountEntity, newUserAccount.InstitutionID, newUserAccount.InstitutionLogoBase64)
 
@@ -126,16 +121,36 @@ func (c *Controller) HandleCheckInstitutionIsActive(request map[string]string) e
 }
 
 func (c *Controller) HandleInstitutionsLogin(request InstitutionLoginRequest) entity.Response {
-	userID, createdAt, er := c.useCase.VerifyUserLoginUseCase(request.Email, request.Password, enum.INSTITUTE)
+
+	hashedPassword, _, er := common.HashData(request.Password)
+	if er != nil {
+		return common.HandleErrorResponse(500, err.ErrVerifyingInstituteString, er)
+	}
+	userID, createdAt, er := c.useCase.VerifyUserLoginUseCase(request.Email, hashedPassword, enum.INSTITUTE)
 
 	if er != nil {
-		return common.HandleErrorResponse(401, err.ErrVerifyingAdminString, er)
+		return common.HandleErrorResponse(401, err.ErrVerifyingInstituteString, er)
 	}
 	institutionList, er := c.useCase.GetInstitutionsForUserUseCase(userID)
 	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
+		return common.HandleErrorResponse(500, err.ErrVerifyingInstituteString, er)
 	}
 
 	return common.HandleSuccessResponse(InstitutionLoginResponse{UserID: userID, CreatedAt: createdAt.Format(time.RFC3339), InstitutionList: institutionList})
+
+}
+
+func (c *Controller) HandleGetFacultiesForInstitutionID(request map[string]string) entity.Response {
+	requestMap, er := common.CheckMapKeysReturnValues(request, GetInstitutionFacultiesQuery)
+	if er != nil {
+		return common.HandleErrorResponse(400, err.ErrParsingQueryParametersString, er)
+	}
+
+	institutionID := requestMap[InstitutionID]
+	faculties, er := c.useCase.GetFacultiesForInstitutionIDUseCase(institutionID)
+	if er != nil {
+		return common.HandleErrorResponse(500, er.Error(), er)
+	}
+	return common.HandleSuccessResponse(faculties)
 
 }

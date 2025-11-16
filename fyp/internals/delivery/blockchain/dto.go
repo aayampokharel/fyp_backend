@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"encoding/hex"
 	"project/internals/domain/entity"
 	err "project/package/errors"
 	"project/package/utils/common"
@@ -105,7 +106,8 @@ func (m *MinimalCertificateData) ToEntity(categoryID string) (*entity.Certificat
 
 		return nil, er
 	}
-	return &entity.CertificateData{
+	certificateData := entity.CertificateData{
+		// BlockNumber:          blockNumber, //being done inside usecase
 		CertificateID:        common.GenerateUUID(16),
 		PDFFileID:            common.GenerateUUID(16),
 		PDFCategoryID:        categoryID,
@@ -116,6 +118,7 @@ func (m *MinimalCertificateData) ToEntity(categoryID string) (*entity.Certificat
 		CertificateType:      m.CertificateType, // COURSE_COMPLETION, CHARACTER, LEAVING, TRANSFER, PROVISIONAL
 
 		// Academic Information (Optional)
+
 		Degree:         m.Degree,
 		College:        m.College,
 		Major:          m.Major,
@@ -143,7 +146,16 @@ func (m *MinimalCertificateData) ToEntity(categoryID string) (*entity.Certificat
 
 		// Timestamps
 		//CreatedAt time.Time `json:"created_at"`
-	}, nil
+	}
+	dataToHashString := certificateData.GetCertificateDataForHash()
+	_, hash, er := common.HashData(dataToHashString)
+	if er != nil {
+
+		return nil, er
+	}
+
+	certificateData.CertificateHash = hex.EncodeToString(hash)
+	return &certificateData, nil
 }
 
 func FromPDFFileCategoryToPDFFileEntity(categoryID string, studentName, faculty string, fileID string, index int) entity.PDFFileEntity {

@@ -1,6 +1,9 @@
 package entity
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type CertificateData struct {
 	// Core Certificate Identity
@@ -49,9 +52,46 @@ type CertificateData struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type CertificateDataWithQRCode struct {
-	CertificateData `json:"certificate_data"`
-	QRCodeBase64    string `json:"qr_code"`
+func (c *CertificateData) GetCertificateDataForHash() string {
+	dataToHash := fmt.Sprintf("%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s",
+		c.StudentID,
+		c.StudentName,
+		c.InstitutionID,
+		c.InstitutionFacultyID,
+		c.CertificateType,
+		c.Degree,
+		c.College,
+		c.Major,
+		c.GPA,
+		c.percentageToString(),
+		c.Division,
+		c.UniversityName,
+		c.IssueDate.Format(time.RFC3339),
+		formatTimeOptional(c.EnrollmentDate),
+		formatTimeOptional(c.CompletionDate),
+		formatTimeOptional(c.LeavingDate),
+	)
+
+	return dataToHash
+}
+
+func (c *CertificateData) percentageToString() string {
+	if c.Percentage == nil {
+		return ""
+	}
+	return fmt.Sprintf("%.2f", *c.Percentage)
+}
+
+func formatTimeOptional(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Format(time.RFC3339)
+}
+
+type CertificateDataWithLogosAndQRCode struct {
+	CertificateDataWithLogos `json:"certificate_data_with_logos"`
+	QRCodeBase64             string `json:"qr_code_base_64"`
 }
 
 func (c *CertificateData) ToHashableData() *HashableData {
@@ -76,4 +116,10 @@ func (c *CertificateData) ToHashableData() *HashableData {
 		CharacterRemarks:     c.CharacterRemarks,
 		GeneralRemarks:       c.GeneralRemarks,
 	}
+}
+
+type CertificateDataWithLogos struct {
+	CertificateData                `json:"certificate_data"`
+	InstitutionLogoBase64          string                         `json:"institution_logo_base64"`
+	AuthorityWithSignatureEntities []AuthorityWithSignatureEntity `json:"authority_entities"`
 }

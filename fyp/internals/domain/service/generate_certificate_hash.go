@@ -13,7 +13,7 @@ func (s *Service) GenerateCertificateData(cert entity.HashableData) (string, err
 		return "", err.ErrEmptyString
 	}
 
-	hash, er := common.HashData(cert)
+	hash, _, er := common.HashData(cert)
 	if er != nil {
 		return "", er
 	}

@@ -6,9 +6,9 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
-func (s *Service) GenerateQRCodeBase64(id, url string) (string, error) {
+func (s *Service) GenerateQRCodeBase64(certificateId, hash, url string) (string, error) {
 	//https://example.com/verify?id=123 use this route as preview is inside for institution for verification use above
-	qrBytes, err := qrcode.Encode("https://example.com/verify?id="+id, qrcode.Medium, 256)
+	qrBytes, err := qrcode.Encode(url+"/verify?certificate_id="+certificateId+"&certificate_hash="+hash, qrcode.Medium, 256)
 	if err != nil {
 		return "", err
 	}

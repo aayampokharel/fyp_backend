@@ -6,8 +6,10 @@ const CategoryId = "category_id"
 const CategoryName = "category_name"
 const FileID = "file_id"
 const IsDownloadAll = "is_download_all"
+const CertificateID = "certificate_id"
+const CertificateHash = "certificate_hash"
 
-var GetHTMLRequestQuery = GetRequestQueryType{"id"}
+var GetHTMLRequestQuery = GetRequestQueryType{CertificateHash, CertificateID}
 var GetPDFFileInListQuery = GetRequestQueryType{CategoryId, CategoryName, FileID, IsDownloadAll}
 
 type GetImageFileRequestDto struct {

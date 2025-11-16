@@ -59,14 +59,18 @@ type CreateFacultyResponse struct {
 	InstitutionFacultyID string `json:"institution_faculty_id"`
 }
 
-func (c *CreateUserAccountRequest) ToEntity() entity.UserAccount {
+func (c *CreateUserAccountRequest) ToEntity() (entity.UserAccount, error) {
+	hashedPassword, _, er := common.HashData(c.Password)
+	if er != nil {
+		return entity.UserAccount{}, er
+	}
 	return entity.UserAccount{
 		ID:              common.GenerateUUID(16),
 		SystemRole:      enum.StringToRole(c.SystemRole),
 		InstitutionRole: strings.ToUpper(c.InstitutionRole),
 		Email:           c.UserEmail,
-		Password:        c.Password,
-	}
+		Password:        hashedPassword,
+	}, nil
 
 }
 
@@ -86,10 +90,12 @@ func (c *CreateInstitutionRequest) ToEntity() entity.Institution {
 // }
 
 type CheckInstitutionIsActiveDto []string
+type GetInstitutionFacultiesDto []string
 
 const InstitutionID = "institution_id"
 
 var CheckInstitutionIsActiveQuery = CheckInstitutionIsActiveDto{InstitutionID}
+var GetInstitutionFacultiesQuery = GetInstitutionFacultiesDto{InstitutionID}
 
 type CheckInstitutionIsActiveResponse struct {
 	InstitutionID   string                      `json:"institution_id"`

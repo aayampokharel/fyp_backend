@@ -77,6 +77,20 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 
 			},
 		},
+		//GET /auth/institution/faculty?institution_id=12345
+		{
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/institution/faculty",
+			Method:                  enum.METHODGET,
+			RequestDataTypeInstance: nil,
+			URLQueries:              GetInstitutionFacultiesQuery,
+			InnerFunc: func(i interface{}) entity.Response {
+
+				return module.Controller.HandleGetFacultiesForInstitutionID(i.(map[string]string))
+
+			},
+		},
 	}
 
 	return routes

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaving Certificate - {{.StudentName}}</title>
+    <style>
+        /* ===== GENERAL ===== */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            font-family: 'Georgia', 'Times New Roman', serif;
+        }
+
+        .certificate-container {
+            width: 850px;
+            margin: 50px auto;
+            padding: 60px 70px;
+            background: #fff;
+            border: 10px solid #1a4d8c;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        /* WATERMARK / BACKGROUND SEAL */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 300px;
+            opacity: 0.05;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            border-radius: 50%;
+            background: url('data:image/png;base64,{{.QRCodeBase64}}') no-repeat center;
+            background-size: contain;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            z-index: 1;
+            position: relative;
+        }
+
+        .university-name {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1a4d8c;
+            margin: 0;
+        }
+
+        .college-name {
+            font-size: 20px;
+            margin: 5px 0;
+            color: #333;
+        }
+
+        /* CERTIFICATE TITLE */
+        .certificate-title {
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 40px 0 20px 0;
+            color: #2d3748;
+            letter-spacing: 2px;
+        }
+
+        /* STUDENT INFO */
+        .student-info {
+            text-align: center;
+            font-size: 18px;
+            line-height: 1.8;
+            color: #2d3748;
+            margin-bottom: 30px;
+            z-index: 1;
+            position: relative;
+        }
+
+        .student-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        /* DETAILS BOX */
+        .details-box {
+            border: 2px solid #1a4d8c;
+            border-radius: 8px;
+            padding: 20px 25px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #2d3748;
+            margin-bottom: 40px;
+            background: #f9fafc;
+        }
+
+        .details-box .label {
+            font-weight: bold;
+            color: #1a4d8c;
+        }
+
+        /* DATES AND REASON */
+        .dates-reason {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .dates-reason .item {
+            width: 48%;
+            margin-bottom: 10px;
+        }
+
+        /* SIGNATURES */
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 60px;
+        }
+
+        .signature-block {
+            text-align: center;
+            width: 40%;
+            position: relative;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 60px;
+            width: 100%;
+        }
+
+        .signature-title {
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        /* QR CODE */
+        .qr-section {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .qr-section img {
+            width: 100px;
+            height: 100px;
+        }
+
+        /* FOOTER SECURITY */
+        .security-info {
+            font-size: 11px;
+            text-align: center;
+            color: #555;
+            margin-top: 50px;
+            line-height: 1.5;
+        }
+
+        .certificate-id {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            font-size: 12px;
+            color: #4a5568;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="certificate-container">
+        <!-- Watermark -->
+        <div class="watermark"></div>
+
+        <!-- Certificate ID -->
+        <div class="certificate-id">
+            Certificate ID: {{.CertificateID}}<br>
+            Type: {{.CertificateType}}
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="university-name">{{.UniversityName}}</div>
+            <div class="college-name">{{.College}}</div>
+        </div>
+
+        <!-- Certificate Title -->
+        <div class="certificate-title">Leaving Certificate</div>
+
+        <!-- Student Info -->
+        <div class="student-info">
+            <p>This is to certify that</p>
+            <div class="student-name">{{.StudentName}}</div>
+            <p>Student ID: <span class="label">{{.StudentID}}</span></p>
+            <p>was enrolled at <span class="label">{{.College}}</span> and has officially left the institution.</p>
+        </div>
+
+        <!-- Details Box -->
+        <div class="details-box">
+            <div class="dates-reason">
+                {{if .EnrollmentDate}}<div class="item"><span class="label">Enrollment Date:</span> {{.EnrollmentDate}}
+                </div>{{end}}
+                {{if .LeavingDate}}<div class="item"><span class="label">Leaving Date:</span> {{.LeavingDate}}</div>
+                {{end}}
+                {{if .ReasonForLeaving}}<div class="item"><span class="label">Reason for Leaving:</span>
+                    {{.ReasonForLeaving}}</div>{{end}}
+            </div>
+            {{if .GeneralRemarks}}<div class="item"><span class="label">Remarks:</span> {{.GeneralRemarks}}</div>{{end}}
+        </div>
+
+        <!-- Signatures -->
+        <div class="signature-section">
+            <div class="signature-block">
+                <div class="signature-line"></div>
+                <div class="signature-title">Principal / Director</div>
+            </div>
+            <div class="signature-block">
+                <div class="signature-line"></div>
+                <div class="signature-title">Registrar</div>
+            </div>
+        </div>
+
+        <!-- QR Code -->
+        <div class="qr-section">
+            <img src="data:image/png;base64,{{.QRCodeBase64}}" alt="QR Code"><br>
+            Scan to Verify
+        </div>
+
+        <!-- Security Footer -->
+        <div class="security-info">
+            Data Hash: {{.CertificateHash}}<br>
+            Issuer Public Key: {{.FacultyPublicKey}}<br>
+            This certificate is digitally secured and verifiable on the blockchain.
+        </div>
+
+    </div>
+</body>
+
+</html>

@@ -1,119 +1,7 @@
-// package main
-
-// import (
-// 	"fmt"
-// 	"net/http"
-
-// 	"project/constants"
-// 	"project/internals/data/config"
-// 	source "project/internals/data/data_source/memory"
-// 	"project/internals/data/data_source/p2p"
-// 	sql_source "project/internals/data/data_source/sql"
-// 	"project/internals/delivery/admin"
-// 	auth_delivery "project/internals/delivery/authentication"
-// 	delivery "project/internals/delivery/blockchain"
-// 	filehandling "project/internals/delivery/file_handling"
-// 	"project/internals/delivery/sse"
-// 	"project/internals/domain/entity"
-// 	"project/internals/domain/service"
-// 	"project/internals/usecase"
-// 	"project/package/utils/common"
-// 	logger "project/package/utils/pkg"
-
-// 	"go.uber.org/zap"
-// )
-
-// func main() {
-// 	// -------------------------------
-// 	// 1️⃣ Initialize Logger & Config
-// 	// -------------------------------
-// 	logger.InitLogger()
-// 	currentPort := common.GetPort()
-// 	tcpPort := *currentPort + 1000 // e.g., 8001 -> 9001
-
-// 	// logger.Logger.Infoln("[main] Info: Current Port::", *currentPort)
-// 	env, err := config.NewEnv()
-// 	if err != nil {
-// 		logger.Logger.Errorw("[main] Error: Failed to load environment variables", zap.Error(err))
-// 		return
-// 	}
-// 	peerPorts := env.GetValueForKey(constants.TCPPortsKey)
-// 	fmt.Println("Peer Ports:", peerPorts)
-// 	// -------------------------------
-// 	// 2️⃣ Initialize Channels
-// 	// -------------------------------
-
-// 	institutionchannel := make(chan entity.Institution)
-// 	channelMap := make(map[string]chan<- entity.Institution)
-
-// 	// -------------------------------
-// 	// 3️⃣ Initialize Data Sources
-// 	// -------------------------------
-// 	nodeSource := p2p.NewNodeSource(peerPorts)
-// 	dbConn := sql_source.NewDB()
-// 	sqlSource := sql_source.NewSQLSource(dbConn)
-// 	blockchainsource := source.NewBlockChainMemorySource()
-
-// 	// -------------------------------
-// 	// 4️⃣ Initialize Services
-// 	// -------------------------------
-// 	sseService := service.NewSSEManager(channelMap)
-// 	svc := service.NewService()
-
-// 	// -------------------------------
-// 	// 5️⃣ Initialize Modules
-// 	// -------------------------------
-// 	module := delivery.NewModule(blockchainsource, nodeSource, sqlSource)
-// 	authModule := auth_delivery.NewModule(sqlSource, institutionchannel, channelMap, sseService)
-// 	sseUseCase := usecase.NewSSEUseCase(sqlSource, sseService)
-// 	sseModule := sse.NewModule(sqlSource, sseService, sseUseCase)
-// 	adminModule := admin.NewModule(sqlSource, *svc, sseService)
-// 	mux := http.NewServeMux()
-// 	delivery.RegisterRoutes(mux, module)
-// 	auth_delivery_routes := auth_delivery.RegisterRoutes(mux, authModule)
-// 	sse_routes := sse.RegisterRoutes(mux, sseModule)
-// 	admin_routes := admin.RegisterRoutes(mux, adminModule)
-// 	fileHandlingModule := filehandling.NewModule(*service.NewService(), blockchainsource, nodeSource, sqlSource)
-// 	fileHandling_routes := filehandling.RegisterRoutes(mux, fileHandlingModule)
-
-// 	//! structurize main.go as WELL
-// 	var allNormalRoutes []common.RouteWrapper
-// 	allNormalRoutes = append(allNormalRoutes, auth_delivery_routes...)
-// 	allNormalRoutes = append(allNormalRoutes, admin_routes...)
-
-// 	var allFileHandlingRoutes []common.FileRouteWrapper
-// 	allFileHandlingRoutes = append(allFileHandlingRoutes, fileHandling_routes...)
-// 	common.NewRouteWrapper(allNormalRoutes...)
-// 	common.NewFileRouteWrapper(allFileHandlingRoutes...)
-// 	common.NewSSERouteWrapper(sse_routes)
-
-// 	addr := fmt.Sprintf(":%d", *currentPort)
-// 	fmt.Printf("🚀 Starting blockchain node on http://localhost%s\n", addr)
-
-// 	memSource := source.NewBlockChainMemorySource()
-// 	service := service.NewService()
-// 	// blockchainService := service.NewService()
-// 	blockChainUseCase := usecase.NewBlockChainUseCase(memSource, nodeSource, sqlSource, *service)
-
-// 	go func() {
-// 		for {
-// 			er := blockChainUseCase.ReceiveBlockFromPeer(tcpPort)
-// 			if er != nil {
-// 				logger.Logger.Errorw("[node_source] Error: ReceiveBlockFromPeer::", zap.Error(er))
-// 				fmt.Println("Error receiving block from peer:", er)
-// 			}
-
-// 		}
-// 	}()
-// 	if err := http.ListenAndServe(addr, mux); err != nil {
-// 		fmt.Println("❌ Server failed:", err)
-// 	}
-
-// }
-
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 
@@ -139,12 +27,15 @@ import (
 
 func main() {
 	// -------------------------------
-	// 1️⃣ Initialize Logger & Config
+	// 1️⃣ Initialize Logger,flag,maps & Config
 	// -------------------------------
 	logger.InitLogger()
+	flag.Parse()
+	// fmt.Println("Private key:", *common.GetPrivatekey())
 
 	currentPort := common.GetPort()
 	tcpPort := *currentPort + 1000
+	pbftTcpPort := *currentPort + 1500
 
 	env, err := config.NewEnv()
 	if err != nil {
@@ -152,20 +43,26 @@ func main() {
 		return
 	}
 	peerPorts := env.GetValueForKey(constants.TCPPortsKey)
+	pbftPeerPorts := env.GetValueForKey(constants.PbftPortsKey)
+	operationCounter := 0
+	countPrepareMap := make(map[int]int, 0)
+	countCommitMap := make(map[int]int, 0)
 	fmt.Println("Peer Ports:", peerPorts)
+	fmt.Println(" PBFT Peer Ports:", pbftPeerPorts)
 
 	// -------------------------------
 	// 2️⃣ Initialize Channels
 	// -------------------------------
 	institutionChannel := make(chan entity.Institution)
 	channelMap := make(map[string]chan<- entity.Institution)
+	operationChannelMap := make(map[int]chan entity.PBFTExecutionResultEntity)
 
 	// -------------------------------
 	// 3️⃣ Initialize Data Sources
 	// -------------------------------
 	dbConn := sql_source.NewDB()
 	sqlSource := sql_source.NewSQLSource(dbConn)
-	nodeSource := p2p.NewNodeSource(peerPorts)
+	nodeSource := p2p.NewNodeSource(peerPorts, &operationCounter, countCommitMap, countPrepareMap, pbftPeerPorts)
 	memSource := source.NewBlockChainMemorySource()
 
 	// -------------------------------
@@ -173,16 +70,17 @@ func main() {
 	// -------------------------------
 	sseService := service.NewSSEManager(channelMap)
 	svc := service.NewService()
+	pbftService := service.NewPBFTService(pbftPeerPorts)
 
 	// -------------------------------
 	// 5️⃣ Initialize Modules
 	// -------------------------------
-	blockchainModule := delivery.NewModule(memSource, nodeSource, sqlSource)
+	blockchainModule := delivery.NewModule(memSource, nodeSource, sqlSource, env)
 	authModule := auth_delivery.NewModule(sqlSource, institutionChannel, channelMap, sseService)
 	sseUseCase := usecase.NewSSEUseCase(sqlSource, sseService)
 	sseModule := sse.NewModule(sqlSource, sseService, sseUseCase)
 	adminModule := admin.NewModule(sqlSource, *svc, sseService)
-	fileHandlingModule := filehandling.NewModule(*svc, memSource, nodeSource, sqlSource)
+	fileHandlingModule := filehandling.NewModule(*svc, memSource, nodeSource, pbftTcpPort, countPrepareMap, countCommitMap, &operationCounter, sqlSource, *pbftService, operationChannelMap, env)
 	categoryModule := category.NewModule(sqlSource, *svc)
 
 	// -------------------------------
@@ -213,11 +111,13 @@ func main() {
 	// 7️⃣ Initialize Use Cases
 	// -------------------------------
 	blockChainUseCase := usecase.NewBlockChainUseCase(memSource, nodeSource, sqlSource, *svc)
+	pbftUseCase := usecase.NewPBFTUseCase(*svc, sqlSource, nodeSource, countPrepareMap, countCommitMap, &operationCounter, *pbftService, memSource, operationChannelMap)
 
 	// -------------------------------
 	// 8️⃣ Start background goroutines
 	// -------------------------------
 	go receiveBlocks(blockChainUseCase, tcpPort)
+	go receivePbftMessage(env, pbftUseCase, pbftTcpPort)
 
 	// -------------------------------
 	// 9️⃣ Start HTTP Server
@@ -237,4 +137,19 @@ func receiveBlocks(uc *usecase.BlockChainUseCase, tcpPort int) {
 			fmt.Println("Error receiving block from peer:", err)
 		}
 	}
+}
+func receivePbftMessage(env *config.Env, uc *usecase.PBFTUseCase, pbftTcpPort int) {
+	// uc.Service.Logger.Infoln("stated in port::", pbftTcpPort)
+	// leaderNodeString := env.GetValueForKey(constants.PbftLeaderNode)
+	// leaderNode, er := common.ConvertToInt(leaderNodeString)
+	// if er != nil {
+	// 	logger.Logger.Errorw("[node_source] Error receiving pbft message", zap.Error(er))
+	// 	fmt.Println("Error receiving block from peer:", er)
+	// 	return
+	// }
+	if _, er := uc.ReceivePBFTMessageToPeer(pbftTcpPort); er != nil {
+		logger.Logger.Errorw("[node_source] Error receiving pbft message", zap.Error(er))
+		fmt.Println("Error receiving block from peer:", er)
+	}
+
 }
