@@ -13,6 +13,7 @@ import (
 	logger "project/package/utils/pkg"
 	"time"
 
+	"github.com/lib/pq"
 	"go.uber.org/zap"
 )
 
@@ -105,7 +106,7 @@ func (s *SQLSource) UpdateSignUpCompletedByInstitutionID(institutionID string) e
 	return nil
 }
 func (s *SQLSource) UpdateIsActiveByInstitutionID(institutionID string, isActive bool) error {
-	query := `update institutions set is_active=$1 where institution_id=$2;`
+	query := `update institutions set is_active=$1 where institution_id=$2 AND is_signup_completed=true AND deleted_at IS NULL;`
 	_, err := s.DB.Exec(query, isActive, institutionID)
 	if err != nil {
 		s.logger.Errorln("[sql_source] Error: UpdateFormSubmittedByInstitutionID::", err)
@@ -393,26 +394,24 @@ func (s *SQLSource) RetrievePDFFileByFileIDOrCategoryID(fileID string, categoryI
 	return pdfFileEntities, nil
 }
 
-func (s *SQLSource) InsertBlockWithSingleCertificate(blockHeader entity.Header, certificateData entity.CertificateData, certificatePositionZeroIndex int) error {
+func (s *SQLSource) InsertBlockWithAllCertificates(
+	blockHeader entity.Header,
+	certificates [4]entity.CertificateData,
+) error {
 
-	if certificatePositionZeroIndex < 0 || certificatePositionZeroIndex >= 4 {
-		s.logger.Errorln("[sql_source] certificate position index error::", certificatePositionZeroIndex)
-		return err.ErrArrayOutOfBound
-
-	}
-	// Start transaction
+	// --- Begin Transaction ---
 	tx, err := s.DB.Begin()
 	if err != nil {
 		s.logger.Errorln("[sql_source] Error starting transaction:", err)
 		return err
 	}
-	defer tx.Rollback() // Safe error rollback
+	defer tx.Rollback()
 
 	blockQuery := `
         INSERT INTO blocks (
-            block_number, timestamp, previous_hash, nonce, 
-            current_hash, merkle_root, status, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            block_number, timestamp, previous_hash, nonce,
+            current_hash, merkle_root, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
     `
 
 	_, err = tx.Exec(
@@ -423,26 +422,91 @@ func (s *SQLSource) InsertBlockWithSingleCertificate(blockHeader entity.Header, 
 		blockHeader.Nonce,
 		blockHeader.CurrentHash,
 		blockHeader.MerkleRoot,
-		time.Now(),
 	)
 	if err != nil {
 		s.logger.Errorln("[sql_source] Error inserting block:", err)
 		return err
 	}
 
-	er := s.InsertCertificate(certificateData, blockHeader.BlockNumber, certificatePositionZeroIndex)
-	if er != nil {
-		s.logger.Errorln("[sql_source] Error inserting certificate:", er)
-		return er
+	certQuery := `
+        INSERT INTO certificates (
+            certificate_id, block_number, position,
+            student_id, student_name,
+            institution_id, institution_faculty_id,
+            pdf_category_id, pdf_file_id,
+            certificate_type,
+            degree, college, major, gpa, percentage, division, university_name,
+            issue_date, enrollment_date, completion_date, leaving_date,
+            reason_for_leaving, character_remarks, general_remarks,
+            certificate_hash, faculty_public_key,
+            created_at
+        )
+        VALUES (
+            $1, $2, $3,
+            $4, $5,
+            $6, $7,
+            $8, $9,
+            $10,
+            $11, $12, $13, $14, $15, $16, $17,
+            $18, $19, $20, $21,
+            $22, $23, $24,
+            $25, $26,
+            NOW()
+        )
+    `
+
+	for position := 0; position < 4; position++ {
+		c := certificates[position]
+
+		_, err := tx.Exec(certQuery,
+			c.CertificateID,         // $1
+			blockHeader.BlockNumber, // $2
+			position,                // $3
+
+			c.StudentID,   // $4
+			c.StudentName, // $5
+
+			c.InstitutionID,        // $6
+			c.InstitutionFacultyID, // $7
+			c.PDFCategoryID,        // $8
+			c.PDFFileID,            // $9
+
+			c.CertificateType, // $10
+
+			c.Degree,         // $11
+			c.College,        // $12
+			c.Major,          // $13
+			c.GPA,            // $14
+			c.Percentage,     // $15
+			c.Division,       // $16
+			c.UniversityName, // $17
+
+			c.IssueDate,      // $18
+			c.EnrollmentDate, // $19
+			c.CompletionDate, // $20
+			c.LeavingDate,    // $21
+
+			c.ReasonForLeaving, // $22
+			c.CharacterRemarks, // $23
+			c.GeneralRemarks,   // $24
+
+			c.CertificateHash,  // $25
+			c.FacultyPublicKey, // $26
+		)
+
+		if err != nil {
+			s.logger.Errorln("[sql_source] Error inserting certificate at position", position, "::", err)
+			return err
+		}
 	}
 
-	// Commit transaction
+	// --- Commit Transaction ---
 	if err := tx.Commit(); err != nil {
 		s.logger.Errorln("[sql_source] Error committing transaction:", err)
 		return err
 	}
 
-	s.logger.Infof("[sql_source] Successfully inserted block %d with certificate", blockHeader.BlockNumber)
+	s.logger.Infof("[sql_source] Successfully inserted block %d with 4 certificates", blockHeader.BlockNumber)
 	return nil
 }
 
@@ -768,11 +832,82 @@ func (db *SQLSource) GetAdminDashboardCounts(adminID string) (*entity.AdminDashb
 		return nil, err
 	}
 
-	// Blockchain blocks
 	err = db.DB.QueryRow(`SELECT COUNT(*) FROM blocks`).Scan(&counts.TotalBlocks)
 	if err != nil {
 		return nil, err
 	}
 
 	return counts, nil
+}
+
+func (s *SQLSource) DeleteUserByUserID(userID string) (string, error) {
+	tx, err := s.DB.Begin()
+	if err != nil {
+		s.logger.Errorln("[sql_source] Error starting transaction:", err)
+		return "", err
+	}
+
+	queryUser := `
+		UPDATE user_accounts
+		SET deleted_at = NOW()
+		WHERE id = $1 
+		  AND deleted_at IS NULL
+		  AND system_role != 'ADMIN'
+		RETURNING id;
+	`
+
+	var deletedUserID string
+	err = tx.QueryRow(queryUser, userID).Scan(&deletedUserID)
+	if err != nil {
+		tx.Rollback()
+		s.logger.Errorln("[sql_source] Error deleting user:", err)
+		return "", err
+	}
+
+	queryFetchInst := `
+		SELECT institution_id
+		FROM institution_user
+		WHERE user_id = $1;
+	`
+
+	rows, err := tx.Query(queryFetchInst, userID)
+	if err != nil {
+		tx.Rollback()
+		s.logger.Errorln("[sql_source] Error fetching institution list:", err)
+		return "", err
+	}
+	defer rows.Close()
+
+	var instIDs []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			tx.Rollback()
+			return "", err
+		}
+		instIDs = append(instIDs, id)
+	}
+
+	if len(instIDs) > 0 {
+		queryUpdateInst := `
+			UPDATE institutions
+			SET deleted_at = NOW(), is_active = false
+			WHERE institution_id = ANY($1)
+			  AND deleted_at IS NULL;
+		`
+
+		_, err = tx.Exec(queryUpdateInst, pq.Array(instIDs))
+		if err != nil {
+			tx.Rollback()
+			s.logger.Errorln("[sql_source] Error updating institutions:", err)
+			return "", err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		s.logger.Errorln("[sql_source] Error committing transaction:", err)
+		return "", err
+	}
+
+	return deletedUserID, nil
 }

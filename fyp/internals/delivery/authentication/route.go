@@ -91,6 +91,20 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 
 			},
 		},
+		//DELETE /auth/user-account?user_id=12345
+		{
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/user-account",
+			Method:                  enum.METHODDELETE,
+			RequestDataTypeInstance: nil,
+			URLQueries:              DeleteUserAccountByIDQuery,
+			InnerFunc: func(i interface{}) entity.Response {
+
+				return module.Controller.HandleDeleteUserAccountByID(i.(map[string]string))
+
+			},
+		},
 	}
 
 	return routes

@@ -20,10 +20,8 @@ func NewController(useCase usecase.BlockChainUseCase, parseFileUseCase *usecase.
 }
 
 func (c *Controller) InsertNewCertificateData(request CreateCertificateDataRequest) entity.Response {
-	//var basicStudentInfoDto []BasicStudentInfoDto
 	blockChainLength := c.useCase.GetBlockChainLength()
 	if blockChainLength == 0 {
-		//mock data
 		if er := c.useCase.InsertGenesisBlock(); er != nil {
 			log.Println(er)
 			return common.HandleErrorResponse(500, er.Error(), er)
@@ -50,6 +48,13 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 		}
 		log.Println("Acknowledgement from nodes: ", strNodeInfoMap)
 
+		// if newBlockCertificateLength == 4 {
+		// 	er := c.sqlUseCase.InsertBlockWithFullCertificates(newBlock.Header, newBlock.CertificateData)
+		// 	if er != nil {
+		// 		log.Println(er)
+		// 		return common.HandleErrorResponse(500, er.Error(), er)
+		// 	}
+		// }
 		if er = c.useCase.UpsertBlockChain(*latestBlockFromChain, *newBlock, latestBlockFromChainCertificateLength, newBlockCertificateLength); er != nil {
 			log.Println(er)
 			return common.HandleErrorResponse(500, er.Error(), er)
@@ -84,7 +89,13 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 			c.useCase.Service.Logger.Errorln("[certificate_usecase] error while storing pdfbytes ", er)
 			return common.HandleErrorResponse(500, err.ErrCreatingInstitutionFacultyString, er)
 		}
-
+		if newBlockCertificateLength == 4 {
+			er := c.sqlUseCase.InsertBlockWithFullCertificates(newBlock.Header, newBlock.CertificateData)
+			if er != nil {
+				log.Println(er)
+				return common.HandleErrorResponse(500, er.Error(), er)
+			}
+		}
 		// c.useCase.SqlRepo.InsertPDFFile(entity.PDFFileEntity{
 		// 	FileID:     common.GenerateUUID(16),
 		// 	CategoryID: insertedpdfFileCategory.CategoryID,

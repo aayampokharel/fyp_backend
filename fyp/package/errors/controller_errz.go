@@ -15,6 +15,7 @@ var (
 	ErrRemovingClientString                = "error removing client"
 	ErrGettingCertificateString            = "error getting certificate "
 	ErrParsingCertificateIDString          = "error parsing certificate id"
+	ErrParsingString                       = "error parsing "
 	ErrParsingFileString                   = " error parsing file"
 	ErrFileNotFoundString                  = " error file/s not found"
 	ErrDataTypeMismatchString              = " error datatype mismatch"

@@ -35,6 +35,17 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 				return module.Controller.HandleGetPendingInstitutionList(i.(map[string]string))
 			},
 		},
+		// /admin/institution
+		{
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/institution",
+			Method:                  enum.METHODPUT,
+			RequestDataTypeInstance: UpdateInstitutionActiveDto{},
+			InnerFunc: func(i interface{}) entity.Response {
+				return module.Controller.HandleUpdateInstitutionActiveStatus(i.(UpdateInstitutionActiveDto))
+			},
+		},
 	}
 
 	return routes

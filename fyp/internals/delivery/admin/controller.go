@@ -29,14 +29,17 @@ func (c *Controller) HandleAdminLogin(AdminLoginRequest AdminLoginRequest) entit
 		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
 	}
 
-	adminDashboardDetails, er := c.sqlUseCase.GetAdminDetailsUseCase(userID, enum.ADMIN)
+	adminDashboardDetails, pendingInstitutions, er := c.sqlUseCase.GetAdminDetailsUseCase(userID, enum.ADMIN)
 	if er != nil {
 		return common.HandleErrorResponse(500, err.ErrVerifyingAdminString, er)
 	}
 	if adminDashboardDetails == nil {
 		adminDashboardDetails = &entity.AdminDashboardCountsEntity{}
 	}
-	return common.HandleSuccessResponse(AdminLoginResponse{UserID: adminLoginResponse.UserID, CreatedAt: adminLoginResponse.CreatedTime.Format(time.RFC3339), InstitutionList: adminLoginResponse.InstitutionList, AdminDashboardCountDetails: *adminDashboardDetails})
+	if pendingInstitutions == nil {
+		pendingInstitutions = []entity.Institution{}
+	}
+	return common.HandleSuccessResponse(AdminLoginResponse{UserID: adminLoginResponse.UserID, CreatedAt: adminLoginResponse.CreatedTime.Format(time.RFC3339), InstitutionList: adminLoginResponse.InstitutionList, AdminDashboardCountDetails: *adminDashboardDetails, PendingInstitutions: pendingInstitutions})
 
 }
 
@@ -61,4 +64,16 @@ func (c *Controller) HandleGetPendingInstitutionList(request map[string]string) 
 	return common.HandleSuccessResponse(GetAllPendingInstitutionsResponse{
 		PendingInstitutionList: pendingInstitutionList,
 	})
+}
+
+func (c *Controller) HandleUpdateInstitutionActiveStatus(request UpdateInstitutionActiveDto) entity.Response {
+	if request.InstitutionID == "" {
+		return common.HandleErrorResponse(400, err.ErrParsingQueryParametersString, err.ErrRequestParsing)
+	}
+
+	er := c.sqlUseCase.UpdateIsActiveByInstitutionIDUseCase(request.InstitutionID, request.IsActive)
+	if er != nil {
+		return common.HandleErrorResponse(500, er.Error(), er)
+	}
+	return common.HandleSuccessResponse("Institution Updated Successfully!")
 }

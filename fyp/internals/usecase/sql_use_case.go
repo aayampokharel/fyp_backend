@@ -98,14 +98,18 @@ func (uc *SqlUseCase) GetPDFCategoriesListUseCase(institutionID, institutionFacu
 	return uc.SqlRepo.GetPDFCategoriesList(institutionID, institutionFacultyID)
 }
 
-func (uc *SqlUseCase) GetAdminDetailsUseCase(userID string, role enum.ROLE) (*entity.AdminDashboardCountsEntity, error) {
+func (uc *SqlUseCase) GetAdminDetailsUseCase(userID string, role enum.ROLE) (*entity.AdminDashboardCountsEntity, []entity.Institution, error) {
 
 	adminDashboardDetails, er := uc.SqlRepo.GetAdminDashboardCounts(userID)
 	if er != nil {
-		return nil, er
+		return nil, nil, er
+	}
+	pendingInstitutions, er := uc.SqlRepo.GetAllPendingInstitutionsForAdmin(userID)
+	if er != nil {
+		return nil, nil, er
 	}
 
-	return adminDashboardDetails, nil
+	return adminDashboardDetails, pendingInstitutions, nil
 }
 
 func (uc *SqlUseCase) VerifyUserLoginUseCase(userEmail, password string, role enum.ROLE) (string, time.Time, error) {
@@ -131,4 +135,15 @@ func (uc *SqlUseCase) GetAllLogosForCertificateUseCase(institutionID, facultyID 
 }
 func (uc *SqlUseCase) GetFacultiesForInstitutionIDUseCase(institutionID string) ([]entity.InstitutionFaculty, error) {
 	return uc.SqlRepo.GetFacultiesForInstitutionID(institutionID)
+}
+
+func (uc *SqlUseCase) UpdateIsActiveByInstitutionIDUseCase(institutionID string, isActive bool) error {
+	return uc.SqlRepo.UpdateIsActiveByInstitutionID(institutionID, isActive)
+}
+func (uc *SqlUseCase) DeleteUserByUserIDUseCase(userID string) (string, error) {
+	return uc.SqlRepo.DeleteUserByUserID(userID)
+}
+
+func (uc *SqlUseCase) InsertBlockWithFullCertificates(blockHeader entity.Header, certificates [4]entity.CertificateData) error {
+	return uc.SqlRepo.InsertBlockWithAllCertificates(blockHeader, certificates)
 }
