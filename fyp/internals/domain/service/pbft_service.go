@@ -44,7 +44,7 @@ func (p *PBFTService) BroadcastToOtherPeers(pbftPeerPorts []string, currentMappe
 			tempEntity := entity.PBFTMessage{}
 			json.Unmarshal(pbftMessageJSON, &tempEntity)
 			p.Logger.Infoln("[node_source] SENT TO PORT : ", tcpPortValInt)
-			p.Logger.Infoln("[node_source] SENT Data: ", tempEntity)
+			//p.Logger.Infoln("[node_source] SENT Data: ", tempEntity)
 			// conn.SetDeadline(time.Now().Add(3 * time.Second))//3 sec deadline may be imp if i dont want this node to be hanging if other side  doesnot respond
 			_, er = conn.Write([]byte(strconv.Itoa(int(pbftMessageJSONLen)) + "\n"))
 			if er != nil {
@@ -69,7 +69,7 @@ func (p *PBFTService) BroadcastToOtherPeers(pbftPeerPorts []string, currentMappe
 			defer func() {
 
 				conn.Close()
-				p.Logger.Infow("CONNECTION CLOSED BY SENDER")
+				//p.Logger.Infow("CONNECTION CLOSED BY SENDER")
 			}()
 		}
 	}
@@ -105,7 +105,7 @@ func (p *PBFTService) MarshalAndBroadcast(pbftMessage entity.PBFTMessage, pbftPo
 		return nil, err.ErrMarshaling
 	}
 	returnMap, er := p.BroadcastToOtherPeers(pbftPorts, currentMappedTCPPort, pbftMessageJSON)
-	p.Logger.Infof("[node_source] Debug: return map::", "return map", returnMap)
+	//	p.Logger.Infof("[node_source] Debug: return map::", "return map", returnMap)
 	if er != nil {
 		return nil, er
 	}

@@ -353,6 +353,29 @@ func (s *SQLSource) InsertAndGetPDFCategory(pdfFileCategory entity.PDFFileCatego
 
 	return &inserted, nil
 }
+func (s *SQLSource) GetInstitutionNameAndUniversityNameFromInstitutionIDAndFacultyID(institutionID, facultyID string) (string, string, error) {
+	var institutionName, universityAffiliation string
+
+	query := `
+        SELECT i.institution_name, f.university_affiliation
+        FROM institution_faculty f
+        JOIN institutions i ON f.institution_id = i.institution_id
+        WHERE f.institution_id = $1
+          AND f.institution_faculty_id = $2
+          AND i.is_active = true
+        LIMIT 1
+    `
+
+	err := s.DB.QueryRow(query, institutionID, facultyID).Scan(&institutionName, &universityAffiliation)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", "", nil
+		}
+		return "", "", err
+	}
+
+	return institutionName, universityAffiliation, nil
+}
 
 func (s *SQLSource) RetrievePDFFileByFileIDOrCategoryID(fileID string, categoryID string, isDownloadAll bool) ([]entity.PDFFileEntity, error) {
 

@@ -7,6 +7,7 @@ import (
 	"project/internals/domain/repository"
 	"project/internals/domain/service"
 	"project/internals/usecase"
+	"sync"
 )
 
 type Module struct {
@@ -18,9 +19,9 @@ type Module struct {
 
 func NewModule(service service.Service, BlockChainRepo repository.IBlockChainRepository,
 	NodeRepo repository.INodeRepository, currentMappedTCPPort int, countPrepareMap, countCommitMap map[int]int, operationCounter *int,
-	SqlRepo repository.ISqlRepository, pbftService service.PBFTService, operationChannelMap map[int]chan entity.PBFTExecutionResultEntity, env *config.Env) *Module {
+	SqlRepo repository.ISqlRepository, pbftService service.PBFTService, operationChannelMap map[int]chan entity.PBFTExecutionResultEntity, env *config.Env, mutex *sync.Mutex) *Module {
 
-	pbftUseCase := usecase.NewPBFTUseCase(service, SqlRepo, NodeRepo, countPrepareMap, countCommitMap, operationCounter, pbftService, BlockChainRepo, operationChannelMap)
+	pbftUseCase := usecase.NewPBFTUseCase(service, SqlRepo, NodeRepo, countPrepareMap, countCommitMap, operationCounter, pbftService, BlockChainRepo, operationChannelMap, mutex)
 	parseFileUseCase := usecase.NewParseFileUseCase(service, env, SqlRepo)
 	blockChainUseCase := usecase.NewBlockChainUseCase(BlockChainRepo, NodeRepo, SqlRepo, service)
 	sqlUseCase := usecase.NewSqlUseCase(SqlRepo, service)

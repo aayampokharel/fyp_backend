@@ -28,8 +28,14 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 		}
 	}
 
+	institutionName, universityName, er := c.sqlUseCase.GetInstitutionNameAndUniversityNameFromInstitutionIDAndFacultyIDUseCase(request.InstitutionID, request.InstitutionFacultyID)
+	if er != nil {
+		return common.HandleErrorResponse(500, er.Error(), er)
+	}
+
 	for i := 0; i < len(request.CertificateData); i++ {
-		certificateData, er := request.CertificateData[i].ToEntity(request.CategoryID)
+
+		certificateData, er := request.CertificateData[i].ToEntity(request.CategoryID, institutionName, universityName)
 		if er != nil {
 			log.Println(er)
 			return common.HandleErrorResponse(400, er.Error(), er)

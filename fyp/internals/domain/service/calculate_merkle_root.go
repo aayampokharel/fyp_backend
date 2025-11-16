@@ -56,5 +56,6 @@ func (s *Service) CalculateMerkleRoot(certificateDataArray [4]entity.Certificate
 		}
 		hashedCertificateDataSlice = newLevel
 	}
+	s.Logger.Infoln("Merkle Root :: ", newLevel)
 	return newLevel[0], nil
 }

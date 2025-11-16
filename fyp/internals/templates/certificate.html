@@ -221,11 +221,17 @@
                 {{.CertificateDataWithLogos.CertificateData.Degree}}</div>
             <div class="info-row"><span class="label">Major/Field:</span>
                 {{.CertificateDataWithLogos.CertificateData.Major}}</div>
-            {{if .CertificateDataWithLogos.CertificateData.GPA}}<div class="info-row"><span class="label">GPA:</span>
-                {{.CertificateDataWithLogos.CertificateData.GPA}}</div>{{end}}
-            {{if .CertificateDataWithLogos.CertificateData.Percentage}}<div class="info-row"><span
-                    class="label">Percentage:</span> {{.CertificateDataWithLogos.CertificateData.Percentage}}%</div>
-            {{end}}
+
+            {{ $gpa := .CertificateDataWithLogos.CertificateData.GPA }}
+            {{ $percent := .CertificateDataWithLogos.CertificateData.Percentage }}
+
+            {{ if and $gpa (ne $gpa "0") (ne $gpa "0.0") }}
+            <div class="info-row"><span class="label">GPA:</span> {{$gpa}}</div>
+            {{ else if $percent }}
+            <div class="info-row"><span class="label">Percentage:</span> {{$percent}}%</div>
+            {{ end }}
+
+
             <div class="info-row"><span class="label">Division:</span>
                 {{.CertificateDataWithLogos.CertificateData.Division}}</div>
         </div>
@@ -233,11 +239,13 @@
         <!-- Dates -->
         <div class="dates-section">
             <div class="date-item"><span class="label">Enrollment
-                    Date:</span><br>{{.CertificateDataWithLogos.CertificateData.EnrollmentDate}}</div>
+                    Date:</span><br>{{.CertificateDataWithLogos.CertificateData.EnrollmentDate.Format "2006-01-02"}}
+            </div>
             <div class="date-item"><span class="label">Completion
-                    Date:</span><br>{{.CertificateDataWithLogos.CertificateData.CompletionDate}}</div>
+                    Date:</span><br>{{.CertificateDataWithLogos.CertificateData.CompletionDate.Format "2006-01-02"}}
+            </div>
             <div class="date-item"><span class="label">Issue
-                    Date:</span><br>{{.CertificateDataWithLogos.CertificateData.IssueDate}}</div>
+                    Date:</span><br>{{.CertificateDataWithLogos.CertificateData.IssueDate.Format "2006-01-02"}}</div>
         </div>
 
         <!-- Authority Signatures -->

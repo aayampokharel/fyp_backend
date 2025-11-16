@@ -100,7 +100,7 @@ func (m *CreateCertificateDataRequest) ToPdfFileCategoryEntity() (entity.PDFFile
 	}, nil
 }
 
-func (m *MinimalCertificateData) ToEntity(categoryID string) (*entity.CertificateData, error) {
+func (m *MinimalCertificateData) ToEntity(categoryID string, institutionName, universityAffiliation string) (*entity.CertificateData, error) {
 
 	var percentageFloat float64
 	var er error
@@ -126,12 +126,12 @@ func (m *MinimalCertificateData) ToEntity(categoryID string) (*entity.Certificat
 		// Academic Information (Optional)
 
 		Degree:         m.Degree,
-		College:        m.College,
+		College:        institutionName,
 		Major:          m.Major,
 		GPA:            m.GPA,
 		Percentage:     &percentageFloat,
 		Division:       m.Division,
-		UniversityName: m.UniversityName,
+		UniversityName: universityAffiliation,
 
 		// Date Information
 		IssueDate:      m.IssueDate,
