@@ -122,11 +122,7 @@ func (c *Controller) HandleCheckInstitutionIsActive(request map[string]string) e
 
 func (c *Controller) HandleInstitutionsLogin(request InstitutionLoginRequest) entity.Response {
 
-	hashedPassword, _, er := common.HashData(request.Password)
-	if er != nil {
-		return common.HandleErrorResponse(500, err.ErrVerifyingInstituteString, er)
-	}
-	userID, createdAt, er := c.useCase.VerifyUserLoginUseCase(request.Email, hashedPassword, enum.INSTITUTE)
+	userID, createdAt, er := c.useCase.VerifyUserLoginUseCase(request.Email, request.Password, enum.INSTITUTE)
 
 	if er != nil {
 		return common.HandleErrorResponse(401, err.ErrVerifyingInstituteString, er)
@@ -153,4 +149,22 @@ func (c *Controller) HandleGetFacultiesForInstitutionID(request map[string]strin
 	}
 	return common.HandleSuccessResponse(faculties)
 
+}
+
+func (c *Controller) HandleDeleteUserAccountByID(request map[string]string) entity.Response {
+	requestMap, er := common.CheckMapKeysReturnValues(request, DeleteUserAccountByIDQuery)
+
+	userID := requestMap[UserID]
+	if er != nil {
+		return common.HandleErrorResponse(400, err.ErrParsingQueryParametersString, er)
+	}
+
+	id, er := c.useCase.DeleteUserByUserIDUseCase(userID)
+	if er != nil {
+		return common.HandleErrorResponse(500, er.Error(), er)
+	}
+	return common.HandleSuccessResponse(DeleteUserAccountByIDResponseDto{
+		UserID:  id,
+		Message: "User account deleted successfully",
+	})
 }

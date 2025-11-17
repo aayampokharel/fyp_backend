@@ -7,10 +7,16 @@ type AdminLoginRequest struct {
 	Password   string `json:"password"`
 }
 
+type UpdateInstitutionActiveDto struct {
+	InstitutionID string `json:"institution_id"`
+	IsActive      bool   `json:"is_active"`
+}
 type AdminLoginResponse struct {
-	UserID          string               `json:"user_id"`
-	CreatedAt       string               `json:"created_at"`
-	InstitutionList []entity.Institution `json:"institution_list"`
+	UserID                     string                            `json:"user_id"`
+	CreatedAt                  string                            `json:"created_at"`
+	InstitutionList            []entity.Institution              `json:"institution_list"`
+	AdminDashboardCountDetails entity.AdminDashboardCountsEntity `json:"admin_dashboard_count_details"`
+	PendingInstitutions        []entity.Institution              `json:"pending_institutions"`
 
 	////many more nested maps
 }

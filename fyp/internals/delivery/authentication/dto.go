@@ -91,9 +91,16 @@ func (c *CreateInstitutionRequest) ToEntity() entity.Institution {
 
 type CheckInstitutionIsActiveDto []string
 type GetInstitutionFacultiesDto []string
+type DeleteUserAccountByIDDto []string
+type DeleteUserAccountByIDResponseDto struct {
+	UserID  string `json:"user_id"`
+	Message string `json:"message"`
+}
 
 const InstitutionID = "institution_id"
+const UserID = "user_id"
 
+var DeleteUserAccountByIDQuery = DeleteUserAccountByIDDto{UserID}
 var CheckInstitutionIsActiveQuery = CheckInstitutionIsActiveDto{InstitutionID}
 var GetInstitutionFacultiesQuery = GetInstitutionFacultiesDto{InstitutionID}
 
