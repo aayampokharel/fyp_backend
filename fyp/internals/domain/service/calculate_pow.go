@@ -27,7 +27,9 @@ func (s *Service) CalculatePOW(powParams entity.PowStructure, powRuleString stri
 		if err != nil {
 			return -1, "", err
 		}
+		//s.Logger.Debug("[hash_value]::", hashedVal)
 		if hashedVal[:powRuleLengthString] == powRuleString {
+			// s.Logger.Debug("[hash_value]:: solved puzzle::", hashedVal)
 			return nonce, hashedVal, nil
 		}
 

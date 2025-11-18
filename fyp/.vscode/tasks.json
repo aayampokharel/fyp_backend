@@ -32,11 +32,22 @@
             "problemMatcher": []
         },
         {
+            "label": "Start Server 8003",
+            "type": "shell",
+            "command": "./start_server_8003.sh",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "Start All Servers",
             "dependsOn": [
                 "Start Server 8000",
                 "Start Server 8001",
-                "Start Server 8002"
+                "Start Server 8002",
+                "Start Server 8003"
             ],
             "dependsOrder": "parallel"
         }

@@ -147,3 +147,6 @@ func (uc *SqlUseCase) DeleteUserByUserIDUseCase(userID string) (string, error) {
 func (uc *SqlUseCase) InsertBlockWithFullCertificates(blockHeader entity.Header, certificates [4]entity.CertificateData) error {
 	return uc.SqlRepo.InsertBlockWithAllCertificates(blockHeader, certificates)
 }
+func (uc *SqlUseCase) GetInstitutionNameAndUniversityNameFromInstitutionIDAndFacultyIDUseCase(institutionID, facultyID string) (string, string, error) {
+	return uc.SqlRepo.GetInstitutionNameAndUniversityNameFromInstitutionIDAndFacultyID(institutionID, facultyID)
+}

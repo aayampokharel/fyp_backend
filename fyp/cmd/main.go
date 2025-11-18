@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"project/constants"
 	"project/internals/data/config"
@@ -32,7 +33,7 @@ func main() {
 	logger.InitLogger()
 	flag.Parse()
 	// fmt.Println("Private key:", *common.GetPrivatekey())
-
+	pbftMutex := &sync.Mutex{}
 	currentPort := common.GetPort()
 	tcpPort := *currentPort + 1000
 	pbftTcpPort := *currentPort + 1500
@@ -80,7 +81,7 @@ func main() {
 	sseUseCase := usecase.NewSSEUseCase(sqlSource, sseService)
 	sseModule := sse.NewModule(sqlSource, sseService, sseUseCase)
 	adminModule := admin.NewModule(sqlSource, *svc, sseService)
-	fileHandlingModule := filehandling.NewModule(*svc, memSource, nodeSource, pbftTcpPort, countPrepareMap, countCommitMap, &operationCounter, sqlSource, *pbftService, operationChannelMap, env)
+	fileHandlingModule := filehandling.NewModule(*svc, memSource, nodeSource, pbftTcpPort, countPrepareMap, countCommitMap, &operationCounter, sqlSource, *pbftService, operationChannelMap, env, pbftMutex)
 	categoryModule := category.NewModule(sqlSource, *svc)
 
 	// -------------------------------
@@ -111,7 +112,7 @@ func main() {
 	// 7️⃣ Initialize Use Cases
 	// -------------------------------
 	blockChainUseCase := usecase.NewBlockChainUseCase(memSource, nodeSource, sqlSource, *svc)
-	pbftUseCase := usecase.NewPBFTUseCase(*svc, sqlSource, nodeSource, countPrepareMap, countCommitMap, &operationCounter, *pbftService, memSource, operationChannelMap)
+	pbftUseCase := usecase.NewPBFTUseCase(*svc, sqlSource, nodeSource, countPrepareMap, countCommitMap, &operationCounter, *pbftService, memSource, operationChannelMap, pbftMutex)
 
 	// -------------------------------
 	// 8️⃣ Start background goroutines
