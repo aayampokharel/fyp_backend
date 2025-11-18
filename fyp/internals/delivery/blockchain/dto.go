@@ -78,6 +78,12 @@ type MinimalCertificateData struct {
 	//CreatedAt time.Time `json:"created_at"`
 }
 
+type GetRandomDataInsertionRequest []string
+
+const RandomID = "random_id"
+
+var GetAllPendingInstitutionsQuery = GetRandomDataInsertionRequest{RandomID}
+
 type CreateCertificateDataRequest struct {
 	InstitutionID          string                   `json:"institution_id"`
 	InstitutionFacultyID   string                   `json:"institution_faculty_id"`

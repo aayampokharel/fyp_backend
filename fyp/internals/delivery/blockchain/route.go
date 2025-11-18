@@ -7,22 +7,6 @@ import (
 	"project/package/utils/common"
 )
 
-// mux.HandleFunc("/certificates", func(w http.ResponseWriter, r *http.Request) {
-// 	if r.Method != http.MethodPost {
-// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-// 		return
-// 	}
-
-// 	blocks, err := module.Controller.InsertNewCertificateData()
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	w.Header().Set("Content-Type", "application/json")
-// 	json.NewEncoder(w).Encode(blocks)
-// })
-
 func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 	var prefix = "/blockchain"
 
@@ -36,6 +20,18 @@ func RegisterRoutes(mux *http.ServeMux, module *Module) []common.RouteWrapper {
 			RequestDataTypeInstance: CreateCertificateDataRequest{},
 			InnerFunc: func(i interface{}) entity.Response {
 				return module.Controller.InsertNewCertificateData(i.(CreateCertificateDataRequest))
+			},
+		},
+		// GET /blockchain/certificates/fake?random_id=123
+		{
+			Mux:                     mux,
+			Prefix:                  prefix,
+			Route:                   "/certificates/fake",
+			Method:                  enum.METHODGET,
+			RequestDataTypeInstance: nil,
+			URLQueries:              GetAllPendingInstitutionsQuery,
+			InnerFunc: func(i interface{}) entity.Response {
+				return module.Controller.InsertFakeCertificateData(i.(map[string]string))
 			},
 		},
 		// GET /blockchain/certificate-batch?institution_id=_____&institution_faculty_id=_____&category_id=_____

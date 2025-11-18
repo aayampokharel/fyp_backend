@@ -237,7 +237,7 @@ func (n *PBFTUseCase) SendPBFTMessageToPeer(pbftMessage entity.PBFTMessage, curr
 						n.Service.Logger.Infow("[pbft][COMMIT] successfully delivered execution result", "operation_id", pbftMessage.OperationID)
 
 					case <-time.After(3 * time.Second):
-						n.Service.Logger.Warnw("[pbft][COMMIT] timeout sending execution result to channel", "operation_id", pbftMessage.OperationID)
+						n.Service.Logger.Infow("[pbft][COMMIT] timeout sending execution result to channel", "operation_id", pbftMessage.OperationID)
 
 					}
 				}()

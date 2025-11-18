@@ -102,22 +102,6 @@ func (c *Controller) InsertNewCertificateData(request CreateCertificateDataReque
 				return common.HandleErrorResponse(500, er.Error(), er)
 			}
 		}
-		// c.useCase.SqlRepo.InsertPDFFile(entity.PDFFileEntity{
-		// 	FileID:     common.GenerateUUID(16),
-		// 	CategoryID: insertedpdfFileCategory.CategoryID,
-		// 	FileName:   certificateData.FileName,
-		// 	PDFData:    certificateData.PDFData,
-		// })
-		// blockchain, _ := c.useCase.BlockChainRepo.GetBlockChain()
-
-		// basicStudentInfoDto = append(basicStudentInfoDto, BasicStudentInfoDto{
-		// 	StudentID:   certificateData.StudentID,
-		// 	StudentName: certificateData.StudentName,
-		// 	FileID:      fileID,
-		// 	FileName:    pdfEntityWithoutData.FileName,
-		// 	FacultyName: request.InstitutionFacultyName,
-		// })
-
 	}
 	return common.HandleSuccessResponse(CreateAllCertificateResponse{
 		Message: "All Certificates Inserted Successfully",
@@ -137,4 +121,42 @@ func (c *Controller) GetCertificateDataList(request map[string]string) entity.Re
 		return common.HandleErrorResponse(500, er.Error(), er)
 	}
 	return common.HandleSuccessResponse(certificates)
+}
+
+func (c *Controller) InsertFakeCertificateData(request map[string]string) entity.Response {
+	blockChainLength := c.useCase.GetBlockChainLength()
+	if blockChainLength == 0 {
+		if er := c.useCase.InsertGenesisBlock(); er != nil {
+			log.Println(er)
+			return common.HandleErrorResponse(500, er.Error(), er)
+		}
+	}
+
+	certificateData, er := c.useCase.GetCertificateData()
+	if er != nil {
+		return common.HandleErrorResponse(500, er.Error(), er)
+	}
+
+	latestBlockFromChain, newBlock, latestBlockFromChainCertificateLength, newBlockCertificateLength, er := c.useCase.CompleteBlockFromCertificate(certificateData)
+	if er != nil {
+		log.Println(er)
+		return common.HandleErrorResponse(500, er.Error(), er)
+	}
+
+	var strNodeInfoMap map[int]string
+	strNodeInfoMap, er = c.useCase.BroadcastNewBlock(newBlock)
+	if er != nil {
+		log.Println(er)
+		return common.HandleErrorResponse(500, er.Error(), er)
+	}
+	log.Println("Acknowledgement from nodes: ", strNodeInfoMap)
+
+	if er = c.useCase.UpsertBlockChain(*latestBlockFromChain, *newBlock, latestBlockFromChainCertificateLength, newBlockCertificateLength); er != nil {
+		log.Println(er)
+		return common.HandleErrorResponse(500, er.Error(), er)
+	}
+
+	return common.HandleSuccessResponse(CreateAllCertificateResponse{
+		Message: "1 Fake Data Inserted Successfully",
+	})
 }
